@@ -1,5 +1,5 @@
 package com.eva.locafesta.locador;
 
-public class LocadorController {
+public class PerfilLocadorDTO {
 
 }

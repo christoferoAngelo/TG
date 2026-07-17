@@ -1,54 +1,58 @@
 package com.eva.locafesta.usuario;
 
-
+import com.eva.locafesta.locador.PerfilLocadorRepository;
+import com.eva.locafesta.locatario.PerfilLocatarioRepository;
 import com.eva.locafesta.usuario.dto.UsuarioCreateDTO;
-import com.eva.locafesta.usuario.Usuario;
-import com.eva.locafesta.usuario.UsuarioRepository;
+import com.eva.locafesta.usuario.dto.UsuarioDTO;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Optional;
 
 @Service
 public class UsuarioService {
 
     @Autowired
-    private UsuarioRepository userRepository;
+    private UsuarioRepository usuarioRepository;
 
-    /**
-     * Regista ou atualiza um utilizador no MySQL após validação com o Firebase.
-     */
+    @Autowired
+    private PerfilLocadorRepository perfilLocadorRepository;
+
+    @Autowired
+    private PerfilLocatarioRepository perfilLocatarioRepository;
+
     @Transactional
-    public Usuario registrarUsuario(UsuarioCreateDTO dto) {
-        // Verifica se o email já existe na nossa base de dados MySQL
-        Optional<Usuario> usuarioExistente = userRepository.findByEmail(dto.getEmail());
-        if (usuarioExistente.isPresent()) {
-            throw new RuntimeException("Este email já se encontra registado no sistema.");
-        }
+    public UsuarioDTO cadastrarUsuario(UsuarioCreateDTO dto) {
+        // 1. Instancia a entidade real e passa os dados do seu UsuarioCreateDTO
+        Usuario usuario = new Usuario();
+        usuario.setFirebaseUid(dto.getFirebaseUid());
+        usuario.setNome(dto.getNome());
+        usuario.setEmail(dto.getEmail());
+        usuario.setTelefone(dto.getTelefone());
 
-        // Verifica se o UID do Firebase já existe
-        Optional<Usuario> uidExistente = userRepository.findByFirebaseUid(dto.getFirebaseUid());
-        if (uidExistente.isPresent()) {
-            throw new RuntimeException("Este UID do Firebase já está associado a uma conta.");
-        }
+        // 2. Salva o usuário base no MySQL
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
 
-        // Cria a nova entidade User a partir do DTO
-        Usuario novoUsuario = new Usuario();
-        novoUsuario.setFirebaseUid(dto.getFirebaseUid());
-        novoUsuario.setNome(dto.getNome());
-        novoUsuario.setEmail(dto.getEmail());
-        novoUsuario.setTelefone(dto.getTelefone());
-        novoUsuario.setStatusConta("ATIVO");
+        // 3. Verifica nos outros repositórios se já existe perfil criado para este ID
+        // (No momento do primeiro cadastro do React vai dar false para os dois, o que está correto!)
+        boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
+        boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
 
-        return userRepository.save(novoUsuario);
+        // 4. Retorna usando o construtor exato que você criou no seu UsuarioDTO
+        return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
     }
-
-    /**
-     * Procura um utilizador através do UID único do Firebase.
-     * Útil para o frontend verificar se o perfil já existe no MySQL após o login.
-     */
+    
+    // Dica extra: Você vai precisar de um método de busca para quando o usuário logar de novo
     @Transactional(readOnly = true)
-    public Optional<Usuario> buscarPorFirebaseUid(String firebaseUid) {
-        return userRepository.findByFirebaseUid(firebaseUid);
+    public UsuarioDTO buscarPorFirebaseUid(String firebaseUid) {
+        Usuario usuario = usuarioRepository.findByFirebaseUid(firebaseUid)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
+
+        boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuario.getId());
+        boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuario.getId());
+
+        return new UsuarioDTO(usuario, isLocatario, isLocador);
     }
 }

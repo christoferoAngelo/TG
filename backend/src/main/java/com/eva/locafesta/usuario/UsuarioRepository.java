@@ -12,4 +12,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     
     // Método para verificar se um email já está registado no sistema antes de criar uma nova conta
     Optional<Usuario> findByEmail(String email);
+    boolean existsByUsuarioId(Long usuarioId);
+
 }

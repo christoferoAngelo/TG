@@ -1,5 +1,5 @@
 package com.eva.locafesta.locatario;
 
-public class LocatarioEntity {
+public class PerfilLocatarioDTO {
 
 }
