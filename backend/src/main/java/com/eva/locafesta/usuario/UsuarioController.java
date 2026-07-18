@@ -28,10 +28,14 @@ public class UsuarioController {
      */
     
     @GetMapping("/{firebaseUid}")
-    public ResponseEntity<UsuarioDTO> buscarPorUid(@PathVariable String firebaseUid) {
-        // Se não encontrar, o próprio Service joga a exceção e interrompe o fluxo
-        UsuarioDTO usuarioDTO = usuarioService.buscarPorFirebaseUid(firebaseUid);
-        return ResponseEntity.ok(usuarioDTO);
+    public ResponseEntity<?> buscarPorUid(@PathVariable String firebaseUid) {
+        try {
+            // Tenta buscar o usuário
+            UsuarioDTO usuarioDTO = usuarioService.buscarPorFirebaseUid(firebaseUid);
+            return ResponseEntity.ok(usuarioDTO);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
     
     @PostMapping
