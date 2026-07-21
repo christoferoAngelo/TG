@@ -32,7 +32,9 @@ public class SecurityConfig {
                         "/api/users/**", 
                         "/api/locadores", 
                         "/api/locadores/**", 
-                        "/error"
+                        "/api/locatarios", 
+                        "/api/locatarios/**", 
+                        "/error" 
                     ).permitAll() 
                     
                     // Qualquer outra rota precisa de autenticação

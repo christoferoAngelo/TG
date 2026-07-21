@@ -5,6 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.eva.locafesta.locador.PerfilLocadorDTO;
+
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/locatarios")
 @CrossOrigin(origins = "*")
@@ -13,11 +17,11 @@ public class PerfilLocatarioController {
     @Autowired
     private PerfilLocatarioService service;
 
-    // POST http://localhost:8080/api/locatarios/{usuarioId}?cpf=12345678900
-    @PostMapping("/{usuarioId}")
-    public ResponseEntity<?> criarPerfil(@PathVariable Long usuarioId, @RequestParam String cpf) {
+    // CREATE - POST http://localhost:8080/api/locatarios
+    @PostMapping
+    public ResponseEntity<?> criarPerfil(@Valid @RequestBody PerfilLocatarioDTO dto) {
         try {
-            PerfilLocatario novoPerfil = service.criarPerfil(usuarioId, cpf);
+            PerfilLocatarioDTO novoPerfil = service.criarPerfil(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(novoPerfil);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

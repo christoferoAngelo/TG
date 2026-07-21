@@ -7,6 +7,6 @@ import java.util.Optional;
 @Repository
 public interface PerfilLocatarioRepository extends JpaRepository<PerfilLocatario, Long> {
     Optional<PerfilLocatario> findByUsuarioId(Long usuarioId);
-    boolean existsByCpf(String cpf);
     boolean existsByUsuarioId(Long usuarioId);
+	boolean existsByDocumento(String documento);
 }

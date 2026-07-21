@@ -15,6 +15,7 @@ public class PerfilLocadorDTO {
     private String nomeFantasia;
 
     private Long usuarioId;
+    
 
     public PerfilLocadorDTO() {
     }

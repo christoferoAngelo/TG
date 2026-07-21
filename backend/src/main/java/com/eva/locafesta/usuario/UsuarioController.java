@@ -1,5 +1,6 @@
 package com.eva.locafesta.usuario;
 
+import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.usuario.dto.UsuarioCreateDTO;
 import com.eva.locafesta.usuario.dto.UsuarioDTO;
 
@@ -11,26 +12,15 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*") // Permite que o seu frontend React (mesmo rodando em portas diferentes como 5173 ou 3000) consiga aceder à API
+@CrossOrigin(origins = "*") 
 public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
 
-    /**
-     * Endpoint para criar um utilizador no MySQL.
-     * POST http://localhost:8080/api/users
-     */
-
-    /**
-     * Endpoint para procurar o perfil no MySQL através do UID do Firebase.
-     * GET http://localhost:8080/api/users/{firebaseUid}
-     */
-    
     @GetMapping("/{firebaseUid}")
     public ResponseEntity<?> buscarPorUid(@PathVariable String firebaseUid) {
         try {
-            // Tenta buscar o usuário
             UsuarioDTO usuarioDTO = usuarioService.buscarPorFirebaseUid(firebaseUid);
             return ResponseEntity.ok(usuarioDTO);
         } catch (RuntimeException e) {
@@ -40,10 +30,23 @@ public class UsuarioController {
     
     @PostMapping
     public ResponseEntity<UsuarioDTO> cadastrar(@RequestBody @Valid UsuarioCreateDTO dto) {
-        // Chama o service que faz a persistência e a checagem dos perfis
         UsuarioDTO usuarioDTO = usuarioService.cadastrarUsuario(dto);
-        
-        // Devolve o HTTP 201 (Created) com o seu UsuarioDTO completo no corpo
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioDTO);
+    }
+
+    // =========================================================================
+    // NOVO ENDPOINT: SALVAR OU ATUALIZAR O ENDEREÇO DO USUÁRIO
+    // PUT http://localhost:8080/api/users/{idUsuario}/endereco
+    // =========================================================================
+    @PutMapping("/{id}/endereco")
+    public ResponseEntity<?> salvarOuAtualizarEndereco(
+            @PathVariable Long id, 
+            @RequestBody @Valid EnderecoDTO enderecoDTO) {
+        try {
+            UsuarioDTO usuarioAtualizado = usuarioService.atualizarEndereco(id, enderecoDTO);
+            return ResponseEntity.ok(usuarioAtualizado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }
