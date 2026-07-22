@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import Auth from "./login/auth";
 import Dashboard from "./login/Dashboard";
+// Atenção: Lembre-se de ajustar este caminho import para a pasta real de onde você salvou o arquivo
+import CadastroLocador from "./login/CadastroLocador"; 
 
 /**
  * Componente Wrapper para proteger rotas privadas.
@@ -32,7 +34,7 @@ export default function AppRoutes() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Rota de Login: se o usuário já estiver logado, redireciona direto para o Dashboard */}
+                {/* Rota de Login */}
                 <Route 
                     path="/login" 
                     element={usuarioLogado ? <Navigate to="/dashboard" replace /> : <Auth />} 
@@ -47,6 +49,17 @@ export default function AppRoutes() {
                         </RouteProtegida>
                     } 
                 />
+
+                {/* --- AQUI ENTRA A NOVA ROTA PROTEGIDA --- */}
+                <Route 
+                    path="/cadastro-locador" 
+                    element={
+                        <RouteProtegida>
+                            <CadastroLocador />
+                        </RouteProtegida>
+                    } 
+                />
+                {/* --------------------------------------- */}
 
                 {/* Qualquer rota inválida redireciona para o lugar correto baseado no login */}
                 <Route 

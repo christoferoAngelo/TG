@@ -1,8 +1,10 @@
 import React from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
     const { usuarioLogado, logout } = useAuth();
+    const navigate = useNavigate();
 
     // Funções placeholder para quando o usuário clicar nos botões de virar locador/locatário
     // Mais pra frente, você vai trocar isso para abrir um modal ou ir para uma tela de cadastro de CPF/CNPJ
@@ -11,7 +13,7 @@ export default function Dashboard() {
     };
 
     const handleVirarLocador = () => {
-        alert("Em breve: Aqui vamos abrir o modal para cadastrar CNPJ/CPF e o nome da empresa de festas!");
+        navigate("/cadastro-locador");
     };
 
     return (
