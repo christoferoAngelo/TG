@@ -30,6 +30,9 @@ public class Usuario {
     @CreationTimestamp
     @Column(name = "data_cadastro", updatable = false)
     private LocalDateTime dataCadastro;
+    
+    @Column(name = "data_ativo")
+    private LocalDateTime dataAtivo;
 
     @Column(name = "status_conta")
     private String statusConta = "ATIVO"; // Estados possíveis: ATIVO, INATIVO, SUSPENSO
@@ -39,6 +42,7 @@ public class Usuario {
     
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Endereco endereco;
+    
 
     // Construtor padrão obrigatório pelo JPA
     public Usuario() {
@@ -46,12 +50,8 @@ public class Usuario {
     
     
 
-   
-
-
-    
     public Usuario(Long id, String firebaseUid, String nome, String email, String telefone, LocalDateTime dataCadastro,
-			String statusConta, Integer nota, Endereco endereco) {
+			LocalDateTime dataAtivo, String statusConta, Integer nota, Endereco endereco) {
 		super();
 		this.id = id;
 		this.firebaseUid = firebaseUid;
@@ -59,16 +59,33 @@ public class Usuario {
 		this.email = email;
 		this.telefone = telefone;
 		this.dataCadastro = dataCadastro;
+		this.dataAtivo = dataAtivo;
 		this.statusConta = statusConta;
 		this.nota = nota;
 		this.endereco = endereco;
 	}
 
 
-    // Getters e Setters
 
+    
+
+    //Getters e setters
+    
+    
 	public Endereco getEndereco() { return endereco; }
-    public void setEndereco(Endereco endereco) { 
+    public LocalDateTime getDataAtivo() {
+		return dataAtivo;
+	}
+
+
+
+	public void setDataAtivo(LocalDateTime dataAtivo) {
+		this.dataAtivo = dataAtivo;
+	}
+
+
+
+	public void setEndereco(Endereco endereco) { 
         this.endereco = endereco; 
         if (endereco != null) {
             endereco.setUsuario(this); // Mantém a consistência bidirecional

@@ -31,14 +31,14 @@ public class PerfilLocatarioService {
     @Transactional
     public PerfilLocatarioDTO criarPerfil(PerfilLocatarioDTO dto) {
         if (locatarioRepository.existsByDocumento(dto.getDocumento())) {
-            throw new RuntimeException("Este CPF/CNPJ já está cadastrado como locador.");
+            throw new RuntimeException("Este CPF/CNPJ já está cadastrado como locatario.");
         }
 
         Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 
         if (locatarioRepository.existsByUsuarioId(dto.getUsuarioId())) {
-            throw new RuntimeException("Este usuário já possui um perfil de locador.");
+            throw new RuntimeException("Este usuário já possui um perfil de locatario.");
         }
 
         PerfilLocatario perfil = new PerfilLocatario(dto.getDocumento(), usuario);
@@ -50,14 +50,14 @@ public class PerfilLocatarioService {
     // READ - Buscar por ID do Perfil
     public PerfilLocatarioDTO buscarPorId(Long id) {
     	PerfilLocatario perfil = locatarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado."));
+                .orElseThrow(() -> new RuntimeException("Perfil de locatario não encontrado."));
         return converterParaDTO(perfil);
     }
 
     // READ - Buscar por ID do Usuário
     public PerfilLocatarioDTO buscarPorUsuarioId(Long usuarioId) {
     	PerfilLocatario perfil = locatarioRepository.findByUsuarioId(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado para este usuário."));
+                .orElseThrow(() -> new RuntimeException("Perfil de locatario não encontrado para este usuário."));
         return converterParaDTO(perfil);
     }
 
@@ -72,9 +72,9 @@ public class PerfilLocatarioService {
     @Transactional
     public PerfilLocatarioDTO atualizarPerfil(Long id, PerfilLocatarioDTO dto) {
     	PerfilLocatario perfil = locatarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado."));
+                .orElseThrow(() -> new RuntimeException("Perfil de locatario não encontrado."));
 
-        // Verifica se o locador está tentando mudar para um documento que já existe em outra conta
+        // Verifica se o locatario está tentando mudar para um documento que já existe em outra conta
         if (!perfil.getDocumento().equals(dto.getDocumento()) && locatarioRepository.existsByDocumento(dto.getDocumento())) {
             throw new RuntimeException("Este CPF/CNPJ já está cadastrado em outro perfil.");
         }

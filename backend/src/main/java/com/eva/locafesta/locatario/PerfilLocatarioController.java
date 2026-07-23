@@ -27,4 +27,14 @@ public class PerfilLocatarioController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+    
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<?> buscarPorUsuarioId(@PathVariable Long usuarioId) {
+        try {
+            PerfilLocatarioDTO dto = service.buscarPorUsuarioId(usuarioId);
+            return ResponseEntity.ok(dto);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
 }

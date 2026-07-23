@@ -49,4 +49,30 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+    
+    @PatchMapping("/{id}/ativo")
+    public ResponseEntity<Void> pingAtividade(@PathVariable Long id) {
+        usuarioService.atualizarDataAtivo(id);
+        
+        // Retorna 204 No Content (Significa: "Deu certo, mas não tenho nenhum JSON pra te devolver")
+        // Isso é perfeito e super leve para requisições de background (pings)
+        return ResponseEntity.noContent().build(); 
+    }
+    
+    // =========================================================================
+    // NOVO ENDPOINT: ATUALIZAR O TELEFONE DO USUÁRIO
+    // PUT http://localhost:8080/api/users/{id}/telefone
+    // =========================================================================
+    @PutMapping("/{id}/telefone")
+    public ResponseEntity<?> atualizarTelefone(
+            @PathVariable Long id, 
+            @RequestBody java.util.Map<String, String> payload) {
+        try {
+            String telefone = payload.get("telefone");
+            UsuarioDTO usuarioAtualizado = usuarioService.atualizarTelefone(id, telefone);
+            return ResponseEntity.ok(usuarioAtualizado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 }

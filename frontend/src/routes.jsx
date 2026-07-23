@@ -2,9 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import Auth from "./login/auth";
-import Dashboard from "./login/Dashboard";
-// Atenção: Lembre-se de ajustar este caminho import para a pasta real de onde você salvou o arquivo
-import CadastroLocador from "./login/CadastroLocador"; 
+import Dashboard from "./Dashboard/Dashboard";
 
 /**
  * Componente Wrapper para proteger rotas privadas.

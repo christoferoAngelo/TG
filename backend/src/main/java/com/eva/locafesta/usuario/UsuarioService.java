@@ -1,6 +1,5 @@
 package com.eva.locafesta.usuario;
 
-import com.eva.locafesta.documento.DocumentoDTO;
 import com.eva.locafesta.endereco.Endereco;
 import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.locador.PerfilLocadorRepository;
@@ -9,6 +8,8 @@ import com.eva.locafesta.usuario.dto.UsuarioCreateDTO;
 import com.eva.locafesta.usuario.dto.UsuarioDTO;
 
 import jakarta.persistence.EntityNotFoundException;
+
+import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -95,6 +96,7 @@ public class UsuarioService {
         endereco.setCidade(dto.getCidade());
         endereco.setEstado(dto.getEstado());
         
+        
         // As coordenadas de geolocalização para busca futura
         endereco.setLatitude(dto.getLatitude());
         endereco.setLongitude(dto.getLongitude());
@@ -112,5 +114,37 @@ public class UsuarioService {
         return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
     }
     
+    // Importe o LocalDateTime se ainda não estiver importado no topo do arquivo
+    // import java.time.LocalDateTime;
+
+    @Transactional
+    public void atualizarDataAtivo(Long usuarioId) {
+        // 1. Busca o usuário pelo ID
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado para atualizar atividade."));
+        
+        // 2. Atualiza o campo com a data e hora atuais do servidor
+        usuario.setDataAtivo(LocalDateTime.now());
+        
+        // 3. Salva no banco
+        usuarioRepository.save(usuario);
+    }
+    
+    @Transactional
+    public UsuarioDTO atualizarTelefone(Long usuarioId, String telefone) {
+        // 1. Busca o usuário pelo ID do MySQL
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+
+        // 2. Atualiza o telefone
+        usuario.setTelefone(telefone);
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
+        // 3. Retorna o DTO atualizado
+        boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
+        boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+
+        return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+    }
    
 }
