@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import Auth from "./login/auth";
-import Dashboard from "./login/Dashboard";
+import Dashboard from "./Dashboard/Dashboard";
 
 /**
  * Componente Wrapper para proteger rotas privadas.

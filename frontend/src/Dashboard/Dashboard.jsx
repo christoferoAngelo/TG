@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import "./Dashboard.css";
 
 export default function Dashboard() {
     const { usuarioLogado, logout, atualizarUsuario } = useAuth();
@@ -31,7 +32,10 @@ export default function Dashboard() {
 
     // Estados dos Formulários
     const [formLocador, setFormLocador] = useState({ documento: "", nomeFantasia: "" });
-    const [formLocatario, setFormLocatario] = useState({ cpf: "" });
+    const [formLocatario, setFormLocatario] = useState({ 
+    cpf: "", 
+    telefone: usuarioLogado?.telefone || "" 
+    });
     const [formEndereco, setFormEndereco] = useState({
         cep: usuarioLogado?.endereco?.cep || "",
         logradouro: usuarioLogado?.endereco?.logradouro || "",
@@ -50,6 +54,50 @@ export default function Dashboard() {
 
     const contaCompleta = temDocumento && temTelefone && temEndereco;
     // --- MÉTODOS DE AÇÃO DO BACKEND ---
+
+    // Cadastrar / Virar Locatário
+    const handleSalvarLocatario = async (e) => {
+        e.preventDefault();
+        setCarregando(true);
+        try {
+            // 1. Salva ou atualiza o telefone do usuário na entidade Usuario
+            if (formLocatario.telefone !== usuarioLogado?.telefone) {
+                await fetch(`http://localhost:8080/api/users/${usuarioLogado.id}/telefone`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ telefone: formLocatario.telefone })
+                });
+            }
+
+            // 2. Cria o perfil de Locatário (CPF)
+            const response = await fetch("http://localhost:8080/api/locatarios", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    documento: formLocatario.cpf,
+                    usuarioId: usuarioLogado.id
+                })
+            });
+
+            if (!response.ok) {
+                const erro = await response.text();
+                throw new Error(erro || "Falha ao cadastrar perfil de locatário.");
+            }
+
+            const novoPerfil = await response.json();
+            setPerfilLocatario(novoPerfil); // Atualiza o perfil na tela imediatamente
+
+            // 3. Exibe a mensagem de sucesso solicitada
+            alert("Conta de locatário criada com sucesso!");
+            
+            setModalAberto(null);
+            if (atualizarUsuario) await atualizarUsuario(); // Atualiza o contexto do usuário
+        } catch (err) {
+            alert("Erro: " + err.message);
+        } finally {
+            setCarregando(false);
+        }
+    };
 
     // Cadastrar / Virar Locador (Opção 2)
     const handleSalvarLocador = async (e) => {
@@ -131,38 +179,38 @@ export default function Dashboard() {
     };
 
     return (
-        <div style={styles.dashboard}>
-            <header style={styles.header}>
-                <h2 style={styles.logo}>LocaFesta</h2>
-                <div style={styles.userMenu}>
+        <div className="dashboard">
+            <header className="header">
+                <h2 className="logo">LocaFesta</h2>
+                <div className="user-menu">
                     <span>Olá, <strong>{usuarioLogado?.nome}</strong>!</span>
-                    <button onClick={logout} style={styles.logoutBtn}>Sair</button>
+                    <button onClick={logout} className="logout-btn">Sair</button>
                 </div>
             </header>
 
-            <main style={styles.main}>
+            <main className="main">
                 <h3>Painel do Cliente</h3>
                 <p>Seja bem-vindo ao seu painel de locações de espaços para eventos.</p>
 
                 {/* --- CARD 1: STATUS DE VERIFICAÇÃO DA CONTA --- */}
-                <div style={styles.card}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <h4 style={{ margin: 0, color: "#374151" }}>Status do Cadastro</h4>
-                        <span style={contaCompleta ? styles.badgeSucesso : styles.badgeAviso}>
+                <div className="card">
+                    <div className="card-header">
+                        <h4 className="card-title">Status do Cadastro</h4>
+                        <span className={contaCompleta ? "badge badge-sucesso" : "badge badge-aviso"}>
                             {contaCompleta ? "✓ Conta Verificada" : "⚠ Conta Incompleta"}
                         </span>
                     </div>
 
-                    <div style={styles.statusGrid}>
-                        <div style={styles.statusItem}>
+                    <div className="status-grid">
+                        <div className="status-item">
                             <span>Identificação (CPF/CNPJ):</span>
                             <strong>{temDocumento ? " Cadastrado" : " Pendente"}</strong>
                         </div>
-                        <div style={styles.statusItem}>
+                        <div className="status-item">
                             <span>Telefone de Contato:</span>
                             <strong>{temTelefone ? " Cadastrado" : " Pendente"}</strong>
                         </div>
-                        <div style={styles.statusItem}>
+                        <div className="status-item">
                             <span>Endereço Residencial:</span>
                             <strong>{temEndereco ? " Cadastrado" : " Pendente"}</strong>
                         </div>
@@ -170,43 +218,43 @@ export default function Dashboard() {
                 </div>
 
                 {/* --- CARD 2: STATUS DE PERFIS E ANÚNCIOS --- */}
-                <div style={styles.card}>
-                    <h4 style={{ margin: "0 0 15px 0", color: "#374151" }}>Meus Perfis na Plataforma:</h4>
+                <div className="card">
+                    <h4 className="card-title card-title-spaced">Meus Perfis na Plataforma:</h4>
 
                     {/* Perfil de Locatário */}
-                    <div style={styles.perfilRow}>
+                    <div className="perfil-row">
                         <div>
-                            <strong style={{ display: "block", color: "#1f2937" }}>Perfil de Locatário (Alugar Espaços)</strong>
-                            <span style={{ fontSize: "13px", color: "#6b7280" }}>
+                            <strong className="perfil-title">Perfil de Locatário (Alugar Espaços)</strong>
+                            <span className="perfil-desc">
                                 {usuarioLogado?.isLocatario ? "Você já pode alugar salões para suas festas." : "Necessário para poder alugar salões."}
                             </span>
                         </div>
                         <div>
                             {usuarioLogado?.isLocatario ? (
-                                <span style={styles.badgeAtivo}>Ativo</span>
+                                <span className="badge badge-ativo">Ativo</span>
                             ) : (
-                                <button onClick={() => setModalAberto('locatario')} style={styles.btnAcao}>
+                                <button onClick={() => setModalAberto('locatario')} className="btn btn-acao">
                                     Completar Cadastro (CPF)
                                 </button>
                             )}
                         </div>
                     </div>
 
-                    <hr style={styles.divisor} />
+                    <hr className="divisor" />
 
                     {/* Perfil de Locador */}
-                    <div style={styles.perfilRow}>
+                    <div className="perfil-row">
                         <div>
-                            <strong style={{ display: "block", color: "#1f2937" }}>Perfil de Locador (Anunciar Festas)</strong>
-                            <span style={{ fontSize: "13px", color: "#6b7280" }}>
+                            <strong className="perfil-title">Perfil de Locador (Anunciar Festas)</strong>
+                            <span className="perfil-desc">
                                 {usuarioLogado?.isLocador ? "Você é um anunciante parceiro do LocaFesta!" : "Ganhe dinheiro alugando seu espaço ou salão."}
                             </span>
                         </div>
                         <div>
                             {usuarioLogado?.isLocador ? (
-                                <span style={styles.badgeLocador}>Anunciante Ativo</span>
+                                <span className="badge badge-locador">Anunciante Ativo</span>
                             ) : (
-                                <button onClick={() => setModalAberto('locador')} style={styles.btnDestaque}>
+                                <button onClick={() => setModalAberto('locador')} className="btn btn-destaque">
                                     Quero Anunciar Meu Espaço
                                 </button>
                             )}
@@ -215,29 +263,29 @@ export default function Dashboard() {
                 </div>
 
                 {/* --- CARD 3: DADOS PESSOAIS E ENDEREÇO --- */}
-                <div style={styles.card}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                        <h4 style={{ margin: 0, color: "#374151" }}>Seus Dados Cadastrais:</h4>
-                        <button onClick={() => setModalAberto('endereco')} style={styles.btnLink}>
+                <div className="card">
+                    <div className="card-header card-header-spaced">
+                        <h4 className="card-title">Seus Dados Cadastrais:</h4>
+                        <button onClick={() => setModalAberto('endereco')} className="btn-link">
                             {temEndereco ? "Editar Endereço" : "+ Adicionar Endereço"}
                         </button>
                     </div>
 
-                    <p style={styles.dataLine}><strong>ID Interno:</strong> {usuarioLogado?.id}</p>
-                    <p style={styles.dataLine}><strong>E-mail:</strong> {usuarioLogado?.email}</p>
-                    <p style={styles.dataLine}><strong>Telefone:</strong> {usuarioLogado?.telefone || "Não informado"}</p>
+                    <p className="data-line"><strong>ID Interno:</strong> {usuarioLogado?.id}</p>
+                    <p className="data-line"><strong>E-mail:</strong> {usuarioLogado?.email}</p>
+                    <p className="data-line"><strong>Telefone:</strong> {usuarioLogado?.telefone || "Não informado"}</p>
                     
-                    <hr style={styles.divisor} />
+                    <hr className="divisor" />
                     
-                    <strong style={{ color: "#374151", fontSize: "14px" }}>Endereço Principal:</strong>
+                    <strong className="section-subtitle">Endereço Principal:</strong>
                     {temEndereco ? (
-                        <p style={styles.dataLine}>
+                        <p className="data-line">
                             {usuarioLogado.endereco.logradouro}, Nº {usuarioLogado.endereco.numero} 
                             {usuarioLogado.endereco.complemento ? ` (${usuarioLogado.endereco.complemento})` : ""} - 
                             {usuarioLogado.endereco.bairro}, {usuarioLogado.endereco.cidade}/{usuarioLogado.endereco.estado} - CEP: {usuarioLogado.endereco.cep}
                         </p>
                     ) : (
-                        <p style={{ ...styles.dataLine, color: "#9ca3af", italic: "true" }}>
+                        <p className="data-line data-line-empty">
                             Nenhum endereço residencial cadastrado.
                         </p>
                     )}
@@ -248,13 +296,13 @@ export default function Dashboard() {
 
             {/* MODAL 1: CADASTRAR LOCADOR */}
             {modalAberto === 'locador' && (
-                <div style={styles.modalOverlay}>
-                    <div style={styles.modalContent}>
+                <div className="modal-overlay">
+                    <div className="modal-content">
                         <h3>Tornar-se um Anunciante (Locador)</h3>
-                        <p style={{ fontSize: "14px", color: "#6b7280" }}>Informe os dados para disponibilizar seus espaços para locação.</p>
+                        <p className="modal-desc">Informe os dados para disponibilizar seus espaços para locação.</p>
 
                         <form onSubmit={handleSalvarLocador}>
-                            <div style={styles.inputGroup}>
+                            <div className="input-group">
                                 <label>CPF ou CNPJ do Anunciante:</label>
                                 <input
                                     type="text"
@@ -262,11 +310,11 @@ export default function Dashboard() {
                                     placeholder="000.000.000-00 ou 00.000.000/0001-00"
                                     value={formLocador.documento}
                                     onChange={(e) => setFormLocador({ ...formLocador, documento: e.target.value })}
-                                    style={styles.input}
+                                    className="input"
                                 />
                             </div>
 
-                            <div style={styles.inputGroup}>
+                            <div className="input-group">
                                 <label>Nome Fantasia / Nome do Espaço:</label>
                                 <input
                                     type="text"
@@ -274,13 +322,13 @@ export default function Dashboard() {
                                     placeholder="Ex: Espaço Festa & Cia"
                                     value={formLocador.nomeFantasia}
                                     onChange={(e) => setFormLocador({ ...formLocador, nomeFantasia: e.target.value })}
-                                    style={styles.input}
+                                    className="input"
                                 />
                             </div>
 
-                            <div style={styles.modalActions}>
-                                <button type="button" onClick={() => setModalAberto(null)} style={styles.btnCancelar}>Cancelar</button>
-                                <button type="submit" disabled={carregando} style={styles.btnDestaque}>
+                            <div className="modal-actions">
+                                <button type="button" onClick={() => setModalAberto(null)} className="btn btn-cancelar">Cancelar</button>
+                                <button type="submit" disabled={carregando} className="btn btn-destaque">
                                     {carregando ? "Salvando..." : "Confirmar e Anunciar"}
                                 </button>
                             </div>
@@ -291,13 +339,13 @@ export default function Dashboard() {
 
             {/* MODAL 2: CADASTRAR ENDEREÇO */}
             {modalAberto === 'endereco' && (
-                <div style={styles.modalOverlay}>
-                    <div style={styles.modalContent}>
+                <div className="modal-overlay">
+                    <div className="modal-content">
                         <h3>Endereço Residencial</h3>
-                        <p style={{ fontSize: "14px", color: "#6b7280" }}>Seu endereço é utilizado para indicar opções de festa mais próximas.</p>
+                        <p className="modal-desc">Seu endereço é utilizado para indicar opções de festa mais próximas.</p>
 
                         <form onSubmit={handleSalvarEndereco}>
-                            <div style={styles.inputGroup}>
+                            <div className="input-group">
                                 <label>CEP:</label>
                                 <input
                                     type="text"
@@ -308,66 +356,66 @@ export default function Dashboard() {
                                         setFormEndereco({ ...formEndereco, cep: e.target.value });
                                         handleBuscarCep(e.target.value);
                                     }}
-                                    style={styles.input}
+                                    className="input"
                                 />
                             </div>
 
-                            <div style={{ display: "flex", gap: "10px" }}>
-                                <div style={{ ...styles.inputGroup, flex: 3 }}>
+                            <div className="form-row">
+                                <div className="input-group flex-3">
                                     <label>Rua/Avenida:</label>
                                     <input
                                         type="text"
                                         required
                                         value={formEndereco.logradouro}
                                         onChange={(e) => setFormEndereco({ ...formEndereco, logradouro: e.target.value })}
-                                        style={styles.input}
+                                        className="input"
                                     />
                                 </div>
-                                <div style={{ ...styles.inputGroup, flex: 1 }}>
+                                <div className="input-group flex-1">
                                     <label>Número:</label>
                                     <input
                                         type="text"
                                         required
                                         value={formEndereco.numero}
                                         onChange={(e) => setFormEndereco({ ...formEndereco, numero: e.target.value })}
-                                        style={styles.input}
+                                        className="input"
                                     />
                                 </div>
                             </div>
 
-                            <div style={styles.inputGroup}>
+                            <div className="input-group">
                                 <label>Complemento (Opcional):</label>
                                 <input
                                     type="text"
                                     placeholder="Apto, Bloco..."
                                     value={formEndereco.complemento}
                                     onChange={(e) => setFormEndereco({ ...formEndereco, complemento: e.target.value })}
-                                    style={styles.input}
+                                    className="input"
                                 />
                             </div>
 
-                            <div style={{ display: "flex", gap: "10px" }}>
-                                <div style={{ ...styles.inputGroup, flex: 2 }}>
+                            <div className="form-row">
+                                <div className="input-group flex-2">
                                     <label>Bairro:</label>
                                     <input
                                         type="text"
                                         required
                                         value={formEndereco.bairro}
                                         onChange={(e) => setFormEndereco({ ...formEndereco, bairro: e.target.value })}
-                                        style={styles.input}
+                                        className="input"
                                     />
                                 </div>
-                                <div style={{ ...styles.inputGroup, flex: 2 }}>
+                                <div className="input-group flex-2">
                                     <label>Cidade:</label>
                                     <input
                                         type="text"
                                         required
                                         value={formEndereco.cidade}
                                         onChange={(e) => setFormEndereco({ ...formEndereco, cidade: e.target.value })}
-                                        style={styles.input}
+                                        className="input"
                                     />
                                 </div>
-                                <div style={{ ...styles.inputGroup, flex: 1 }}>
+                                <div className="input-group flex-1">
                                     <label>UF:</label>
                                     <input
                                         type="text"
@@ -376,15 +424,58 @@ export default function Dashboard() {
                                         placeholder="SP"
                                         value={formEndereco.estado}
                                         onChange={(e) => setFormEndereco({ ...formEndereco, estado: e.target.value.toUpperCase() })}
-                                        style={styles.input}
+                                        className="input"
                                     />
                                 </div>
                             </div>
 
-                            <div style={styles.modalActions}>
-                                <button type="button" onClick={() => setModalAberto(null)} style={styles.btnCancelar}>Cancelar</button>
-                                <button type="submit" disabled={carregando} style={styles.btnDestaque}>
+                            <div className="modal-actions">
+                                <button type="button" onClick={() => setModalAberto(null)} className="btn btn-cancelar">Cancelar</button>
+                                <button type="submit" disabled={carregando} className="btn btn-destaque">
                                     {carregando ? "Guardando..." : "Salvar Endereço"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL 3: CADASTRAR LOCATÁRIO */}
+            {modalAberto === 'locatario' && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>Completar Cadastro de Locatário</h3>
+                        <p className="modal-desc">Informe seu CPF e telefone de contato para poder alugar espaços e salões na plataforma.</p>
+
+                        <form onSubmit={handleSalvarLocatario}>
+                            <div className="input-group">
+                                <label>CPF:</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="000.000.000-00"
+                                    value={formLocatario.cpf}
+                                    onChange={(e) => setFormLocatario({ ...formLocatario, cpf: e.target.value })}
+                                    className="input"
+                                />
+                            </div>
+
+                            <div className="input-group">
+                                <label>Telefone / WhatsApp:</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="(00) 00000-0000"
+                                    value={formLocatario.telefone}
+                                    onChange={(e) => setFormLocatario({ ...formLocatario, telefone: e.target.value })}
+                                    className="input"
+                                />
+                            </div>
+
+                            <div className="modal-actions">
+                                <button type="button" onClick={() => setModalAberto(null)} className="btn btn-cancelar">Cancelar</button>
+                                <button type="submit" disabled={carregando} className="btn btn-destaque">
+                                    {carregando ? "Salvando..." : "Concluir Cadastro"}
                                 </button>
                             </div>
                         </form>
@@ -394,187 +485,3 @@ export default function Dashboard() {
         </div>
     );
 }
-
-const styles = {
-    dashboard: {
-        fontFamily: "'Segoe UI', sans-serif",
-        backgroundColor: "#f3f4f6",
-        minHeight: "100vh"
-    },
-    header: {
-        backgroundColor: "#ffffff",
-        padding: "15px 30px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
-    },
-    logo: {
-        color: "#4f46e5",
-        margin: 0,
-        fontSize: "22px"
-    },
-    userMenu: {
-        display: "flex",
-        alignItems: "center",
-        gap: "15px"
-    },
-    logoutBtn: {
-        backgroundColor: "#ef4444",
-        color: "#ffffff",
-        border: "none",
-        padding: "8px 12px",
-        borderRadius: "4px",
-        cursor: "pointer",
-        fontWeight: "600"
-    },
-    main: {
-        padding: "40px 30px",
-        maxWidth: "800px",
-        margin: "0 auto"
-    },
-    card: {
-        backgroundColor: "#ffffff",
-        padding: "20px",
-        borderRadius: "8px",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-        marginTop: "15px"
-    },
-    dataLine: {
-        margin: "8px 0",
-        fontSize: "14px",
-        color: "#4b5563"
-    },
-    statusGrid: {
-        marginTop: "15px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px"
-    },
-    statusItem: {
-        display: "flex",
-        justifyContent: "space-between",
-        fontSize: "13px",
-        color: "#4b5563"
-    },
-    perfilRow: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "8px 0"
-    },
-    divisor: {
-        border: "none",
-        borderTop: "1px solid #e5e7eb",
-        margin: "12px 0"
-    },
-    badgeSucesso: {
-        backgroundColor: "#d1fae5",
-        color: "#065f46",
-        padding: "4px 10px",
-        borderRadius: "12px",
-        fontSize: "12px",
-        fontWeight: "bold"
-    },
-    badgeAviso: {
-        backgroundColor: "#fef3c7",
-        color: "#92400e",
-        padding: "4px 10px",
-        borderRadius: "12px",
-        fontSize: "12px",
-        fontWeight: "bold"
-    },
-    badgeAtivo: {
-        backgroundColor: "#d1fae5",
-        color: "#065f46",
-        padding: "4px 10px",
-        borderRadius: "12px",
-        fontSize: "12px",
-        fontWeight: "bold"
-    },
-    badgeLocador: {
-        backgroundColor: "#e0e7ff",
-        color: "#3730a3",
-        padding: "4px 10px",
-        borderRadius: "12px",
-        fontSize: "12px",
-        fontWeight: "bold"
-    },
-    btnAcao: {
-        backgroundColor: "#f3f4f6",
-        color: "#374151",
-        border: "1px solid #d1d5db",
-        padding: "6px 12px",
-        borderRadius: "6px",
-        cursor: "pointer",
-        fontSize: "13px",
-        fontWeight: "600"
-    },
-    btnDestaque: {
-        backgroundColor: "#4f46e5",
-        color: "#ffffff",
-        border: "none",
-        padding: "8px 14px",
-        borderRadius: "6px",
-        cursor: "pointer",
-        fontSize: "13px",
-        fontWeight: "600"
-    },
-    btnLink: {
-        background: "none",
-        border: "none",
-        color: "#4f46e5",
-        cursor: "pointer",
-        fontSize: "13px",
-        fontWeight: "600"
-    },
-    // Estilos do Modal
-    modalOverlay: {
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 1000
-    },
-    modalContent: {
-        backgroundColor: "#fff",
-        padding: "25px",
-        borderRadius: "8px",
-        width: "100%",
-        maxWidth: "500px",
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
-    },
-    inputGroup: {
-        marginBottom: "12px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "5px"
-    },
-    input: {
-        padding: "8px 12px",
-        borderRadius: "4px",
-        border: "1px solid #d1d5db",
-        fontSize: "14px"
-    },
-    modalActions: {
-        display: "flex",
-        justifyContent: "flex-end",
-        gap: "10px",
-        marginTop: "20px"
-    },
-    btnCancelar: {
-        backgroundColor: "#e5e7eb",
-        color: "#374151",
-        border: "none",
-        padding: "8px 14px",
-        borderRadius: "6px",
-        cursor: "pointer",
-        fontSize: "13px",
-        fontWeight: "600"
-    }
-};

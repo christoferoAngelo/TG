@@ -130,5 +130,21 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
     
+    @Transactional
+    public UsuarioDTO atualizarTelefone(Long usuarioId, String telefone) {
+        // 1. Busca o usuário pelo ID do MySQL
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+
+        // 2. Atualiza o telefone
+        usuario.setTelefone(telefone);
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
+        // 3. Retorna o DTO atualizado
+        boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
+        boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+
+        return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+    }
    
 }
