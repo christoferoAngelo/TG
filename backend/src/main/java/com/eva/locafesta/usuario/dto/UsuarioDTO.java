@@ -1,5 +1,6 @@
 package com.eva.locafesta.usuario.dto;
 
+import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.usuario.Usuario;
 
 public class UsuarioDTO {
@@ -8,8 +9,7 @@ public class UsuarioDTO {
     private String nome;
     private String email;
     private String telefone;
-    private boolean isLocatario; // Diz ao React se já tem CPF cadastrado
-    private boolean isLocador;   // Diz ao React se já pode anunciar festas
+    private EnderecoDTO endereco;
 
     public UsuarioDTO(Usuario usuario, boolean isLocatario, boolean isLocador) {
         this.id = usuario.getId();
@@ -17,8 +17,12 @@ public class UsuarioDTO {
         this.nome = usuario.getNome();
         this.email = usuario.getEmail();
         this.telefone = usuario.getTelefone();
-        this.isLocatario = isLocatario;
-        this.isLocador = isLocador;
+
+        
+        // Converte a entidade de endereço para DTO (se existir)
+        if (usuario.getEndereco() != null) {
+            this.endereco = new EnderecoDTO(usuario.getEndereco());
+        }
     }
 
     // Adicione os Getters aqui (obrigatório para o Spring transformar em JSON)
@@ -27,9 +31,10 @@ public class UsuarioDTO {
     public String getNome() { return nome; }
     public String getEmail() { return email; }
     public String getTelefone() { return telefone; }
-    public boolean isLocatario() { return isLocatario; }
-    public boolean isLocador() { return isLocador; }
+
     
+    public EnderecoDTO getEndereco() { return endereco; }
+    public void setEndereco(EnderecoDTO endereco) { this.endereco = endereco; }
     
     public void setId(Long id) {
 		this.id = id;
@@ -51,13 +56,7 @@ public class UsuarioDTO {
 		this.telefone = telefone;
 	}
 
-	public void setLocatario(boolean isLocatario) {
-		this.isLocatario = isLocatario;
-	}
 
-	public void setLocador(boolean isLocador) {
-		this.isLocador = isLocador;
-	}
 
 }
 

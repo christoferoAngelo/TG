@@ -1,5 +1,7 @@
 package com.eva.locafesta.usuario.dto;
 
+import com.eva.locafesta.endereco.EnderecoDTO;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -21,17 +23,30 @@ public class UsuarioCreateDTO {
 
     private String telefone;
 
+    private EnderecoDTO endereco;
+    
     // Construtores
     public UsuarioCreateDTO() {}
 
-    public UsuarioCreateDTO(String firebaseUid, String nome, String email, String telefone) {
-        this.firebaseUid = firebaseUid;
-        this.nome = nome;
-        this.email = email;
-        this.telefone = telefone;
-    }
-
+    
     // Getters e Setters
+    
+    public UsuarioCreateDTO(@NotBlank(message = "O UID do Firebase é obrigatório") String firebaseUid,
+			@NotBlank(message = "O nome é obrigatório") String nome,
+			@NotBlank(message = "O email é obrigatório") @Email(message = "Formato de email inválido") String email,
+			String telefone, EnderecoDTO endereco) {
+		super();
+		this.firebaseUid = firebaseUid;
+		this.nome = nome;
+		this.email = email;
+		this.telefone = telefone;
+		this.endereco = endereco;
+	}
+
+
+	public EnderecoDTO getEndereco() { return endereco; }
+    public void setEndereco(EnderecoDTO endereco) { this.endereco = endereco; }
+    
     public String getFirebaseUid() {
         return firebaseUid;
     }

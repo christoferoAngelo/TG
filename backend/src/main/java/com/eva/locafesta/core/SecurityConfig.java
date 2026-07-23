@@ -15,21 +15,29 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
+@Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Desativamos o CSRF para APIs REST Stateless
+            // Desativamos o CSRF
             .csrf(csrf -> csrf.disable())
             
-            // Ativamos a configuração de CORS definida abaixo
+            // Ativamos o CORS corretamente
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             
-            // Definimos as regras de autorização de requisições de forma explícita
+            // Definimos as permissões
             .authorizeHttpRequests(auth -> auth
-                    // Passando as Strings diretamente, sem precisar importar ou dar 'new' no AntPathRequestMatcher
-                    .requestMatchers("/api/users", "/api/users/**", "/error").permitAll() 
+                    // AQUI É O SEGREDO: Adicionamos /api/locadores aqui
+                    .requestMatchers(
+                        "/api/users", 
+                        "/api/users/**", 
+                        "/api/locadores", 
+                        "/api/locadores/**", 
+                        "/api/locatarios", 
+                        "/api/locatarios/**", 
+                        "/error" 
+                    ).permitAll() 
                     
-                    // Qualquer outro endpoint exigirá autenticação
+                    // Qualquer outra rota precisa de autenticação
                     .anyRequest().authenticated()
                 );
 

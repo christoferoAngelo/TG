@@ -1,5 +1,8 @@
 package com.eva.locafesta.usuario;
 
+import com.eva.locafesta.documento.DocumentoDTO;
+import com.eva.locafesta.endereco.Endereco;
+import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.locador.PerfilLocadorRepository;
 import com.eva.locafesta.locatario.PerfilLocatarioRepository;
 import com.eva.locafesta.usuario.dto.UsuarioCreateDTO;
@@ -24,25 +27,38 @@ public class UsuarioService {
     private PerfilLocatarioRepository perfilLocatarioRepository;
 
     @Transactional
-    public UsuarioDTO cadastrarUsuario(UsuarioCreateDTO dto) {
-        // 1. Instancia a entidade real e passa os dados do seu UsuarioCreateDTO
-        Usuario usuario = new Usuario();
-        usuario.setFirebaseUid(dto.getFirebaseUid());
-        usuario.setNome(dto.getNome());
-        usuario.setEmail(dto.getEmail());
-        usuario.setTelefone(dto.getTelefone());
+	public UsuarioDTO cadastrarUsuario(UsuarioCreateDTO dto) {
+	    Usuario usuario = new Usuario();
+	    usuario.setFirebaseUid(dto.getFirebaseUid());
+	    usuario.setNome(dto.getNome());
+	    usuario.setEmail(dto.getEmail());
+	    usuario.setTelefone(dto.getTelefone());
+	
+	    // Mapeamento e vinculação do endereço, caso venha no payload
+	    if (dto.getEndereco() != null) {
+	        Endereco end = new Endereco();
+	        end.setCep(dto.getEndereco().getCep());
+	        end.setLogradouro(dto.getEndereco().getLogradouro());
+	        end.setNumero(dto.getEndereco().getNumero());
+	        end.setComplemento(dto.getEndereco().getComplemento());
+	        end.setBairro(dto.getEndereco().getBairro());
+	        end.setCidade(dto.getEndereco().getCidade());
+	        end.setEstado(dto.getEndereco().getEstado());
+	        end.setLatitude(dto.getEndereco().getLatitude());
+	        end.setLongitude(dto.getEndereco().getLongitude());
+	        
+	        // Associa na entidade (o método setEndereco ajusta a relação bidirecional)
+	        usuario.setEndereco(end);
+	    }
 
-        // 2. Salva o usuário base no MySQL
-        Usuario usuarioSalvo = usuarioRepository.save(usuario);
-
-        // 3. Verifica nos outros repositórios se já existe perfil criado para este ID
-        // (No momento do primeiro cadastro do React vai dar false para os dois, o que está correto!)
-        boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
-        boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
-
-        // 4. Retorna usando o construtor exato que você criou no seu UsuarioDTO
-        return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
-    }
+	    // Salva o usuário no banco, gerando também o registro em "enderecos"
+	    Usuario usuarioSalvo = usuarioRepository.save(usuario);
+	
+	    boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
+	    boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+	
+	    return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+}
     
     // Dica extra: Você vai precisar de um método de busca para quando o usuário logar de novo
     @Transactional(readOnly = true)
@@ -55,4 +71,46 @@ public class UsuarioService {
 
         return new UsuarioDTO(usuario, isLocatario, isLocador);
     }
+    
+    @Transactional
+    public UsuarioDTO atualizarEndereco(Long usuarioId, EnderecoDTO dto) {
+        // 1. Busca o usuário pelo ID do MySQL
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+
+        // 2. Verifica se o usuário já possui um endereço cadastrado
+        Endereco endereco = usuario.getEndereco();
+        
+        if (endereco == null) {
+            // Se for a primeira vez, instancia um novo endereço
+            endereco = new Endereco();
+        }
+
+        // 3. Atualiza os dados vinhos do React
+        endereco.setCep(dto.getCep());
+        endereco.setLogradouro(dto.getLogradouro());
+        endereco.setNumero(dto.getNumero());
+        endereco.setComplemento(dto.getComplemento());
+        endereco.setBairro(dto.getBairro());
+        endereco.setCidade(dto.getCidade());
+        endereco.setEstado(dto.getEstado());
+        
+        // As coordenadas de geolocalização para busca futura
+        endereco.setLatitude(dto.getLatitude());
+        endereco.setLongitude(dto.getLongitude());
+
+        // 4. Associa o endereço ao usuário (Graças ao CascadeType.ALL que colocamos na entidade Usuario, 
+        // salvar o usuário salvará/atualizará o endereço automaticamente na tabela 'enderecos')
+        usuario.setEndereco(endereco);
+        
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
+        // 5. Retorna o DTO atualizado (para o React recarregar a tela na hora)
+        boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
+        boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+
+        return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+    }
+    
+   
 }

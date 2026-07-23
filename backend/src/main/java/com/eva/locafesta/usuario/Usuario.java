@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.eva.locafesta.endereco.Endereco;
+
 @Entity
 @Table(name = "users") // Mapeamento da tabela de utilizadores no MySQL
 public class Usuario {
@@ -34,6 +36,9 @@ public class Usuario {
 
     @Column(name = "nota_geral")
     private Integer nota;
+    
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Endereco endereco;
 
     // Construtor padrão obrigatório pelo JPA
     public Usuario() {
@@ -41,8 +46,12 @@ public class Usuario {
     
     
 
-    public Usuario(Long id, String firebaseUid, String nome, String email, String telefone,
-			LocalDateTime dataCadastro, String statusConta, Integer nota) {
+   
+
+
+    
+    public Usuario(Long id, String firebaseUid, String nome, String email, String telefone, LocalDateTime dataCadastro,
+			String statusConta, Integer nota, Endereco endereco) {
 		super();
 		this.id = id;
 		this.firebaseUid = firebaseUid;
@@ -52,11 +61,20 @@ public class Usuario {
 		this.dataCadastro = dataCadastro;
 		this.statusConta = statusConta;
 		this.nota = nota;
+		this.endereco = endereco;
 	}
 
 
+    // Getters e Setters
 
-	// Getters e Setters
+	public Endereco getEndereco() { return endereco; }
+    public void setEndereco(Endereco endereco) { 
+        this.endereco = endereco; 
+        if (endereco != null) {
+            endereco.setUsuario(this); // Mantém a consistência bidirecional
+        }
+    }
+    
     public Long getId() {
         return id;
     }

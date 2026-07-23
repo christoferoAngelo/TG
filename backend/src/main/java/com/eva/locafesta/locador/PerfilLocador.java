@@ -14,6 +14,7 @@ public class PerfilLocador {
     // Aceita CPF (11 dígitos) ou CNPJ (14 dígitos)
     @Column(unique = true, nullable = false, length = 20)
     private String documento; 
+    
 
     @Column(name = "nome_fantasia", length = 150)
     private String nomeFantasia; // Opcional, útil se for CNPJ (ex: "Buffet Alegria")
