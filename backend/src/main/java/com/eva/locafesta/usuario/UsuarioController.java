@@ -49,4 +49,13 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+    
+    @PatchMapping("/{id}/ativo")
+    public ResponseEntity<Void> pingAtividade(@PathVariable Long id) {
+        usuarioService.atualizarDataAtivo(id);
+        
+        // Retorna 204 No Content (Significa: "Deu certo, mas não tenho nenhum JSON pra te devolver")
+        // Isso é perfeito e super leve para requisições de background (pings)
+        return ResponseEntity.noContent().build(); 
+    }
 }

@@ -53,5 +53,24 @@ export const userService = {
             console.error("Erro ao carregar perfil:", error.message);
             throw error;
         }
+    },
+    /**
+     * Atualiza o campo dataAtivo do usuário no banco para o momento atual.
+     * @param {number} usuarioId - ID numérico do MySQL
+     */
+    atualizarDataAtivo: async (usuarioId) => {
+        try {
+            // Nota: Confirme se o seu Controller no Spring está mapeado assim
+            const response = await fetch(`${BASE_URL}/users/${usuarioId}/ativo`, {
+                method: "PATCH",
+            });
+            
+            if (!response.ok) {
+                throw new Error("Erro silencioso: Não foi possível atualizar a atividade.");
+            }
+        } catch (error) {
+            // Como é um ping de background, não precisamos estourar o erro na tela
+            console.error("Erro no ping ativo:", error.message);
+        }
     }
 };
