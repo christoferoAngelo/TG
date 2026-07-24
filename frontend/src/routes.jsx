@@ -5,6 +5,7 @@ import Auth from "./login/auth";
 import Dashboard from "./Dashboard/Dashboard";
 import CadastroLocador from "./Login/CadastroLocador"; // Ajuste o caminho se necessário
 import DashboardLocador from "./DashboardLocador"; // <-- 1. IMPORTAÇÃO DO NOVO PAINEL
+import CaracteristicasPage from "./CaracteristicasPage"; // <-- 3. IMPORTAÇÃO DA PÁGINA DE CARACTERÍSTICAS
 
 /**
  * Componente Wrapper para proteger rotas privadas.
@@ -66,6 +67,17 @@ export default function AppRoutes() {
                     element={
                         <RouteProtegida>
                             <DashboardLocador />
+                        </RouteProtegida>
+                    } 
+                />
+                {/* ------------------------------------------------- */}
+
+                {/* --- 3. NOVA ROTA PROTEGIDA: Adicionar caracteristica (provisorio) --- */}
+                <Route 
+                    path="/admin-caracteristicas" 
+                    element={
+                        <RouteProtegida>
+                            <CaracteristicasPage/>
                         </RouteProtegida>
                     } 
                 />

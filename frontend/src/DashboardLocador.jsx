@@ -9,15 +9,19 @@ export default function DashboardLocador() {
 
     // Estados
     const [espacos, setEspacos] = useState([]);
+    const [caracteristicasDisponiveis, setCaracteristicasDisponiveis] = useState([]);
     const [carregando, setCarregando] = useState(false);
     const [modalAberto, setModalAberto] = useState(false);
 
-    // Estado do formulário com o endereço estruturado como objeto
+    // Estado do formulário alinhado com EspacoDTO
     const [formEspaco, setFormEspaco] = useState({
-        nome: "",
+        titulo: "",
         descricao: "",
-        capacidade: "",
-        precoDiaria: "",
+        valorDiaria: "",
+        capacidadePessoas: "",
+        restricoesHorario: "",
+        horarioFechamento: "",
+        caracteristicas: [],
         endereco: {
             cep: "",
             logradouro: "",
@@ -29,7 +33,7 @@ export default function DashboardLocador() {
         }
     });
 
-    // Busca os espaços/anúncios do locador logado
+    // Busca os espaços do locador logado
     useEffect(() => {
         if (usuarioLogado?.id) {
             setCarregando(true);
@@ -41,7 +45,33 @@ export default function DashboardLocador() {
         }
     }, [usuarioLogado]);
 
-    // Função auxiliar para atualizar os campos internos do objeto de endereço
+    // Busca todas as características cadastradas no sistema para exibir no modal
+    useEffect(() => {
+        fetch("http://localhost:8080/api/caracteristicas")
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data) => setCaracteristicasDisponiveis(Array.isArray(data) ? data : []))
+            .catch(() => setCaracteristicasDisponiveis([]));
+    }, []);
+
+    // Alternar seleção de características
+    const handleToggleCaracteristica = (item) => {
+        setFormEspaco((prev) => {
+            const jaExiste = prev.caracteristicas.some((c) => c.id === item.id);
+            if (jaExiste) {
+                return {
+                    ...prev,
+                    caracteristicas: prev.caracteristicas.filter((c) => c.id !== item.id)
+                };
+            } else {
+                return {
+                    ...prev,
+                    caracteristicas: [...prev.caracteristicas, item]
+                };
+            }
+        });
+    };
+
+    // Função auxiliar para atualizar o endereço
     const handleEnderecoChange = (campo, valor) => {
         setFormEspaco((prev) => ({
             ...prev,
@@ -52,7 +82,7 @@ export default function DashboardLocador() {
         }));
     };
 
-    // Busca rápida do CEP via ViaCEP API
+    // Busca CEP via ViaCEP API
     const handleBuscarCep = async (cep) => {
         const cleanCep = cep.replace(/\D/g, "");
         if (cleanCep.length === 8) {
@@ -77,7 +107,7 @@ export default function DashboardLocador() {
         }
     };
 
-    // Cadastrar novo espaço/anúncio
+    // Cadastrar novo espaço
     const handleSalvarEspaco = async (e) => {
         e.preventDefault();
         setCarregando(true);
@@ -100,13 +130,16 @@ export default function DashboardLocador() {
             const novoEspaco = await response.json();
             setEspacos((prev) => [...prev, novoEspaco]);
             alert("Espaço anunciado com sucesso!");
-            
-            // Reseta o formulário mantendo a estrutura do objeto endereço
+
+            // Reseta o formulário
             setFormEspaco({
-                nome: "",
+                titulo: "",
                 descricao: "",
-                capacidade: "",
-                precoDiaria: "",
+                valorDiaria: "",
+                capacidadePessoas: "",
+                restricoesHorario: "",
+                horarioFechamento: "",
+                caracteristicas: [],
                 endereco: {
                     cep: "",
                     logradouro: "",
@@ -125,7 +158,7 @@ export default function DashboardLocador() {
         }
     };
 
-    // Formata a exibição do endereço na listagem (previne erros se houver dados antigos em formato texto)
+    // Formata o endereço
     const formatarEndereco = (endereco) => {
         if (!endereco) return "Endereço não informado";
         if (typeof endereco === "string") return endereco;
@@ -140,6 +173,9 @@ export default function DashboardLocador() {
                 </h2>
                 <div className="user-menu">
                     <span>Olá, <strong>{usuarioLogado?.nome}</strong>!</span>
+                    <button onClick={() => navigate("/caracteristicas")} className="btn btn-cancelar" style={{ marginRight: "10px" }}>
+                        Gerenciar Características
+                    </button>
                     <button onClick={() => navigate("/dashboard")} className="btn btn-cancelar" style={{ marginRight: "10px" }}>
                         Voltar ao Painel
                     </button>
@@ -148,7 +184,7 @@ export default function DashboardLocador() {
             </header>
 
             <main className="main">
-                <div style={{ display: "flex", justify: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                     <div>
                         <h3>Painel do Locador</h3>
                         <p>Gerencie seus espaços, salões e acompanhe seus anúncios.</p>
@@ -188,14 +224,36 @@ export default function DashboardLocador() {
                             <div key={espaco.id || index} style={{ marginBottom: "15px" }}>
                                 <div className="perfil-row">
                                     <div>
-                                        <strong className="perfil-title">{espaco.nome}</strong>
+                                        <strong className="perfil-title">{espaco.titulo}</strong>
                                         <span className="perfil-desc" style={{ display: "block", marginTop: "4px" }}>
                                             <strong>Endereço:</strong> {formatarEndereco(espaco.endereco)} <br />
-                                            Capacidade: {espaco.capacidade} pessoas | Diária: R$ {espaco.precoDiaria}
+                                            Capacidade: {espaco.capacidadePessoas} pessoas | Diária: R$ {espaco.valorDiaria}
+                                            {espaco.horarioFechamento && <><br />Fechamento: {espaco.horarioFechamento}</>}
                                         </span>
+
+                                        {/* Exibição das Características Cadastradas */}
+                                        {espaco.caracteristicas && espaco.caracteristicas.length > 0 && (
+                                            <div style={{ marginTop: "8px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                                {espaco.caracteristicas.map((carac) => (
+                                                    <span
+                                                        key={carac.id}
+                                                        style={{
+                                                            fontSize: "0.75rem",
+                                                            backgroundColor: "#e9ecef",
+                                                            color: "#495057",
+                                                            padding: "2px 8px",
+                                                            borderRadius: "12px",
+                                                            fontWeight: "500"
+                                                        }}
+                                                    >
+                                                        {carac.nome}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                     <div>
-                                        <span className="badge badge-ativo">Publicado</span>
+                                        <span className="badge badge-ativo">{espaco.statusAprovacao || "Publicado"}</span>
                                     </div>
                                 </div>
                                 {index < espacos.length - 1 && <hr className="divisor" />}
@@ -208,32 +266,32 @@ export default function DashboardLocador() {
             {/* ==================== MODAL: NOVO ESPAÇO ==================== */}
             {modalAberto && (
                 <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: "600px" }}>
+                    <div className="modal-content" style={{ maxWidth: "600px", maxHeight: "90vh", overflowY: "auto" }}>
                         <h3>Anunciar Novo Espaço</h3>
-                        <p className="modal-desc">Preencha as informações básicas e o endereço do seu espaço para eventos.</p>
+                        <p className="modal-desc">Preencha as informações do seu espaço para eventos.</p>
 
                         <form onSubmit={handleSalvarEspaco}>
                             <div className="input-group">
-                                <label>Nome do Espaço / Salão:</label>
+                                <label>Título do Anúncio:</label>
                                 <input
                                     type="text"
                                     required
                                     placeholder="Ex: Salão de Festas Recanto"
-                                    value={formEspaco.nome}
-                                    onChange={(e) => setFormEspaco({ ...formEspaco, nome: e.target.value })}
+                                    value={formEspaco.titulo}
+                                    onChange={(e) => setFormEspaco({ ...formEspaco, titulo: e.target.value })}
                                     className="input"
                                 />
                             </div>
 
                             <div className="input-group">
-                                <label>Descrição Rápida:</label>
-                                <input
-                                    type="text"
+                                <label>Descrição:</label>
+                                <textarea
                                     required
                                     placeholder="Ex: Espaço amplo com piscina e churrasqueira"
                                     value={formEspaco.descricao}
                                     onChange={(e) => setFormEspaco({ ...formEspaco, descricao: e.target.value })}
                                     className="input"
+                                    rows="3"
                                 />
                             </div>
 
@@ -244,29 +302,92 @@ export default function DashboardLocador() {
                                         type="number"
                                         required
                                         placeholder="100"
-                                        value={formEspaco.capacidade}
-                                        onChange={(e) => setFormEspaco({ ...formEspaco, capacidade: e.target.value })}
+                                        value={formEspaco.capacidadePessoas}
+                                        onChange={(e) => setFormEspaco({ ...formEspaco, capacidadePessoas: e.target.value })}
                                         className="input"
                                     />
                                 </div>
                                 <div className="input-group flex-1">
-                                    <label>Preço Diária (R$):</label>
+                                    <label>Valor Diária (R$):</label>
                                     <input
                                         type="number"
                                         required
                                         step="0.01"
-                                        placeholder="800,00"
-                                        value={formEspaco.precoDiaria}
-                                        onChange={(e) => setFormEspaco({ ...formEspaco, precoDiaria: e.target.value })}
+                                        placeholder="800.00"
+                                        value={formEspaco.valorDiaria}
+                                        onChange={(e) => setFormEspaco({ ...formEspaco, valorDiaria: e.target.value })}
                                         className="input"
                                     />
                                 </div>
                             </div>
 
+                            <div className="form-row">
+                                <div className="input-group flex-1">
+                                    <label>Horário de Fechamento:</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: 22:00"
+                                        value={formEspaco.horarioFechamento}
+                                        onChange={(e) => setFormEspaco({ ...formEspaco, horarioFechamento: e.target.value })}
+                                        className="input"
+                                    />
+                                </div>
+                                <div className="input-group flex-1">
+                                    <label>Restrições de Horário:</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ex: Som alto até as 20h"
+                                        value={formEspaco.restricoesHorario}
+                                        onChange={(e) => setFormEspaco({ ...formEspaco, restricoesHorario: e.target.value })}
+                                        className="input"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* --- SEÇÃO DE CARACTERÍSTICAS DO ESPAÇO --- */}
+                            <hr className="divisor" style={{ margin: "15px 0" }} />
+                            <h4 style={{ marginBottom: "10px", color: "#333", fontSize: "1rem" }}>Características do Espaço</h4>
+
+                            {caracteristicasDisponiveis.length === 0 ? (
+                                <p style={{ fontSize: "0.85rem", color: "#666" }}>
+                                    Nenhuma característica cadastrada no sistema.
+                                </p>
+                            ) : (
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "10px" }}>
+                                    {caracteristicasDisponiveis.map((item) => {
+                                        const selecionado = formEspaco.caracteristicas.some((c) => c.id === item.id);
+                                        return (
+                                            <label
+                                                key={item.id}
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "8px",
+                                                    fontSize: "0.9rem",
+                                                    cursor: "pointer",
+                                                    padding: "6px 10px",
+                                                    border: "1px solid",
+                                                    borderColor: selecionado ? "#007bff" : "#ccc",
+                                                    borderRadius: "6px",
+                                                    backgroundColor: selecionado ? "#e7f1ff" : "#fff"
+                                                }}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selecionado}
+                                                    onChange={() => handleToggleCaracteristica(item)}
+                                                />
+                                                {item.nome}
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* --- SEÇÃO DE LOCALIZAÇÃO --- */}
                             <hr className="divisor" style={{ margin: "15px 0" }} />
                             <h4 style={{ marginBottom: "10px", color: "#333", fontSize: "1rem" }}>Localização do Espaço</h4>
 
-                            {/* CAMPOS DO OBJETO ENDEREÇO */}
                             <div className="input-group">
                                 <label>CEP:</label>
                                 <input
