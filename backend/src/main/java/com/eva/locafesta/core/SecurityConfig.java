@@ -2,6 +2,7 @@ package com.eva.locafesta.core;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -15,31 +16,30 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-@Bean
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Desativamos o CSRF
             .csrf(csrf -> csrf.disable())
-            
-            // Ativamos o CORS corretamente
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            
-            // Definimos as permissões
             .authorizeHttpRequests(auth -> auth
-                    // AQUI É O SEGREDO: Adicionamos /api/locadores aqui
-                    .requestMatchers(
-                        "/api/users", 
-                        "/api/users/**", 
-                        "/api/locadores", 
-                        "/api/locadores/**", 
-                        "/api/locatarios", 
-                        "/api/locatarios/**", 
-                        "/error" 
-                    ).permitAll() 
-                    
-                    // Qualquer outra rota precisa de autenticação
-                    .anyRequest().authenticated()
-                );
+                // 1. OBRIGATÓRIO: Libera requisições OPTIONS (Pre-flight do CORS no React/Navegador)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                
+                // 2. Libera explicitamente a raiz e os sub-caminhos de características
+                .requestMatchers("/api/caracteristicas", "/api/caracteristicas/**").permitAll()
+                
+                // 3. Libera os demais endpoints do sistema
+                .requestMatchers(
+                    "/api/users", "/api/users/**", 
+                    "/api/locadores", "/api/locadores/**", 
+                    "/api/locatarios", "/api/locatarios/**",
+                    "/api/espacos", "/api/espacos/**", 
+                    "/error", "/error/**"
+                ).permitAll()
+                
+                // Qualquer outra rota precisará de autenticação
+                .anyRequest().authenticated()
+            );
 
         return http.build();
     }
@@ -47,10 +47,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Permite origens do Frontend
-        configuration.setAllowedOrigins(Arrays.asList("*")); 
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        
+        // NO SPRING BOOT 3: Use OriginPatterns no lugar de AllowedOrigins para evitar bloqueio 403
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); 
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(false);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import Auth from "./login/auth";
 import Dashboard from "./Dashboard/Dashboard";
+import CadastroLocador from "./Login/CadastroLocador"; // Ajuste o caminho se necessário
+import DashboardLocador from "./DashboardLocador"; // <-- 1. IMPORTAÇÃO DO NOVO PAINEL
 
 /**
  * Componente Wrapper para proteger rotas privadas.
@@ -38,7 +40,7 @@ export default function AppRoutes() {
                     element={usuarioLogado ? <Navigate to="/dashboard" replace /> : <Auth />} 
                 />
 
-                {/* Rota Privada do Painel */}
+                {/* Rota Privada do Painel Principal (Cliente) */}
                 <Route 
                     path="/dashboard" 
                     element={
@@ -48,7 +50,7 @@ export default function AppRoutes() {
                     } 
                 />
 
-                {/* --- AQUI ENTRA A NOVA ROTA PROTEGIDA --- */}
+                {/* Rota Privada para Cadastro de Locador */}
                 <Route 
                     path="/cadastro-locador" 
                     element={
@@ -57,7 +59,17 @@ export default function AppRoutes() {
                         </RouteProtegida>
                     } 
                 />
-                {/* --------------------------------------- */}
+
+                {/* --- 2. NOVA ROTA PROTEGIDA: PAINEL DO LOCADOR --- */}
+                <Route 
+                    path="/dashboard-locador" 
+                    element={
+                        <RouteProtegida>
+                            <DashboardLocador />
+                        </RouteProtegida>
+                    } 
+                />
+                {/* ------------------------------------------------- */}
 
                 {/* Qualquer rota inválida redireciona para o lugar correto baseado no login */}
                 <Route 
