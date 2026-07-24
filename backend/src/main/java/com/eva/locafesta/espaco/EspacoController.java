@@ -38,4 +38,15 @@ public class EspacoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+// GET http://localhost:8080/api/locadores/espacos/todos
+@GetMapping("/espacos/todos")
+public ResponseEntity<?> listarTodosEspacos() {
+    try {
+        List<EspacoDTO> espacos = espacoService.listarTodos(); // Crie este método na sua Service se ainda não existir
+        return ResponseEntity.ok(espacos);
+    } catch (RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    }
+}
+
 }

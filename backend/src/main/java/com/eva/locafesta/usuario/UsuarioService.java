@@ -6,10 +6,12 @@ import com.eva.locafesta.locador.PerfilLocadorRepository;
 import com.eva.locafesta.locatario.PerfilLocatarioRepository;
 import com.eva.locafesta.usuario.dto.UsuarioCreateDTO;
 import com.eva.locafesta.usuario.dto.UsuarioDTO;
+import java.util.List;
 
 import jakarta.persistence.EntityNotFoundException;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,6 +73,17 @@ public class UsuarioService {
         boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuario.getId());
 
         return new UsuarioDTO(usuario, isLocatario, isLocador);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioDTO> listarTodos() {
+        return usuarioRepository.findAll().stream()
+                .map(u -> {
+                    boolean isLocador = perfilLocadorRepository.existsByUsuarioId(u.getId());
+                    boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(u.getId());
+                    return new UsuarioDTO(u, isLocatario, isLocador);
+                })
+                .collect(Collectors.toList());
     }
     
     @Transactional

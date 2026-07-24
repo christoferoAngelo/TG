@@ -89,4 +89,11 @@ public class EspacoService {
                 .map(EspacoDTO::new)
                 .collect(Collectors.toList());
     }
+
+    // READ - Listar TODOS os espaços do sistema (para o Painel do Admin)
+    public List<EspacoDTO> listarTodos() {
+        return espacoRepository.findAll().stream()
+                .map(EspacoDTO::new)
+                .collect(Collectors.toList());
+    }
 }
