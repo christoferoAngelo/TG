@@ -14,6 +14,7 @@ public class UsuarioDTO {
     private LocalDateTime dataAtivo;
     private boolean isLocatario;
     private boolean isLocador;
+    private boolean isAdmin;
 
     // Construtor Padrão
     public UsuarioDTO() {
@@ -26,9 +27,10 @@ public class UsuarioDTO {
         this.nome = usuario.getNome();
         this.email = usuario.getEmail();
         this.telefone = usuario.getTelefone();
-        this.dataAtivo = usuario.getDataAtivo(); // <--- Pegando o dataAtivo aqui
+        this.dataAtivo = usuario.getDataAtivo();
         this.isLocatario = isLocatario;
         this.isLocador = isLocador;
+        this.isAdmin = usuario.isAdmin();
 
         if (usuario.getEndereco() != null) {
             this.endereco = new EnderecoDTO(usuario.getEndereco());
@@ -71,6 +73,9 @@ public class UsuarioDTO {
 
     public LocalDateTime getDataAtivo() { return dataAtivo; }
     public void setDataAtivo(LocalDateTime dataAtivo) { this.dataAtivo = dataAtivo; }
+    
+    public boolean isAdmin() { return isAdmin; }
+    public void setAdmin(boolean isAdmin) { this.isAdmin = isAdmin; }
 
     public boolean isLocatario() { return isLocatario; }
     public void setLocatario(boolean isLocatario) { this.isLocatario = isLocatario; }

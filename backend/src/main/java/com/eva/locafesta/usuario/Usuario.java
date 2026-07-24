@@ -42,7 +42,10 @@ public class Usuario {
     
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Endereco endereco;
-    
+
+    @Column(name = "is_admin", nullable = false)
+    private boolean isAdmin = false;
+
 
     // Construtor padrão obrigatório pelo JPA
     public Usuario() {
@@ -154,5 +157,13 @@ public class Usuario {
 
     public void setNota(Integer nota) {
         this.nota = nota;
+    }
+
+    public boolean isAdmin() {
+    return isAdmin;
+    }
+
+public void setAdmin(boolean admin) {
+    isAdmin = admin;
     }
 }

@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import { auth, googleProvider } from "../config/firebaseConfig"; // Ajuste o caminho conforme sua pasta
+// 1. Firebase Config (subindo 2 níveis para src/config)
+import { auth, googleProvider } from "../../config/firebaseConfig"; 
+
 import { 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
     signInWithPopup 
 } from "firebase/auth";
-import { userService } from "../config/api";
-import { useAuth } from "../contexts/AuthContext"; // 1. Importamos o Hook de Autenticação global
+import { userService } from "../../config/api";
+
+import { useAuth } from "../../contexts/AuthContext";
 
 /**
  * Componente unificado de Autenticação (Login / Registro).

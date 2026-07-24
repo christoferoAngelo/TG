@@ -1,11 +1,14 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
-import Auth from "./login/auth";
-import Dashboard from "./Dashboard/Dashboard";
-import CadastroLocador from "./Login/CadastroLocador"; // Ajuste o caminho se necessário
-import DashboardLocador from "./DashboardLocador"; // <-- 1. IMPORTAÇÃO DO NOVO PAINEL
-import CaracteristicasPage from "./CaracteristicasPage"; // <-- 3. IMPORTAÇÃO DA PÁGINA DE CARACTERÍSTICAS
+
+// --- IMPORTS DAS PÁGINAS ---
+import Auth from "./pages/login/Auth";
+import CadastroLocador from "./pages/login/CadastroLocador";
+import DashboardLocador from "./pages/locador/DashboardLocador";
+import CaracteristicasPage from "./pages/locador/CaracteristicasPage";
+import DashboardAdmin from "./pages/admin/DashboardAdmin";
+import Dashboard from "./pages/cliente/Dashboard";
 
 /**
  * Componente Wrapper para proteger rotas privadas.
@@ -29,19 +32,40 @@ function RouteProtegida({ children }) {
     return children;
 }
 
+// Função para saber a rota padrão do usuário baseado na Role
+function getRotaPorRole(usuario) {
+    if (!usuario) return "/login";
+    
+    // 1. Se o seu backend tiver o campo 'admin' (boolean)
+    if (usuario.admin) {
+        return "/dashboard-admin";
+    }
+
+    // 2. Se for Locador
+    if (usuario.locador) {
+        return "/dashboard-locador";
+    }
+
+    // 3. Padrão: Cliente / Locatário
+    return "/dashboard";
+}
+
 export default function AppRoutes() {
     const { usuarioLogado } = useAuth();
+    console.log("=== USUÁRIO LOGADO ===", usuarioLogado);
+    // 1. Pega a rota correta baseada no perfil do usuário logado
+    const rotaInicial = getRotaPorRole(usuarioLogado);
 
     return (
         <BrowserRouter>
             <Routes>
-                {/* Rota de Login */}
+                {/* Rota Pública de Login: Se já estiver logado, manda para a rota do perfil dele */}
                 <Route 
                     path="/login" 
-                    element={usuarioLogado ? <Navigate to="/dashboard" replace /> : <Auth />} 
+                    element={usuarioLogado ? <Navigate to={rotaInicial} replace /> : <Auth />} 
                 />
 
-                {/* Rota Privada do Painel Principal (Cliente) */}
+                {/* Rota Privada: Painel Principal (Cliente/Locatário) */}
                 <Route 
                     path="/dashboard" 
                     element={
@@ -51,7 +75,7 @@ export default function AppRoutes() {
                     } 
                 />
 
-                {/* Rota Privada para Cadastro de Locador */}
+                {/* Rota Privada: Cadastro de Locador */}
                 <Route 
                     path="/cadastro-locador" 
                     element={
@@ -61,7 +85,7 @@ export default function AppRoutes() {
                     } 
                 />
 
-                {/* --- 2. NOVA ROTA PROTEGIDA: PAINEL DO LOCADOR --- */}
+                {/* Rota Privada: Painel do Locador */}
                 <Route 
                     path="/dashboard-locador" 
                     element={
@@ -70,23 +94,31 @@ export default function AppRoutes() {
                         </RouteProtegida>
                     } 
                 />
-                {/* ------------------------------------------------- */}
 
-                {/* --- 3. NOVA ROTA PROTEGIDA: Adicionar caracteristica (provisorio) --- */}
+                {/* Rota Privada: Adicionar Características */}
                 <Route 
                     path="/admin-caracteristicas" 
                     element={
                         <RouteProtegida>
-                            <CaracteristicasPage/>
+                            <CaracteristicasPage />
                         </RouteProtegida>
                     } 
                 />
-                {/* ------------------------------------------------- */}
 
-                {/* Qualquer rota inválida redireciona para o lugar correto baseado no login */}
+                {/* Rota Privada: Painel do Administrador */}
+                <Route 
+                    path="/dashboard-admin" 
+                    element={
+                        <RouteProtegida>
+                            <DashboardAdmin />
+                        </RouteProtegida>
+                    } 
+                />
+
+                {/* Qualquer rota inválida redireciona baseado na role do usuário */}
                 <Route 
                     path="*" 
-                    element={<Navigate to={usuarioLogado ? "/dashboard" : "/login"} replace />} 
+                    element={<Navigate to={usuarioLogado ? rotaInicial : "/login"} replace />} 
                 />
             </Routes>
         </BrowserRouter>

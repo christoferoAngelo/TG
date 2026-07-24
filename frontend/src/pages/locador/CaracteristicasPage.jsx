@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Dashboard/Dashboard.css"; // Reaproveitando os estilos padrões
+import "../cliente/Dashboard.css";
 
 export default function CaracteristicasPage() {
     const navigate = useNavigate();
