@@ -3,6 +3,7 @@ package com.eva.locafesta.usuario.dto;
 import java.time.LocalDateTime;
 import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.usuario.Usuario;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UsuarioDTO {
     private Long id;
@@ -11,11 +12,18 @@ public class UsuarioDTO {
     private String email;
     private String telefone;
     private EnderecoDTO endereco;
+    private LocalDateTime dataCadastro;
     private LocalDateTime dataAtivo;
+    
+    @JsonProperty("isLocatario")
     private boolean isLocatario;
-    private boolean isLocador;
-    private boolean isAdmin;
 
+    @JsonProperty("isLocador")
+    private boolean isLocador;
+
+    @JsonProperty("isAdmin")
+    private boolean isAdmin;
+    
     // Construtor Padrão
     public UsuarioDTO() {
     }
@@ -27,6 +35,7 @@ public class UsuarioDTO {
         this.nome = usuario.getNome();
         this.email = usuario.getEmail();
         this.telefone = usuario.getTelefone();
+        this.dataCadastro = usuario.getDataCadastro(); 
         this.dataAtivo = usuario.getDataAtivo();
         this.isLocatario = isLocatario;
         this.isLocador = isLocador;
@@ -39,16 +48,19 @@ public class UsuarioDTO {
 
     // Construtor Secundário Completo
     public UsuarioDTO(Long id, String firebaseUid, String nome, String email, String telefone, 
-                      EnderecoDTO endereco, LocalDateTime dataAtivo, boolean isLocatario, boolean isLocador) {
+                      EnderecoDTO endereco, LocalDateTime dataCadastro, LocalDateTime dataAtivo, 
+                      boolean isLocatario, boolean isLocador, boolean isAdmin) {
         this.id = id;
         this.firebaseUid = firebaseUid;
         this.nome = nome;
         this.email = email;
         this.telefone = telefone;
         this.endereco = endereco;
+        this.dataCadastro = dataCadastro;
         this.dataAtivo = dataAtivo;
         this.isLocatario = isLocatario;
         this.isLocador = isLocador;
+        this.isAdmin = isAdmin;
     }
 
     // --- GETTERS E SETTERS ---
@@ -71,6 +83,9 @@ public class UsuarioDTO {
     public EnderecoDTO getEndereco() { return endereco; }
     public void setEndereco(EnderecoDTO endereco) { this.endereco = endereco; }
 
+    public LocalDateTime getDataCadastro() { return dataCadastro; } 
+    public void setDataCadastro(LocalDateTime dataCadastro) { this.dataCadastro = dataCadastro; } 
+    
     public LocalDateTime getDataAtivo() { return dataAtivo; }
     public void setDataAtivo(LocalDateTime dataAtivo) { this.dataAtivo = dataAtivo; }
     
