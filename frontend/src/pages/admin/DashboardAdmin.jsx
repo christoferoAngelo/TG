@@ -1,19 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
+import Sidebar from '../../components/admin/Sidebar';
+import NovoAdminTab from '../../components/admin/NovoAdminTab';
+import './DashboardAdmin.css';
 
 export default function DashboardAdmin() {
+  const { logout } = useAuth();
+  const [sidebarExpandida, setSidebarExpandida] = useState(true);
+  const [menuAtivo, setMenuAtivo] = useState('overview');
+
   const [usuarios, setUsuarios] = useState([]);
   const [espacos, setEspacos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
-  const [abaAtiva, setAbaAtiva] = useState('overview');
 
-  // --- FILTROS DE PERÍODO (ESTILO LOOKER STUDIO) ---
-  const [presetPeriodo, setPresetPeriodo] = useState('30'); // '30', '60', '90', 'all', 'custom'
+  const [presetPeriodo, setPresetPeriodo] = useState('30');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
 
-  // Ajusta automaticamente as datas de início/fim de acordo com o atalho selecionado
   useEffect(() => {
     if (presetPeriodo === 'all') {
       setDataInicio('');
@@ -37,335 +42,265 @@ export default function DashboardAdmin() {
   }, []);
 
   const carregarDados = async () => {
-  setLoading(true);
-  setErro(null);
+    setLoading(true);
+    setErro(null);
 
-  try {
-    const [resUsuarios, resEspacos] = await Promise.allSettled([
-      axios.get('http://localhost:8080/api/users'),
-      axios.get('http://localhost:8080/api/locadores/espacos/todos')
-    ]);
+    try {
+      const [resUsuarios, resEspacos] = await Promise.allSettled([
+        axios.get('http://localhost:8080/api/users'),
+        axios.get('http://localhost:8080/api/locadores/espacos/todos')
+      ]);
 
-    if (resUsuarios.status === 'fulfilled') {
-      // Garante que pegamos o array mesmo se vier envelopado (ex: paginação PageImpl)
-      const dados = resUsuarios.value.data;
-      const listaUsuarios = Array.isArray(dados) ? dados : (dados.content || []);
+      if (resUsuarios.status === 'fulfilled') {
+        const dados = resUsuarios.value.data;
+        setUsuarios(Array.isArray(dados) ? dados : (dados.content || []));
+      }
       
-      console.log("Usuários carregados do backend:", listaUsuarios);
-      setUsuarios(listaUsuarios);
+      if (resEspacos.status === 'fulfilled') {
+        const dadosEspacos = resEspacos.value.data;
+        setEspacos(Array.isArray(dadosEspacos) ? dadosEspacos : (dadosEspacos.content || []));
+      }
+    } catch (err) {
+      console.error("Erro ao carregar dados do admin:", err);
+      setErro("Não foi possível carregar todas as informações do painel.");
+    } finally {
+      setLoading(false);
     }
-    
-    if (resEspacos.status === 'fulfilled') {
-      const dadosEspacos = resEspacos.value.data;
-      const listaEspacos = Array.isArray(dadosEspacos) ? dadosEspacos : (dadosEspacos.content || []);
-      setEspacos(listaEspacos);
-    }
-
-  } catch (err) {
-    console.error("Erro ao carregar dados do admin:", err);
-    setErro("Não foi possível carregar todas as informações do painel.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-const metricas = useMemo(() => {
-  // 1. Filtra apenas quem NÃO é administrador
-  const usuariosComuns = usuarios.filter(u => !(u.isAdmin || u.admin));
-  
-  // Total de usuários reais do sistema (ex: 2)
-  const totalUsuarios = usuariosComuns.length;
-
-  const locadoresCount = usuarios.filter(u => u.isLocador || u.locador).length;
-  const locatariosCount = usuarios.filter(u => u.isLocatario || u.locatario).length;
-  const adminsCount = usuarios.filter(u => u.isAdmin || u.admin).length;
-
-  const inicioTs = dataInicio ? new Date(dataInicio + 'T00:00:00').getTime() : null;
-  const fimTs = dataFim ? new Date(dataFim + 'T23:59:59').getTime() : null;
-
-  // Novos Cadastros no período (apenas usuários comuns)
-  const novosNoPeriodo = usuariosComuns.filter(u => {
-    if (!u.dataCadastro) return false;
-    const dt = new Date(u.dataCadastro).getTime();
-    if (inicioTs && dt < inicioTs) return false;
-    if (fimTs && dt > fimTs) return false;
-    return true;
-  }).length;
-
-  // Ativos no período (apenas usuários comuns)
-  const ativosNoPeriodo = usuariosComuns.filter(u => {
-    const dataReferencia = u.dataAtivo || u.dataCadastro;
-    if (!dataReferencia) return false;
-    
-    const dt = new Date(dataReferencia).getTime();
-    if (inicioTs && dt < inicioTs) return false;
-    if (fimTs && dt > fimTs) return false;
-    return true;
-  }).length;
-
-  return {
-    totalUsuarios,
-    locadoresCount,
-    locatariosCount,
-    adminsCount,
-    novosNoPeriodo,
-    ativosNoPeriodo
   };
-}, [usuarios, dataInicio, dataFim]);
+
+  const handleLogout = async () => {
+    try {
+      await logout(); 
+      window.location.href = '/login'; 
+    } catch (error) {
+      console.error("Erro ao sair:", error);
+    }
+  };
+
+  const handleExcluirUsuario = (usuarioAlvo) => {
+    const isAdmin = usuarioAlvo.admin || usuarioAlvo.isAdmin;
+    const totalAdmins = usuarios.filter(u => u.admin || u.isAdmin).length;
+
+    if (isAdmin && totalAdmins <= 1) {
+      alert("⚠️ Operação Negada: O sistema não pode ficar sem administradores. Cadastre outro admin antes de excluir este.");
+      return;
+    }
+
+    alert(`[A fazer] Ação de excluir o usuário "${usuarioAlvo.nome || usuarioAlvo.email}". Aguardando finalização do backend pelo colega.`);
+  };
+
+  const handleEditarUsuario = (usuarioAlvo) => {
+    alert(`[A fazer] Ação de editar o usuário "${usuarioAlvo.nome || usuarioAlvo.email}". Aguardando endpoints do backend.`);
+  };
+
+  const metricas = useMemo(() => {
+    const usuariosComuns = usuarios.filter(u => !(u.isAdmin || u.admin));
+    const totalUsuarios = usuariosComuns.length;
+
+    const locadoresCount = usuarios.filter(u => u.isLocador || u.locador).length;
+    const locatariosCount = usuarios.filter(u => u.isLocatario || u.locatario).length;
+    const adminsCount = usuarios.filter(u => u.admin || u.isAdmin).length;
+
+    const inicioTs = dataInicio ? new Date(dataInicio + 'T00:00:00').getTime() : null;
+    const fimTs = dataFim ? new Date(dataFim + 'T23:59:59').getTime() : null;
+
+    const novosNoPeriodo = usuariosComuns.filter(u => {
+      if (!u.dataCadastro) return false;
+      const dt = new Date(u.dataCadastro).getTime();
+      if (inicioTs && dt < inicioTs) return false;
+      if (fimTs && dt > fimTs) return false;
+      return true;
+    }).length;
+
+    const ativosNoPeriodo = usuariosComuns.filter(u => {
+      const dataReferencia = u.dataAtivo || u.dataCadastro;
+      if (!dataReferencia) return false;
+      
+      const dt = new Date(dataReferencia).getTime();
+      if (inicioTs && dt < inicioTs) return false;
+      if (fimTs && dt > fimTs) return false;
+      return true;
+    }).length;
+
+    return { totalUsuarios, locadoresCount, locatariosCount, adminsCount, novosNoPeriodo, ativosNoPeriodo };
+  }, [usuarios, dataInicio, dataFim]);
 
   return (
-    <div style={styles.container}>
-      {/* HEADER DO PAINEL */}
-      <header style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Painel Administrativo</h1>
-          <p style={styles.subtitle}>Métricas e gestão do ecossistema LocaFesta</p>
-        </div>
-        <button onClick={carregarDados} style={styles.btnRefresh}>
-          🔄 Atualizar Dados
-        </button>
-      </header>
+    <div className="admin-layout">
+      {/* MENU LATERAL ISOLADO */}
+      <Sidebar 
+        sidebarExpandida={sidebarExpandida}
+        setSidebarExpandida={setSidebarExpandida}
+        menuAtivo={menuAtivo}
+        setMenuAtivo={setMenuAtivo}
+        usuariosCount={usuarios.length}
+        espacosCount={espacos.length}
+        handleLogout={handleLogout}
+      />
 
-      {/* PAINEL DE FILTRO DE DATA (LOOKER STUDIO STYLE) */}
-      <div style={styles.filterBar}>
-        <div style={styles.filterGroup}>
-          <label style={styles.filterLabel}>📅 Período de Análise:</label>
-          <select 
-            value={presetPeriodo} 
-            onChange={(e) => setPresetPeriodo(e.target.value)}
-            style={styles.selectInput}
-          >
-            <option value="30">Últimos 30 dias</option>
-            <option value="60">Últimos 60 dias</option>
-            <option value="90">Últimos 90 dias</option>
-            <option value="all">Todo o Período</option>
-            <option value="custom">Personalizado</option>
-          </select>
-        </div>
-
-        {/* DATAS DE/ATÉ EXIBIDAS QUANDO SELECIONADO OU PERSONALIZADO */}
-        <div style={styles.filterGroup}>
-          <label style={styles.filterLabel}>De:</label>
-          <input 
-            type="date" 
-            value={dataInicio} 
-            onChange={(e) => { setDataInicio(e.target.value); setPresetPeriodo('custom'); }}
-            style={styles.dateInput}
-          />
-        </div>
-
-        <div style={styles.filterGroup}>
-          <label style={styles.filterLabel}>Até:</label>
-          <input 
-            type="date" 
-            value={dataFim} 
-            onChange={(e) => { setDataFim(e.target.value); setPresetPeriodo('custom'); }}
-            style={styles.dateInput}
-          />
-        </div>
-      </div>
-
-      {/* CARDS DE MÉTRICAS DETALHADAS */}
-      <div style={styles.gridCards}>
-        <div style={styles.card}>
-          <span style={styles.cardIcon}>👥</span>
+      {/* ÁREA PRINCIPAL DE CONTEÚDO */}
+      <main className="main-content">
+        <header className="admin-header">
           <div>
-            <h3 style={styles.cardValue}>{loading ? '...' : metricas.totalUsuarios}</h3>
-            <p style={styles.cardLabel}>Total de Usuários</p>
+            <h1 className="admin-title">Painel Administrativo</h1>
+            <p className="admin-subtitle">Gestão do ecossistema LocaFesta</p>
           </div>
-        </div>
+          <button onClick={carregarDados} className="btn-refresh">
+            🔄 Atualizar Dados
+          </button>
+        </header>
 
-        <div style={{ ...styles.card, borderLeft: '4px solid #3B82F6' }}>
-          <span style={styles.cardIcon}>🏡</span>
+        {menuAtivo === 'overview' && (
           <div>
-            <h3 style={{ ...styles.cardValue, color: '#1E40AF' }}>{loading ? '...' : metricas.locadoresCount}</h3>
-            <p style={styles.cardLabel}>Locadores (Proprietários)</p>
-          </div>
-        </div>
+            <div className="filter-bar">
+              <div className="filter-group">
+                <label className="filter-label">📅 Período de Análise:</label>
+                <select value={presetPeriodo} onChange={(e) => setPresetPeriodo(e.target.value)} className="select-input">
+                  <option value="30">Últimos 30 dias</option>
+                  <option value="60">Últimos 60 dias</option>
+                  <option value="90">Últimos 90 dias</option>
+                  <option value="all">Todo o Período</option>
+                  <option value="custom">Personalizado</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label className="filter-label">De:</label>
+                <input type="date" value={dataInicio} onChange={(e) => { setDataInicio(e.target.value); setPresetPeriodo('custom'); }} className="date-input" />
+              </div>
+              <div className="filter-group">
+                <label className="filter-label">Até:</label>
+                <input type="date" value={dataFim} onChange={(e) => { setDataFim(e.target.value); setPresetPeriodo('custom'); }} className="date-input" />
+              </div>
+            </div>
 
-        <div style={{ ...styles.card, borderLeft: '4px solid #10B981' }}>
-          <span style={styles.cardIcon}>🎉</span>
-          <div>
-            <h3 style={{ ...styles.cardValue, color: '#065F46' }}>{loading ? '...' : metricas.locatariosCount}</h3>
-            <p style={styles.cardLabel}>Locatários (Clientes)</p>
-          </div>
-        </div>
+            <div className="grid-cards">
+              <div className="card"><span className="card-icon">👥</span><div><h3 className="card-value">{loading ? '...' : metricas.totalUsuarios}</h3><p className="card-label">Total de Usuários</p></div></div>
+              <div className="card card-blue"><span className="card-icon">🏡</span><div><h3 className="card-value">{loading ? '...' : metricas.locadoresCount}</h3><p className="card-label">Locadores (Proprietários)</p></div></div>
+              <div className="card card-green"><span className="card-icon">🎉</span><div><h3 className="card-value">{loading ? '...' : metricas.locatariosCount}</h3><p className="card-label">Locatários (Clientes)</p></div></div>
+              <div className="card card-yellow"><span className="card-icon">🆕</span><div><h3 className="card-value">{loading ? '...' : metricas.novosNoPeriodo}</h3><p className="card-label">Novos no Período</p></div></div>
+              <div className="card card-purple"><span className="card-icon">⚡</span><div><h3 className="card-value">{loading ? '...' : metricas.ativosNoPeriodo}</h3><p className="card-label">Ativos no Período</p></div></div>
+            </div>
 
-        <div style={{ ...styles.card, borderLeft: '4px solid #F59E0B' }}>
-          <span style={styles.cardIcon}>🆕</span>
-          <div>
-            <h3 style={{ ...styles.cardValue, color: '#D97706' }}>{loading ? '...' : metricas.novosNoPeriodo}</h3>
-            <p style={styles.cardLabel}>Novos no Período</p>
-          </div>
-        </div>
-
-        <div style={{ ...styles.card, borderLeft: '4px solid #8B5CF6' }}>
-          <span style={styles.cardIcon}>⚡</span>
-          <div>
-            <h3 style={{ ...styles.cardValue, color: '#5B21B6' }}>{loading ? '...' : metricas.ativosNoPeriodo}</h3>
-            <p style={styles.cardLabel}>Ativos no Período</p>
-          </div>
-        </div>
-      </div>
-
-      {/* NAVEGAÇÃO DE ABAS */}
-      <div style={styles.tabsContainer}>
-        <button 
-          style={abaAtiva === 'overview' ? styles.tabActive : styles.tab}
-          onClick={() => setAbaAtiva('overview')}
-        >
-          Visão Geral
-        </button>
-        <button 
-          style={abaAtiva === 'usuarios' ? styles.tabActive : styles.tab}
-          onClick={() => setAbaAtiva('usuarios')}
-        >
-          Usuários ({usuarios.length})
-        </button>
-        <button 
-          style={abaAtiva === 'espacos' ? styles.tabActive : styles.tab}
-          onClick={() => setAbaAtiva('espacos')}
-        >
-          Espaços ({espacos.length})
-        </button>
-      </div>
-
-      {/* CONTEÚDO DAS ABAS */}
-      {loading ? (
-        <div style={styles.loadingBox}>Carregando informações do banco de dados...</div>
-      ) : (
-        <div style={styles.contentBox}>
-          
-          {/* ABA: VISÃO GERAL */}
-          {abaAtiva === 'overview' && (
-            <div>
-              <h3>Resumo da Base de Dados</h3>
+            <div className="content-box">
+              <h3>Resumo Geral do Sistema</h3>
               <p>• <strong>Locadores:</strong> {metricas.locadoresCount} ({((metricas.locadoresCount / (metricas.totalUsuarios || 1)) * 100).toFixed(0)}% do total)</p>
               <p>• <strong>Locatários:</strong> {metricas.locatariosCount} ({((metricas.locatariosCount / (metricas.totalUsuarios || 1)) * 100).toFixed(0)}% do total)</p>
               <p>• <strong>Administradores:</strong> {metricas.adminsCount}</p>
-              {erro && <p style={{ color: 'red' }}>⚠️ {erro}</p>}
+              {erro && <p className="error-message">⚠️ {erro}</p>}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* ABA: USUÁRIOS */}
-          {abaAtiva === 'usuarios' && (
-            <div>
-              <h3>Lista Geral de Usuários</h3>
-              {usuarios.length === 0 ? (
-                <p>Nenhum usuário encontrado.</p>
-              ) : (
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.th}>ID</th>
-                      <th style={styles.th}>Nome</th>
-                      <th style={styles.th}>Email</th>
-                      <th style={styles.th}>Perfis</th>
-                      <th style={styles.th}>Data Cadastro</th>
-                      <th style={styles.th}>Última Atividade</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usuarios.map((u) => {
-                      const isLocador = u.locador || u.isLocador;
-                      const isLocatario = u.locatario || u.isLocatario;
+        {menuAtivo === 'usuarios' && (
+          <div className="content-box">
+            <h3>Lista Geral de Usuários</h3>
+            <p className="section-description">Gerenciamento de contas de usuários, perfis e permissões.</p>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th className="admin-th">ID</th>
+                  <th className="admin-th">Nome</th>
+                  <th className="admin-th">Email</th>
+                  <th className="admin-th">Perfis</th>
+                  <th className="admin-th">Data Cadastro</th>
+                  <th className="admin-th">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usuarios.map((u) => (
+                  <tr key={u.id || u.firebaseUid}>
+                    <td className="admin-td">{u.id}</td>
+                    <td className="admin-td"><strong>{u.nome || 'Sem Nome'}</strong></td>
+                    <td className="admin-td">{u.email}</td>
+                    <td className="admin-td">
+                      {(u.admin || u.isAdmin) && <span className="badge-admin">Admin</span>}
+                      {(u.locador || u.isLocador) && <span className="badge-locador">Locador</span>}
+                      {(u.locatario || u.isLocatario) && <span className="badge-locatario">Locatário</span>}
+                    </td>
+                    <td className="admin-td">{u.dataCadastro ? new Date(u.dataCadastro).toLocaleDateString('pt-BR') : 'N/I'}</td>
+                    <td className="admin-td">
+                      <button 
+                        className="btn-sm btn-edit" 
+                        onClick={() => handleEditarUsuario(u)}
+                        title="Editar Usuário"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button 
+                        className="btn-sm btn-delete" 
+                        onClick={() => handleExcluirUsuario(u)}
+                        title="Excluir Usuário"
+                        style={{ marginLeft: '6px' }}
+                      >
+                        🗑️ Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-                      return (
-                        <tr key={u.id || u.firebaseUid}>
-                          <td style={styles.td}>{u.id}</td>
-                          <td style={styles.td}><strong>{u.nome || 'Sem Nome'}</strong></td>
-                          <td style={styles.td}>{u.email}</td>
-                          <td style={styles.td}>
-                            {u.admin && <span style={styles.badgeAdmin}>Admin</span>}
-                            {isLocador && <span style={styles.badgeLocador}>Locador</span>}
-                            {isLocatario && <span style={styles.badgeLocatario}>Locatário</span>}
-                            {!u.admin && !isLocador && !isLocatario && <span style={styles.badgeComum}>Sem Perfil</span>}
-                          </td>
-                          <td style={styles.td}>
-                            {u.dataCadastro ? new Date(u.dataCadastro).toLocaleDateString('pt-BR') : 'N/I'}
-                          </td>
-                          <td style={styles.td}>
-                            {u.dataAtivo ? new Date(u.dataAtivo).toLocaleString('pt-BR') : 'Nunca'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
+        {menuAtivo === 'espacos' && (
+          <div className="content-box">
+            <h3>Lista de Espaços Cadastrados</h3>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th className="admin-th">ID</th>
+                  <th className="admin-th">Título / Nome do Espaço</th>
+                  <th className="admin-th">Valor Diária</th>
+                </tr>
+              </thead>
+              <tbody>
+                {espacos.map((e) => (
+                  <tr key={e.id}>
+                    <td className="admin-td">{e.id}</td>
+                    <td className="admin-td">{e.titulo || e.nome || 'Sem nome'}</td>
+                    <td className="admin-td">R$ {e.valorDiaria ? e.valorDiaria.toFixed(2) : '0.00'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {menuAtivo === 'documentos' && (
+          <div className="content-box">
+            <h3>🛡️ Validação de Documentos e Alvarás</h3>
+            <p className="section-description">Análise de RG/CNH de usuários e comprovação de propriedade / alvará de espaços.</p>
+            <div className="placeholder-box">
+              <p>📄 Aqui serão exibidos os documentos pendentes de verificação enviados pelos locadores e locatários.</p>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* ABA: ESPAÇOS */}
-          {abaAtiva === 'espacos' && (
-            <div>
-              <h3>Lista de Espaços Cadastrados</h3>
-              {espacos.length === 0 ? (
-                <p>Nenhum espaço encontrado no banco.</p>
-              ) : (
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.th}>ID</th>
-                      <th style={styles.th}>Título / Nome do Espaço</th>
-                      <th style={styles.th}>Valor Diária</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {espacos.map((e) => (
-                      <tr key={e.id}>
-                        <td style={styles.td}>{e.id}</td>
-                        <td style={styles.td}>{e.titulo || e.nome || 'Sem nome'}</td>
-                        <td style={styles.td}>R$ {e.valorDiaria ? e.valorDiaria.toFixed(2) : '0.00'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
+{menuAtivo === 'novo_admin' && (
+          <NovoAdminTab />
+        )}
 
-        </div>
-      )}
+        {menuAtivo === 'moderacao_espacos' && (
+          <div className="content-box">
+            <h3>📋 Moderação de Anúncios de Espaços</h3>
+            <p className="section-description">Revise novos locais cadastrados por locadores antes de irem para a busca do app.</p>
+          </div>
+        )}
+
+        {menuAtivo === 'financeiro' && (
+          <div className="content-box">
+            <h3>💳 Gestão de Reservas e Repasses</h3>
+            <p className="section-description">Acompanhamento das transações, taxas de serviço da plataforma e liberação de pagamentos.</p>
+          </div>
+        )}
+
+        {menuAtivo === 'denuncias' && (
+          <div className="content-box">
+            <h3>🚩 Central de Suporte & Moderação</h3>
+            <p className="section-description">Histórico de chamados, denúncias de anúncios e desacordos nas reservas.</p>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
-
-// ESTILOS VISUAIS
-const styles = {
-  container: { padding: '30px', fontFamily: 'Arial, sans-serif', maxWidth: '1280px', margin: '0 auto', backgroundColor: '#f8fafc', minHeight: '100vh' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  title: { margin: 0, color: '#0f172a' },
-  subtitle: { margin: '5px 0 0 0', color: '#64748b' },
-  btnRefresh: { padding: '10px 16px', backgroundColor: '#4F46E5', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' },
-  
-  // FILTRO ESTILO LOOKER STUDIO
-  filterBar: { display: 'flex', alignItems: 'center', gap: '20px', backgroundColor: '#ffffff', padding: '15px 20px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '25px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
-  filterGroup: { display: 'flex', alignItems: 'center', gap: '8px' },
-  filterLabel: { fontSize: '14px', fontWeight: 'bold', color: '#334155' },
-  selectInput: { padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff', fontSize: '14px' },
-  dateInput: { padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' },
-
-  // CARDS DE MÉTRICAS
-  gridCards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '15px', marginBottom: '25px' },
-  card: { display: 'flex', alignItems: 'center', padding: '18px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' },
-  cardIcon: { fontSize: '28px', marginRight: '12px' },
-  cardValue: { margin: 0, fontSize: '22px', color: '#0f172a' },
-  cardLabel: { margin: 0, color: '#64748b', fontSize: '13px' },
-  
-  // NAVEGAÇÃO E TABELAS
-  tabsContainer: { display: 'flex', gap: '10px', borderBottom: '2px solid #e2e8f0', marginBottom: '20px' },
-  tab: { padding: '10px 20px', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', fontSize: '15px', color: '#64748b' },
-  tabActive: { padding: '10px 20px', backgroundColor: 'transparent', border: 'none', borderBottom: '3px solid #4F46E5', cursor: 'pointer', fontSize: '15px', fontWeight: 'bold', color: '#4F46E5' },
-  contentBox: { backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' },
-  loadingBox: { padding: '40px', textAlign: 'center', color: '#64748b' },
-  table: { width: '100%', borderCollapse: 'collapse', marginTop: '10px' },
-  th: { textAlign: 'left', padding: '12px', borderBottom: '2px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '14px' },
-  td: { padding: '12px', borderBottom: '1px solid #f1f5f9', fontSize: '14px', color: '#334155' },
-
-  // BADGES DE TIPO
-  badgeAdmin: { backgroundColor: '#FEE2E2', color: '#991B1B', padding: '3px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', marginRight: '5px' },
-  badgeLocador: { backgroundColor: '#DBEAFE', color: '#1E40AF', padding: '3px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', marginRight: '5px' },
-  badgeLocatario: { backgroundColor: '#D1FAE5', color: '#065F46', padding: '3px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', marginRight: '5px' },
-  badgeComum: { backgroundColor: '#F3F4F6', color: '#4B5563', padding: '3px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }
-};
