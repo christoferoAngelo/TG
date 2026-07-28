@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-LocafestaApplication<Locafesta>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.eva.locafesta.LocafestaApplication",
+      "projectName": "Locafesta",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

@@ -2,6 +2,13 @@ package com.eva.locafesta.locatario;
 
 import com.eva.locafesta.usuario.Usuario;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 
 @Entity
 @Table(name = "perfis_locatario")
@@ -19,21 +26,6 @@ public class PerfilLocatario {
     @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false, unique = true)
     private Usuario usuario;
 
-    public PerfilLocatario() {}
-
-    public PerfilLocatario(String documento, Usuario usuario) {
-        this.documento = documento;
-        this.usuario = usuario;
-    }
-
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getDocumento() { return documento; }
-    public void setDocumento(String documento) { this.documento = documento; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
-    
-    
+      
     
 }

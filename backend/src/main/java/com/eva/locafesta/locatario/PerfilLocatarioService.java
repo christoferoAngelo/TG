@@ -30,6 +30,11 @@ public class PerfilLocatarioService {
     // CREATE
     @Transactional
     public PerfilLocatarioDTO criarPerfil(PerfilLocatarioDTO dto) {
+        // 1. Proteção contra ID nulo
+        if (dto.getUsuarioId() == null) {
+            throw new RuntimeException("O ID do usuário não pode ser nulo.");
+        }
+
         if (locatarioRepository.existsByDocumento(dto.getDocumento())) {
             throw new RuntimeException("Este CPF/CNPJ já está cadastrado como locatario.");
         }
@@ -41,7 +46,12 @@ public class PerfilLocatarioService {
             throw new RuntimeException("Este usuário já possui um perfil de locatario.");
         }
 
-        PerfilLocatario perfil = new PerfilLocatario(dto.getDocumento(), usuario);
+        //criando o perfil de locatario
+        PerfilLocatario perfil = PerfilLocatario.builder()
+                .documento(dto.getDocumento())
+                .usuario(usuario)
+                .build();
+                
         PerfilLocatario perfilSalvo = locatarioRepository.save(perfil);
         
         return converterParaDTO(perfilSalvo);

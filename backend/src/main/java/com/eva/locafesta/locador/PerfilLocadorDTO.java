@@ -2,9 +2,15 @@ package com.eva.locafesta.locador;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor @Builder
 public class PerfilLocadorDTO {
 
+	@NotBlank
     private Long id;
 
     @NotBlank(message = "O documento (CPF ou CNPJ) é obrigatório.")
@@ -12,51 +18,12 @@ public class PerfilLocadorDTO {
     private String documento;
 
     @Size(max = 150, message = "O nome fantasia deve ter no máximo 150 caracteres.")
+    @NotBlank(message = "O nome fantasia é obrigatório.")
     private String nomeFantasia;
-
+    
+    @NotBlank(message = "UsuarioId é obrigatório.")
     private Long usuarioId;
     
 
-    public PerfilLocadorDTO() {
-    }
-
-    public PerfilLocadorDTO(Long id, String documento, String nomeFantasia, Long usuarioId) {
-        this.id = id;
-        this.documento = documento;
-        this.nomeFantasia = nomeFantasia;
-        this.usuarioId = usuarioId;
-    }
-
-    // Getters e Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getDocumento() {
-        return documento;
-    }
-
-    public void setDocumento(String documento) {
-        this.documento = documento;
-    }
-
-    public String getNomeFantasia() {
-        return nomeFantasia;
-    }
-
-    public void setNomeFantasia(String nomeFantasia) {
-        this.nomeFantasia = nomeFantasia;
-    }
-
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
+    
 }

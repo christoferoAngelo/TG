@@ -1,9 +1,19 @@
 package com.eva.locafesta.locador;
 
+import java.time.LocalDateTime;
+
+import com.eva.locafesta.endereco.Endereco;
 import com.eva.locafesta.usuario.Usuario;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+
 @Table(name = "perfis_locador")
 public class PerfilLocador {
 
@@ -23,21 +33,5 @@ public class PerfilLocador {
     @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false, unique = true)
     private Usuario usuario;
 
-    public PerfilLocador() {}
 
-    public PerfilLocador(String documento, String nomeFantasia, Usuario usuario) {
-        this.documento = documento;
-        this.nomeFantasia = nomeFantasia;
-        this.usuario = usuario;
-    }
-
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getDocumento() { return documento; }
-    public void setDocumento(String documento) { this.documento = documento; }
-    public String getNomeFantasia() { return nomeFantasia; }
-    public void setNomeFantasia(String nomeFantasia) { this.nomeFantasia = nomeFantasia; }
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 }

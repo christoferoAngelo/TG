@@ -1,5 +1,5 @@
 package com.eva.locafesta.reserva;
 
-public class ReservaEntity {
+public class Reserva {
 
 }

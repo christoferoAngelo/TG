@@ -1,10 +1,14 @@
 package com.eva.locafesta.usuario;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.eva.locafesta.endereco.Endereco;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor 
 
 @Entity
 @Table(name = "users") // Mapeamento da tabela de utilizadores no MySQL
@@ -14,7 +18,6 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Elo de ligação único entre o utilizador no banco MySQL e o registo de autenticação do Firebase
     @Column(name = "firebase_uid", unique = true, nullable = false)
     private String firebaseUid; 
 
@@ -47,123 +50,9 @@ public class Usuario {
     private boolean isAdmin = false;
 
 
-    // Construtor padrão obrigatório pelo JPA
-    public Usuario() {
-    }
-    
-    
-
-    public Usuario(Long id, String firebaseUid, String nome, String email, String telefone, LocalDateTime dataCadastro,
-			LocalDateTime dataAtivo, String statusConta, Integer nota, Endereco endereco) {
-		super();
-		this.id = id;
-		this.firebaseUid = firebaseUid;
-		this.nome = nome;
-		this.email = email;
-		this.telefone = telefone;
-		this.dataCadastro = dataCadastro;
-		this.dataAtivo = dataAtivo;
-		this.statusConta = statusConta;
-		this.nota = nota;
-		this.endereco = endereco;
-	}
-
-
-
-    
-
-    //Getters e setters
-    
-    
-	public Endereco getEndereco() { return endereco; }
-    public LocalDateTime getDataAtivo() {
-		return dataAtivo;
-	}
-
-
-
-	public void setDataAtivo(LocalDateTime dataAtivo) {
-		this.dataAtivo = dataAtivo;
-	}
-
-
-
-	public void setEndereco(Endereco endereco) { 
-        this.endereco = endereco; 
-        if (endereco != null) {
-            endereco.setUsuario(this); // Mantém a consistência bidirecional
-        }
-    }
-    
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getFirebaseUid() {
-        return firebaseUid;
-    }
-
-    public void setFirebaseUid(String firebaseUid) {
-        this.firebaseUid = firebaseUid;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getTelefone() {
-        return telefone;
-    }
-
-    public void setTelefone(String telefone) {
-        this.telefone = telefone;
-    }
-
-    public LocalDateTime getDataCadastro() {
-        return dataCadastro;
-    }
-
-    public void setDataCadastro(LocalDateTime dataCadastro) {
-        this.dataCadastro = dataCadastro;
-    }
-
-    public String getStatusConta() {
-        return statusConta;
-    }
-
-    public void setStatusConta(String statusConta) {
-        this.statusConta = statusConta;
-    }
-
-    public Integer getNota() {
-        return nota;
-    }
-
-    public void setNota(Integer nota) {
-        this.nota = nota;
-    }
-
-    public boolean isAdmin() {
-    return isAdmin;
-    }
-
-public void setAdmin(boolean admin) {
-    isAdmin = admin;
-    }
 }
+
+
+
+    
+

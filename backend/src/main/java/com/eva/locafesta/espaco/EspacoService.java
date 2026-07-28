@@ -33,15 +33,16 @@ public class EspacoService {
     public EspacoDTO criarEspaco(Long locadorId, EspacoDTO dto) {
         PerfilLocador locador = locadorRepository.findById(locadorId)
                 .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado."));
-
-        Espaco espaco = new Espaco();
-        espaco.setLocador(locador);
-        espaco.setTitulo(dto.getTitulo());
-        espaco.setDescricao(dto.getDescricao());
-        espaco.setValorDiaria(dto.getValorDiaria());
-        espaco.setCapacidadePessoas(dto.getCapacidadePessoas());
-        espaco.setRestricoesHorario(dto.getRestricoesHorario());
-        espaco.setHorarioFechamento(dto.getHorarioFechamento());
+        
+        Espaco espaco = Espaco.builder()
+        		.locador(locador)
+        		.titulo(dto.getTitulo())
+        		.descricao(dto.getDescricao())
+        		.valorDiaria(dto.getValorDiaria())
+        		.capacidadePessoas(dto.getCapacidadePessoas())
+        		.restricoesHorario(dto.getRestricoesHorario())
+        		.horarioFechamento(dto.getHorarioFechamento())
+        		.build();
 
         // Converte o EnderecoDTO para a entidade Endereco
         if (dto.getEndereco() != null) {

@@ -1,5 +1,5 @@
 package com.eva.locafesta.pagamento;
 
-public class PagamentoEntity {
+public class Pagamento {
 
 }

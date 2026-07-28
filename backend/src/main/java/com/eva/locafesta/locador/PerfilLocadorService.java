@@ -41,8 +41,13 @@ public class PerfilLocadorService {
         if (locadorRepository.existsByUsuarioId(dto.getUsuarioId())) {
             throw new RuntimeException("Este usuário já possui um perfil de locador.");
         }
-
-        PerfilLocador perfil = new PerfilLocador(dto.getDocumento(), dto.getNomeFantasia(), usuario);
+        
+        //construtor sem id, pq ele vai ser gerado pelo @GeneratedValue automaticamente
+        PerfilLocador perfil = PerfilLocador.builder()
+                .documento(dto.getDocumento())
+                .nomeFantasia(dto.getNomeFantasia())
+                .usuario(usuario)
+                .build();
         PerfilLocador perfilSalvo = locadorRepository.save(perfil);
         
         return converterParaDTO(perfilSalvo);

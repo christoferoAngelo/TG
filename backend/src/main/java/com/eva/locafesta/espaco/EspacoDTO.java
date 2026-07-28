@@ -3,10 +3,22 @@ package com.eva.locafesta.espaco;
 import com.eva.locafesta.caracteristica.CaracteristicaDTO;
 import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.espaco.Espaco;
+import com.eva.locafesta.locatario.PerfilLocatarioDTO;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class EspacoDTO {
 
     private Long id;
@@ -23,9 +35,7 @@ public class EspacoDTO {
     // Lista de características convertidas para DTO
     private Set<CaracteristicaDTO> caracteristicas;
 
-    public EspacoDTO() {
-    }
-
+   
     public EspacoDTO(Espaco espaco) {
         this.id = espaco.getId();
         if (espaco.getLocador() != null) {
@@ -50,37 +60,5 @@ public class EspacoDTO {
         }
     }
 
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
-    public Long getLocadorId() { return locadorId; }
-    public void setLocadorId(Long locadorId) { this.locadorId = locadorId; }
-
-    public EnderecoDTO getEndereco() { return endereco; }
-    public void setEndereco(EnderecoDTO endereco) { this.endereco = endereco; }
-
-    public String getTitulo() { return titulo; }
-    public void setTitulo(String titulo) { this.titulo = titulo; }
-
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
-
-    public BigDecimal getValorDiaria() { return valorDiaria; }
-    public void setValorDiaria(BigDecimal valorDiaria) { this.valorDiaria = valorDiaria; }
-
-    public Integer getCapacidadePessoas() { return capacidadePessoas; }
-    public void setCapacidadePessoas(Integer capacidadePessoas) { this.capacidadePessoas = capacidadePessoas; }
-
-    public String getRestricoesHorario() { return restricoesHorario; }
-    public void setRestricoesHorario(String restricoesHorario) { this.restricoesHorario = restricoesHorario; }
-
-    public String getHorarioFechamento() { return horarioFechamento; }
-    public void setHorarioFechamento(String horarioFechamento) { this.horarioFechamento = horarioFechamento; }
-
-    public String getStatusAprovacao() { return statusAprovacao; }
-    public void setStatusAprovacao(String statusAprovacao) { this.statusAprovacao = statusAprovacao; }
-
-    public Set<CaracteristicaDTO> getCaracteristicas() { return caracteristicas; }
-    public void setCaracteristicas(Set<CaracteristicaDTO> caracteristicas) { this.caracteristicas = caracteristicas; }
 }

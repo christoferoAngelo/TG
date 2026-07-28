@@ -1,5 +1,5 @@
 package com.eva.locafesta.relatorioLocador;
 
-public class RelatorioEntity {
+public class Relatorio {
 
 }
