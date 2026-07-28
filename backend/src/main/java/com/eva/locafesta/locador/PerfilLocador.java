@@ -2,7 +2,8 @@ package com.eva.locafesta.locador;
 
 import java.time.LocalDateTime;
 
-import com.eva.locafesta.endereco.Endereco;
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.eva.locafesta.usuario.Usuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,15 @@ public class PerfilLocador {
     @OneToOne
     @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false, unique = true)
     private Usuario usuario;
+
+    @CreationTimestamp
+    @Column(name = "data_cadastro", updatable = false)
+    private LocalDateTime dataCadastro;
+    
+    @Column(name = "data_ativo")
+    private LocalDateTime dataAtivo;
+    
+    
 
 
 }

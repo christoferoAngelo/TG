@@ -1,5 +1,10 @@
 package com.eva.locafesta.locatario;
 
+import java.time.LocalDateTime;
+
+import com.eva.locafesta.locador.PerfilLocador;
+
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -23,6 +28,15 @@ public class PerfilLocatarioDTO {
 
     @NotNull
     private Long usuarioId;
+    
+    private LocalDateTime dataAtivo;
+    
+    public PerfilLocatarioDTO(PerfilLocatario perfil){
+    	this.id = perfil.getId();
+    	this.documento = perfil.getCpf();
+    	this.dataAtivo = perfil.getDataAtivo();
+    	this.usuarioId = perfil.getUsuario().getId();
+    };
     
 
     

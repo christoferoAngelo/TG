@@ -1,6 +1,11 @@
 package com.eva.locafesta.locador;
 
+import java.time.LocalDateTime;
+
+
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +15,7 @@ import lombok.Setter;
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor @Builder
 public class PerfilLocadorDTO {
 
-	@NotBlank
+
     private Long id;
 
     @NotBlank(message = "O documento (CPF ou CNPJ) é obrigatório.")
@@ -21,9 +26,20 @@ public class PerfilLocadorDTO {
     @NotBlank(message = "O nome fantasia é obrigatório.")
     private String nomeFantasia;
     
-    @NotBlank(message = "UsuarioId é obrigatório.")
+    @NotNull(message = "UsuarioId é obrigatório.")
     private Long usuarioId;
     
+    private LocalDateTime dataAtivo;
+    
+    
+    // construtor pra transformar PerfilLocador em PerfilLocadorDTO
+    public PerfilLocadorDTO(PerfilLocador perfil){
+    	this.id = perfil.getId();
+    	this.documento = perfil.getDocumento();
+    	this.dataAtivo = perfil.getDataAtivo();
+    	this.nomeFantasia = perfil.getNomeFantasia();
+    	this.usuarioId = perfil.getUsuario().getId();
+    };
 
     
 }

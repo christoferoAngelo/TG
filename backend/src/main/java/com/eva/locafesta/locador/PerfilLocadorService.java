@@ -20,12 +20,7 @@ public class PerfilLocadorService {
 
     // Método auxiliar para converter Entidade em DTO
     private PerfilLocadorDTO converterParaDTO(PerfilLocador perfil) {
-        return new PerfilLocadorDTO(
-                perfil.getId(),
-                perfil.getDocumento(),
-                perfil.getNomeFantasia(),
-                perfil.getUsuario().getId()
-        );
+        return new PerfilLocadorDTO(perfil);
     }
 
     // CREATE
@@ -34,7 +29,7 @@ public class PerfilLocadorService {
         if (locadorRepository.existsByDocumento(dto.getDocumento())) {
             throw new RuntimeException("Este CPF/CNPJ já está cadastrado como locador.");
         }
-
+        
         Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 

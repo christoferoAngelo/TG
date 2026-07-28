@@ -43,7 +43,7 @@ public class Usuario {
     @Column(name = "nota_geral")
     private Integer nota;
     
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Embedded
     private Endereco endereco;
 
     @Column(name = "is_admin", nullable = false)

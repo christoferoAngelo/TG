@@ -28,8 +28,7 @@ public class Espaco {
     @JoinColumn(name = "locador_id", nullable = false)
     private PerfilLocador locador;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "endereco_id", referencedColumnName = "id", nullable = false)
+    @Embedded
     private Endereco endereco;
 
     @Column(nullable = false, length = 150)

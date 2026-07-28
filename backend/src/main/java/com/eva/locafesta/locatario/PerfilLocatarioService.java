@@ -20,11 +20,7 @@ public class PerfilLocatarioService {
 
     // Método auxiliar para converter Entidade em DTO
     private PerfilLocatarioDTO  converterParaDTO(PerfilLocatario  perfil) {
-        return new PerfilLocatarioDTO(
-        		perfil.getId(),
-                perfil.getDocumento(),
-                perfil.getUsuario().getId()
-        );
+        return new PerfilLocatarioDTO(perfil);
     }
 
     // CREATE
@@ -48,7 +44,7 @@ public class PerfilLocatarioService {
 
         //criando o perfil de locatario
         PerfilLocatario perfil = PerfilLocatario.builder()
-                .documento(dto.getDocumento())
+                .cpf(dto.getDocumento())
                 .usuario(usuario)
                 .build();
                 
@@ -85,11 +81,11 @@ public class PerfilLocatarioService {
                 .orElseThrow(() -> new RuntimeException("Perfil de locatario não encontrado."));
 
         // Verifica se o locatario está tentando mudar para um documento que já existe em outra conta
-        if (!perfil.getDocumento().equals(dto.getDocumento()) && locatarioRepository.existsByDocumento(dto.getDocumento())) {
+        if (!perfil.getCpf().equals(dto.getDocumento()) && locatarioRepository.existsByDocumento(dto.getDocumento())) {
             throw new RuntimeException("Este CPF/CNPJ já está cadastrado em outro perfil.");
         }
 
-        perfil.setDocumento(dto.getDocumento());
+        perfil.setCpf(dto.getDocumento());
         
         PerfilLocatario perfilAtualizado = locatarioRepository.save(perfil);
         return converterParaDTO(perfilAtualizado);
