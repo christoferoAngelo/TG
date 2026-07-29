@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class PerfilLocatarioService {
 
     @Autowired
-    private PerfilLocatarioRepository  locatarioRepository;
+    private PerfilLocatarioRepository locatarioRepository;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -31,7 +31,7 @@ public class PerfilLocatarioService {
             throw new RuntimeException("O ID do usuário não pode ser nulo.");
         }
 
-        if (locatarioRepository.existsByDocumento(dto.getDocumento())) {
+        if (locatarioRepository.existsByCpf(dto.getCpf())) {
             throw new RuntimeException("Este CPF/CNPJ já está cadastrado como locatario.");
         }
 
@@ -44,7 +44,7 @@ public class PerfilLocatarioService {
 
         //criando o perfil de locatario
         PerfilLocatario perfil = PerfilLocatario.builder()
-                .cpf(dto.getDocumento())
+                .cpf(dto.getCpf())
                 .usuario(usuario)
                 .build();
                 
@@ -81,11 +81,11 @@ public class PerfilLocatarioService {
                 .orElseThrow(() -> new RuntimeException("Perfil de locatario não encontrado."));
 
         // Verifica se o locatario está tentando mudar para um documento que já existe em outra conta
-        if (!perfil.getCpf().equals(dto.getDocumento()) && locatarioRepository.existsByDocumento(dto.getDocumento())) {
+        if (!perfil.getCpf().equals(dto.getCpf()) && locatarioRepository.existsByCpf(dto.getCpf())) {
             throw new RuntimeException("Este CPF/CNPJ já está cadastrado em outro perfil.");
         }
 
-        perfil.setCpf(dto.getDocumento());
+        perfil.setCpf(dto.getCpf());
         
         PerfilLocatario perfilAtualizado = locatarioRepository.save(perfil);
         return converterParaDTO(perfilAtualizado);
