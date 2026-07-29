@@ -37,7 +37,7 @@ export default function DashboardLocador() {
     useEffect(() => {
         if (usuarioLogado?.id) {
             setCarregando(true);
-            fetch(`http://localhost:8080/api/locadores/${usuarioLogado.id}`)
+            fetch(`http://localhost:8080/api/locadores/${usuarioLogado.id}/espacos`)
                 .then((res) => (res.ok ? res.json() : []))
                 .then((data) => setEspacos(Array.isArray(data) ? data : []))
                 .catch(() => setEspacos([]))
@@ -173,7 +173,7 @@ export default function DashboardLocador() {
                 </h2>
                 <div className="user-menu">
                     <span>Olá, <strong>{usuarioLogado?.nome}</strong>!</span>
-                    <button onClick={() => navigate("/caracteristicas")} className="btn btn-cancelar" style={{ marginRight: "10px" }}>
+                    <button onClick={() => navigate("/admin-caracteristicas")} className="btn btn-cancelar" style={{ marginRight: "10px" }}>
                         Gerenciar Características
                     </button>
                     <button onClick={() => navigate("/dashboard")} className="btn btn-cancelar" style={{ marginRight: "10px" }}>

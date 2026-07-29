@@ -5,6 +5,7 @@ import "./Dashboard.css";
 
 export default function Dashboard() {
     const { usuarioLogado, logout, atualizarUsuario } = useAuth();
+    const navigate = useNavigate(); // <-- 1. INICIALIZAÇÃO DO NAVEGADOR
 
     // Estados dos Modais e Carregamento
     const [modalAberto, setModalAberto] = useState(null);
@@ -23,7 +24,7 @@ export default function Dashboard() {
                 .then(data => setPerfilLocador(data))
                 .catch(() => setPerfilLocador(null));
 
-            // Busca Perfil de Locatário (ajuste a URL para a sua rota de locatários)
+            // Busca Perfil de Locatário
             fetch(`http://localhost:8080/api/locatarios/usuario/${usuarioLogado.id}`)
                 .then(res => res.ok ? res.json() : null)
                 .then(data => setPerfilLocatario(data))
@@ -34,8 +35,8 @@ export default function Dashboard() {
     // Estados dos Formulários
     const [formLocador, setFormLocador] = useState({ documento: "", nomeFantasia: "" });
     const [formLocatario, setFormLocatario] = useState({ 
-    cpf: "", 
-    telefone: usuarioLogado?.telefone || "" 
+        cpf: "", 
+        telefone: usuarioLogado?.telefone || "" 
     });
     const [formEndereco, setFormEndereco] = useState({
         cep: usuarioLogado?.endereco?.cep || "",
@@ -47,21 +48,18 @@ export default function Dashboard() {
         estado: usuarioLogado?.endereco?.estado || ""
     });
 
-    // 1º REGRA: AGORA CHECA SE REALMENTE EXISTE UMA CONTA DE LOCADOR OU LOCATÁRIO
     const temDocumento = Boolean(perfilLocador || perfilLocatario);
-    
     const temTelefone = Boolean(usuarioLogado?.telefone && usuarioLogado.telefone.trim() !== "");
     const temEndereco = Boolean(usuarioLogado?.endereco && usuarioLogado.endereco.cep);
 
     const contaCompleta = temDocumento && temTelefone && temEndereco;
+
     // --- MÉTODOS DE AÇÃO DO BACKEND ---
 
-    // Cadastrar / Virar Locatário
     const handleSalvarLocatario = async (e) => {
         e.preventDefault();
         setCarregando(true);
         try {
-            // 1. Salva ou atualiza o telefone do usuário na entidade Usuario
             if (formLocatario.telefone !== usuarioLogado?.telefone) {
                 await fetch(`http://localhost:8080/api/users/${usuarioLogado.id}/telefone`, {
                     method: "PUT",
@@ -70,7 +68,6 @@ export default function Dashboard() {
                 });
             }
 
-            // 2. Cria o perfil de Locatário (CPF)
             const response = await fetch("http://localhost:8080/api/locatarios", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -86,13 +83,11 @@ export default function Dashboard() {
             }
 
             const novoPerfil = await response.json();
-            setPerfilLocatario(novoPerfil); // Atualiza o perfil na tela imediatamente
+            setPerfilLocatario(novoPerfil);
 
-            // 3. Exibe a mensagem de sucesso solicitada
             alert("Conta de locatário criada com sucesso!");
-            
             setModalAberto(null);
-            if (atualizarUsuario) await atualizarUsuario(); // Atualiza o contexto do usuário
+            if (atualizarUsuario) await atualizarUsuario();
         } catch (err) {
             alert("Erro: " + err.message);
         } finally {
@@ -100,7 +95,6 @@ export default function Dashboard() {
         }
     };
 
-    // Cadastrar / Virar Locador (Opção 2)
     const handleSalvarLocador = async (e) => {
         e.preventDefault();
         setCarregando(true);
@@ -122,7 +116,7 @@ export default function Dashboard() {
 
             alert("Perfil de Locador criado com sucesso!");
             setModalAberto(null);
-            if (atualizarUsuario) await atualizarUsuario(); // Recarrega os dados do usuário no contexto
+            if (atualizarUsuario) await atualizarUsuario();
         } catch (err) {
             alert("Erro: " + err.message);
         } finally {
@@ -130,12 +124,10 @@ export default function Dashboard() {
         }
     };
 
-    // Cadastrar Endereço (Opção 3)
     const handleSalvarEndereco = async (e) => {
         e.preventDefault();
         setCarregando(true);
         try {
-            // Supondo um endpoint para salvar ou atualizar endereço do usuário
             const response = await fetch(`http://localhost:8080/api/users/${usuarioLogado.id}/endereco`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -157,7 +149,6 @@ export default function Dashboard() {
         }
     };
 
-    // Busca rápida do CEP via ViaCEP API (Opcional, mas melhora muito a UX)
     const handleBuscarCep = async (cep) => {
         const cleanCep = cep.replace(/\D/g, "");
         if (cleanCep.length === 8) {
@@ -193,30 +184,32 @@ export default function Dashboard() {
                 <h3>Painel do Cliente</h3>
                 <p>Seja bem-vindo ao seu painel de locações de espaços para eventos.</p>
 
-                {/* --- CARD 1: STATUS DE VERIFICAÇÃO DA CONTA --- */}
-                <div className="card">
-                    <div className="card-header">
-                        <h4 className="card-title">Status do Cadastro</h4>
-                        <span className={contaCompleta ? "badge badge-sucesso" : "badge badge-aviso"}>
-                            {contaCompleta ? "✓ Conta Verificada" : "⚠ Conta Incompleta"}
-                        </span>
-                    </div>
+                {/* --- 2. CARD 1: SÓ APARECE SE A CONTA NÃO ESTIVER COMPLETA --- */}
+                {!contaCompleta && (
+                    <div className="card">
+                        <div className="card-header">
+                            <h4 className="card-title">Status do Cadastro</h4>
+                            <span className="badge badge-aviso">
+                                ⚠ Conta Incompleta
+                            </span>
+                        </div>
 
-                    <div className="status-grid">
-                        <div className="status-item">
-                            <span>Identificação (CPF/CNPJ):</span>
-                            <strong>{temDocumento ? " Cadastrado" : " Pendente"}</strong>
-                        </div>
-                        <div className="status-item">
-                            <span>Telefone de Contato:</span>
-                            <strong>{temTelefone ? " Cadastrado" : " Pendente"}</strong>
-                        </div>
-                        <div className="status-item">
-                            <span>Endereço Residencial:</span>
-                            <strong>{temEndereco ? " Cadastrado" : " Pendente"}</strong>
+                        <div className="status-grid">
+                            <div className="status-item">
+                                <span>Identificação (CPF/CNPJ):</span>
+                                <strong>{temDocumento ? " Cadastrado" : " Pendente"}</strong>
+                            </div>
+                            <div className="status-item">
+                                <span>Telefone de Contato:</span>
+                                <strong>{temTelefone ? " Cadastrado" : " Pendente"}</strong>
+                            </div>
+                            <div className="status-item">
+                                <span>Endereço Residencial:</span>
+                                <strong>{temEndereco ? " Cadastrado" : " Pendente"}</strong>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* --- CARD 2: STATUS DE PERFIS E ANÚNCIOS --- */}
                 <div className="card">
@@ -253,7 +246,13 @@ export default function Dashboard() {
                         </div>
                         <div>
                             {usuarioLogado?.isLocador ? (
-                                <span className="badge badge-locador">Anunciante Ativo</span>
+                                /* --- 3. BOTÃO DE IR PARA /DASHBOARD-LOCADOR --- */
+                                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                                    <span className="badge badge-locador">Anunciante Ativo</span>
+                                    <button onClick={() => navigate("/dashboard-locador")} className="btn btn-destaque">
+                                        Acessar Painel do Locador
+                                    </button>
+                                </div>
                             ) : (
                                 <button onClick={() => setModalAberto('locador')} className="btn btn-destaque">
                                     Quero Anunciar Meu Espaço
