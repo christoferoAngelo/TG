@@ -6,6 +6,7 @@ import com.eva.locafesta.endereco.GeocodingService;
 import com.eva.locafesta.locador.PerfilLocadorRepository;
 import com.eva.locafesta.locatario.PerfilLocatarioRepository;
 import com.eva.locafesta.usuario.dto.UsuarioCreateDTO;
+import com.eva.locafesta.usuario.dto.UsuarioUpdateDTO;
 import com.eva.locafesta.usuario.dto.UsuarioDTO;
 import java.util.List;
 
@@ -141,5 +142,91 @@ public class UsuarioService {
         boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
 
         return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+    }
+
+    // ==========================================
+    // MÉTODOS DE ADMINISTRAÇÃO E GERENCIAMENTO
+    // ==========================================
+
+    @Transactional
+    public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto) {
+        Usuario usuario = new Usuario();
+        usuario.setFirebaseUid(dto.getFirebaseUid());
+        usuario.setNome(dto.getNome());
+        usuario.setEmail(dto.getEmail());
+        usuario.setTelefone(dto.getTelefone());
+        
+        // A grande diferença: já nasce como administrador
+        usuario.setAdmin(true); 
+
+        if (dto.getEndereco() != null) {
+            geocodingService.preencherCoordenadas(dto.getEndereco());
+
+            Endereco end = Endereco.builder()
+                    .cep(dto.getEndereco().getCep())
+                    .logradouro(dto.getEndereco().getLogradouro())
+                    .numero(dto.getEndereco().getNumero())
+                    .complemento(dto.getEndereco().getComplemento())
+                    .bairro(dto.getEndereco().getBairro())
+                    .cidade(dto.getEndereco().getCidade())
+                    .estado(dto.getEndereco().getEstado())
+                    .latitude(dto.getEndereco().getLatitude())
+                    .longitude(dto.getEndereco().getLongitude())
+                    .build();
+            
+            usuario.setEndereco(end);
+        }
+        
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+        
+        // Como o usuário acabou de ser criado, ele ainda não é locador nem locatário
+        return new UsuarioDTO(usuarioSalvo, false, false);
+    }
+
+    @Transactional
+    public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+
+        usuario.setNome(dto.getNome());
+        usuario.setEmail(dto.getEmail());
+        usuario.setTelefone(dto.getTelefone());
+
+        if (dto.getAdmin() != null) {
+            usuario.setAdmin(dto.getAdmin());
+        }
+
+        // Atualização de endereço
+        if (dto.getEndereco() != null) {
+            geocodingService.preencherCoordenadas(dto.getEndereco());
+
+            Endereco endereco = Endereco.builder()
+                    .cep(dto.getEndereco().getCep())
+                    .logradouro(dto.getEndereco().getLogradouro())
+                    .numero(dto.getEndereco().getNumero())
+                    .complemento(dto.getEndereco().getComplemento())
+                    .bairro(dto.getEndereco().getBairro())
+                    .cidade(dto.getEndereco().getCidade())
+                    .estado(dto.getEndereco().getEstado())
+                    .latitude(dto.getEndereco().getLatitude())
+                    .longitude(dto.getEndereco().getLongitude())
+                    .build();
+    
+            usuario.setEndereco(endereco);
+        }
+
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
+        boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
+        boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+
+        return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+    }
+
+    @Transactional
+    public void excluirUsuario(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));        
+        usuarioRepository.delete(usuario);
     }
 }

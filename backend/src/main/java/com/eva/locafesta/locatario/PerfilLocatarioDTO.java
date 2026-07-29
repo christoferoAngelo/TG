@@ -34,7 +34,4 @@ public class PerfilLocatarioDTO {
     	this.dataAtivo = perfil.getDataAtivo();
     	this.usuarioId = perfil.getUsuario().getId();
     }
-
-
-
 }

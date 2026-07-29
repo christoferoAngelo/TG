@@ -2,6 +2,7 @@ package com.eva.locafesta.usuario;
 
 import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.usuario.dto.UsuarioCreateDTO;
+import com.eva.locafesta.usuario.dto.UsuarioUpdateDTO;
 import com.eva.locafesta.usuario.dto.UsuarioDTO;
 
 import jakarta.validation.Valid;
@@ -81,5 +82,31 @@ public class UsuarioController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    // ==========================================
+    // ENDPOINTS DE ADMINISTRAÇÃO E GERENCIAMENTO
+    // ==========================================
+
+    @PostMapping("/admin")
+    public ResponseEntity<UsuarioDTO> cadastrarAdmin(@RequestBody @Valid UsuarioCreateDTO dto) {
+        UsuarioDTO adminCriado = usuarioService.cadastrarAdmin(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminCriado);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UsuarioDTO> atualizarUsuario(
+            @PathVariable Long id, 
+            @RequestBody @Valid UsuarioUpdateDTO dto) {
+        
+        UsuarioDTO usuarioAtualizado = usuarioService.atualizarUsuario(id, dto);
+        return ResponseEntity.ok(usuarioAtualizado);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluirUsuario(@PathVariable Long id) {
+        usuarioService.excluirUsuario(id);
+        
+        return ResponseEntity.noContent().build(); 
     }
 }
