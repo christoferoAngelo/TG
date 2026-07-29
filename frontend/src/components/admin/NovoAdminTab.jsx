@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './NovoAdminTab.css'; // Importando o estilo isolado
+import { createUserWithEmailAndPassword } from 'firebase/auth'; // Importe do Firebase
+import { auth } from "../../config/firebaseConfig";
+import './NovoAdminTab.css';
 
 export default function NovoAdminTab() {
   const [formData, setFormData] = useState({
@@ -25,18 +27,40 @@ export default function NovoAdminTab() {
     setErro(null);
 
     try {
+      // 1. CRIAR A CONTA NO FIREBASE PRIMEIRO
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        formData.email, 
+        formData.senha
+      );
+      
+      const user = userCredential.user;
+      const uidDoFirebase = user.uid; // Pegamos o UID gerado pelo Firebase!
+
+      // 2. ENVIAR PARA O SEU BACKEND COM O UID INCLUSO
       await axios.post('http://localhost:8080/api/users/admin', {
+        firebaseUid: uidDoFirebase, // AGORA SIM O BACKEND VAI ACEITAR!
         nome: formData.nome,
         email: formData.email,
-        telefone: formData.telefone,
-        isAdmin: true
+        telefone: formData.telefone
       });
 
       setMensagem(`Administrador "${formData.nome}" cadastrado com sucesso!`);
       setFormData({ nome: '', email: '', telefone: '', senha: '' });
-    } catch (err) {
+      
+} catch (err) {
       console.error("Erro ao cadastrar administrador:", err);
-      setErro("Não foi possível cadastrar o novo administrador. Verifique os dados ou o endpoint do backend.");
+      
+      // Tratamento amigável de erros do Firebase
+      if (err.code === 'auth/email-already-in-use') {
+        setErro("Este e-mail já está em uso no sistema.");
+      } else if (err.code === 'auth/weak-password') {
+         setErro("A senha deve ter pelo menos 6 caracteres.");
+      } else if (err.code === 'auth/invalid-email') { // <-- ADICIONE ESTA LINHA
+         setErro("O formato do e-mail é inválido. Digite um e-mail correto (ex: nome@empresa.com).");
+      } else {
+        setErro("Erro ao cadastrar o administrador. Verifique o console.");
+      }
     } finally {
       setLoading(false);
     }
