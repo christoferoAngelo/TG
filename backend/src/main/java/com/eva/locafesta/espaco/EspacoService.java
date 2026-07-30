@@ -29,19 +29,20 @@ public class EspacoService {
     private CaracteristicaRepository caracteristicaRepository;
 
     @Autowired
-    private GeocodingService geocodingService; // <--- Injetando nosso novo serviço
+    private GeocodingService geocodingService;
 
-    // CREATE - Cadastrar um novo espaço para um locador
+    // CREATE - Cadastrar um novo espaço buscando pelo ID do USUÁRIO
     @Transactional
-    public EspacoDTO criarEspaco(Long locadorId, EspacoDTO dto) {
-        PerfilLocador locador = locadorRepository.findById(locadorId)
-                .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado."));
+    public EspacoDTO criarEspaco(Long usuarioId, EspacoDTO dto) { // <-- MUDOU AQUI (recebe usuarioId)
+        
+        // <-- MUDOU AQUI: Agora busca o locador através do ID do Usuário
+        PerfilLocador locador = locadorRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado para este usuário."));
 
         if (dto.getEndereco() == null) {
             throw new RuntimeException("O endereço do espaço é obrigatório.");
         }
 
-        // Busca a latitude e longitude se não vieram preenchidas
         geocodingService.preencherCoordenadas(dto.getEndereco());
 
         Endereco endereco = Endereco.builder()
@@ -57,7 +58,7 @@ public class EspacoService {
                 .build();
 
         Espaco espaco = Espaco.builder()
-                .locador(locador)
+                .locador(locador) // O locador correto foi encontrado na busca acima
                 .titulo(dto.getTitulo())
                 .descricao(dto.getDescricao())
                 .valorDiaria(dto.getValorDiaria())
@@ -67,7 +68,6 @@ public class EspacoService {
                 .endereco(endereco)
                 .build();
 
-        // Lógica de características...
         if (dto.getCaracteristicas() != null && !dto.getCaracteristicas().isEmpty()) {
             Set<Caracteristica> caracteristicas = new HashSet<>();
             for (CaracteristicaDTO caracDTO : dto.getCaracteristicas()) {
@@ -84,12 +84,15 @@ public class EspacoService {
         return new EspacoDTO(espacoSalvo);
     }
 
-    // READ - Listar todos os espaços de um locador específico
-    public List<EspacoDTO> listarPorLocador(Long locadorId) {
-        if (!locadorRepository.existsById(locadorId)) {
-            throw new RuntimeException("Perfil de locador não encontrado.");
-        }
-        return espacoRepository.findByLocadorId(locadorId).stream()
+    // READ - Listar todos os espaços buscando pelo ID do USUÁRIO
+    public List<EspacoDTO> listarPorUsuarioId(Long usuarioId) { // <-- MUDOU AQUI
+        
+        // 1. Primeiro achamos quem é o locador desse usuário
+        PerfilLocador locador = locadorRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado para este usuário."));
+        
+        // 2. Agora usamos o seu EspacoRepository (que está certinho!) para buscar os espaços do locador encontrado
+        return espacoRepository.findByLocadorId(locador.getId()).stream()
                 .map(EspacoDTO::new)
                 .collect(Collectors.toList());
     }
