@@ -9,6 +9,7 @@ import DashboardLocador from "./pages/locador/DashboardLocador";
 import CaracteristicasPage from "./pages/locador/CaracteristicasPage";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Dashboard from "./pages/cliente/Dashboard";
+import Home from "./pages/home/Home";
 
 /**
  * Componente Wrapper para proteger rotas privadas.
@@ -71,6 +72,16 @@ export default function AppRoutes() {
                     element={
                         <RouteProtegida>
                             <Dashboard />
+                        </RouteProtegida>
+                    } 
+                />
+
+                {/* Rota Privada: Adicionar Características */}
+                <Route 
+                    path="/home" 
+                    element={
+                        <RouteProtegida>
+                            <Home />
                         </RouteProtegida>
                     } 
                 />
