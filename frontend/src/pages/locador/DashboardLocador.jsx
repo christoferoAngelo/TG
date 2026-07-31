@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import "../cliente/Dashboard.css";
+import "../dashboard/Dashboard.css";
 
 export default function DashboardLocador() {
     const { usuarioLogado, logout } = useAuth();

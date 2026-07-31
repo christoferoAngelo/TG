@@ -1,19 +1,24 @@
+import React from "react";
 import { CardEspaco } from "./CardEspaco";
 
 export function ListaEspacos({ espacos, carregando }) {
-  if (carregando) {
-    return <p>Carregando espaços disponíveis...</p>;
-  }
+    if (carregando) {
+        return <p className="data-line">Carregando espaços disponíveis...</p>;
+    }
 
-  if (!espacos || espacos.length === 0) {
-    return <p>Nenhum espaço encontrado no momento.</p>;
-  }
+    if (!espacos || espacos.length === 0) {
+        return (
+            <p className="data-line data-line-empty" style={{ textAlign: "center", padding: "40px" }}>
+                Nenhum espaço disponível no momento.
+            </p>
+        );
+    }
 
-  return (
-    <div className="grid-espacos">
-      {espacos.map((espaco) => (
-        <CardEspaco key={espaco.id} espaco={espaco} />
-      ))}
-    </div>
-  );
+    return (
+        <div className="espacos-lista">
+            {espacos.map((espaco, index) => (
+                <CardEspaco key={espaco.id || index} espaco={espaco} />
+            ))}
+        </div>
+    );
 }

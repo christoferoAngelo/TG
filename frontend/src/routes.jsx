@@ -8,7 +8,7 @@ import CadastroLocador from "./pages/login/CadastroLocador";
 import DashboardLocador from "./pages/locador/DashboardLocador";
 import CaracteristicasPage from "./pages/locador/CaracteristicasPage";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
-import Dashboard from "./pages/cliente/Dashboard";
+import Dashboard from "./pages/dashboard/Dashboard";
 import Home from "./pages/home/Home";
 
 /**
@@ -27,7 +27,7 @@ function RouteProtegida({ children }) {
     }
 
     if (!usuarioLogado) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/home" replace />;
     }
 
     return children;
@@ -66,22 +66,18 @@ export default function AppRoutes() {
                     element={usuarioLogado ? <Navigate to={rotaInicial} replace /> : <Auth />} 
                 />
 
+                {/* ROTA PÚBLICA: Home (Livre para qualquer um acessar) */}
+                <Route 
+                    path="/home" 
+                    element={<Home />} 
+                />
+
                 {/* Rota Privada: Painel Principal (Cliente/Locatário) */}
                 <Route 
                     path="/dashboard" 
                     element={
                         <RouteProtegida>
                             <Dashboard />
-                        </RouteProtegida>
-                    } 
-                />
-
-                {/* Rota Privada: Adicionar Características */}
-                <Route 
-                    path="/home" 
-                    element={
-                        <RouteProtegida>
-                            <Home />
                         </RouteProtegida>
                     } 
                 />
@@ -129,7 +125,7 @@ export default function AppRoutes() {
                 {/* Qualquer rota inválida redireciona baseado na role do usuário */}
                 <Route 
                     path="*" 
-                    element={<Navigate to={usuarioLogado ? rotaInicial : "/login"} replace />} 
+                    element={<Navigate to={usuarioLogado ? rotaInicial : "/home"} replace />} 
                 />
             </Routes>
         </BrowserRouter>

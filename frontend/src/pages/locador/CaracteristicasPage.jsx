@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../cliente/Dashboard.css";
+import "../dashboard/Dashboard.css";
 
 export default function CaracteristicasPage() {
     const navigate = useNavigate();
