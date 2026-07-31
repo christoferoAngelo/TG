@@ -72,7 +72,7 @@ export default function Dashboard() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    documento: formLocatario.cpf,
+                    cpf: formLocatario.cpf, // <-- Mudei de 'documento' para 'cpf' aqui
                     usuarioId: usuarioLogado.id
                 })
             });

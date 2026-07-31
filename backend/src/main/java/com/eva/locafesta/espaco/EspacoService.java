@@ -103,4 +103,6 @@ public class EspacoService {
                 .map(EspacoDTO::new)
                 .collect(Collectors.toList());
     }
+
+	
 }

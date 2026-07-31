@@ -32,7 +32,7 @@ public class EspacoController {
     @GetMapping("/{locadorId}/espacos")
     public ResponseEntity<?> listarEspacosDoLocador(@PathVariable Long locadorId) {
         try {
-            List<EspacoDTO> espacos = espacoService.listarPorLocador(locadorId);
+            List<EspacoDTO> espacos = espacoService.listarPorUsuarioId(locadorId);
             return ResponseEntity.ok(espacos);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

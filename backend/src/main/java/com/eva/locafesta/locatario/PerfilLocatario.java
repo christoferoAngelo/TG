@@ -22,7 +22,7 @@ public class PerfilLocatario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 14)
+    @Column(name = "cpf", unique = true, nullable = false, length = 14)
     private String cpf; // Formato: 000.000.000-00 ou apenas números
 
     // Relacionamento 1 para 1: Um usuário tem apenas 1 perfil de locatário
