@@ -43,7 +43,8 @@ public class Usuario {
     @Column(name = "nota_geral")
     private Integer nota;
     
-    @Embedded
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
     @Column(name = "is_admin", nullable = false)

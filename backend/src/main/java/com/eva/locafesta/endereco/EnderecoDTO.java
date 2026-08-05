@@ -38,10 +38,12 @@ public class EnderecoDTO {
 
     private Double latitude;
     private Double longitude;
+    private Long id;
 
     // Construtor para converter da Entidade para o DTO (mantido e super útil)
     public EnderecoDTO(Endereco endereco) {
         if (endereco != null) {
+            this.id = endereco.getId();
             this.cep = endereco.getCep();
             this.logradouro = endereco.getLogradouro();
             this.numero = endereco.getNumero();
