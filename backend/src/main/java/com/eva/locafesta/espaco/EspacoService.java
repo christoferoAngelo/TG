@@ -104,5 +104,23 @@ public class EspacoService {
                 .collect(Collectors.toList());
     }
 
+        // Alterar o status de aprovação de um espaço (APROVADO, REJEITADO, PENDENTE)
+    @Transactional
+    public EspacoDTO alterarStatusAprovacao(Long espacoId, String novoStatus) {
+        Espaco espaco = espacoRepository.findById(espacoId)
+                .orElseThrow(() -> new RuntimeException("Espaço não encontrado com o ID: " + espacoId));
+
+        espaco.setStatusAprovacao(novoStatus.toUpperCase());
+        Espaco espacoSalvo = espacoRepository.save(espaco);
+        
+        return new EspacoDTO(espacoSalvo);
+    }
+
+    // Listar espaços filtrados pelo status de aprovação
+    public List<EspacoDTO> listarPorStatus(String status) {
+        return espacoRepository.findByStatusAprovacao(status.toUpperCase()).stream()
+                .map(EspacoDTO::new)
+                .collect(Collectors.toList());
+    }
 	
 }

@@ -21,7 +21,7 @@ public class DashboardAdminDTO {
     // --- Pilar 2: Espaços ---
     private long totalEspacos;
     private long espacosAprovados;
-    private long espacosPendentesAprovacao;
+    private long espacosPendentes;
 
     // --- Pilar 3: Reservas (Futuro) ---
     private long totalReservas;
