@@ -1,0 +1,177 @@
+/* Container principal da aba */
+.admin-form-container {
+  padding: 20px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Caixa de conteúdo branca com sombra sutil */
+.content-box {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.content-box h3 {
+  margin-top: 0;
+  color: #333333;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.section-description {
+  color: #6c757d;
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+}
+
+/* Alertas de Sucesso e Erro */
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #c3e6cb;
+  font-weight: 500;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #f5c6cb;
+  font-weight: 500;
+}
+
+/* Responsividade para a Tabela */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+/* Estilo da Tabela */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-th {
+  background-color: #f8f9fa;
+  color: #495057;
+  padding: 16px;
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
+}
+
+.admin-td {
+  padding: 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #e9ecef;
+  color: #333333;
+}
+
+/* Efeito ao passar o mouse na linha */
+.admin-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Botões de Ação */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-sm {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-sm:hover:not(:disabled) {
+  filter: brightness(0.9);
+  transform: translateY(-1px);
+}
+
+.btn-sm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Animação suave de entrada */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Botões específicos de aprovação e rejeição */
+.btn-approve {
+  background-color: #28a745;
+  color: #ffffff;
+  border: none;
+}
+
+.btn-reject {
+  background-color: #dc3545;
+  color: #ffffff;
+  border: none;
+}
+
+/* Estado quando a lista está vazia */
+.empty-state-box {
+  padding: 24px;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  color: #495057;
+}
+
+/* Texto menor e secundário */
+.text-muted {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+/* Espaçamento extra abaixo dos alertas */
+.alert-success, .alert-error {
+  margin-bottom: 20px;
+}
+
+/* Badge visual para destacar espaços reenviados */
+.badge-reenviado {
+  margin-left: 10px;
+  background-color: #f39c12;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+/* Coluna de mensagem enviada pelo locador ao reanalisar */
+.resposta-locador {
+  max-width: 250px;
+  font-size: 13px;
+  color: #555555;
+  font-style: italic;
+  word-wrap: break-word;
+}
+
+/* Coluna de motivo de rejeição */
+.motivo-rejeicao {
+  color: #d9534f;
+  font-style: italic;
+}

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from '../../components/admin/Sidebar';
 import NovoAdminTab from '../../components/admin/NovoAdminTab';
+import EspacosTab from '../../components/admin/EspacosTab';
 import './DashboardAdmin.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -313,12 +314,7 @@ export default function DashboardAdmin() {
           </div>
         );
       case 'moderacao_espacos':
-        return (
-          <div className="content-box">
-            <h3>📋 Moderação de Anúncios de Espaços</h3>
-            <p className="section-description">Revise novos locais cadastrados antes de irem para a busca do app.</p>
-          </div>
-        );
+        return <EspacosTab />;
       case 'financeiro':
         return (
           <div className="content-box">

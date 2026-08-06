@@ -50,7 +50,12 @@ public class Espaco {
     @Column(name = "horario_fechamento", length = 10)
     private String horarioFechamento;
 
-    // --- NOVA RELAÇÃO COM CARACTERÍSTICAS (@ManyToMany) ---
+    @Column(name = "motivo_rejeicao", columnDefinition = "TEXT")
+    private String motivoRejeicao;
+
+    @Column(name = "resposta_locador", columnDefinition = "TEXT")
+    private String respostaLocador;
+
     // Usamos Set para evitar características duplicadas no mesmo espaço
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

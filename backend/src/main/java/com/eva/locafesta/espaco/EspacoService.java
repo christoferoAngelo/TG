@@ -31,11 +31,9 @@ public class EspacoService {
     @Autowired
     private GeocodingService geocodingService;
 
-    // CREATE - Cadastrar um novo espaço buscando pelo ID do USUÁRIO
+    // CREATE - Cadastrar um novo espaço
     @Transactional
-    public EspacoDTO criarEspaco(Long usuarioId, EspacoDTO dto) { // <-- MUDOU AQUI (recebe usuarioId)
-        
-        // <-- MUDOU AQUI: Agora busca o locador através do ID do Usuário
+    public EspacoDTO criarEspaco(Long usuarioId, EspacoDTO dto) {
         PerfilLocador locador = locadorRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado para este usuário."));
 
@@ -58,7 +56,7 @@ public class EspacoService {
                 .build();
 
         Espaco espaco = Espaco.builder()
-                .locador(locador) // O locador correto foi encontrado na busca acima
+                .locador(locador)
                 .titulo(dto.getTitulo())
                 .descricao(dto.getDescricao())
                 .valorDiaria(dto.getValorDiaria())
@@ -66,6 +64,7 @@ public class EspacoService {
                 .restricoesHorario(dto.getRestricoesHorario())
                 .horarioFechamento(dto.getHorarioFechamento())
                 .endereco(endereco)
+                .statusAprovacao("PENDENTE")
                 .build();
 
         if (dto.getCaracteristicas() != null && !dto.getCaracteristicas().isEmpty()) {
@@ -84,43 +83,135 @@ public class EspacoService {
         return new EspacoDTO(espacoSalvo);
     }
 
-    // READ - Listar todos os espaços buscando pelo ID do USUÁRIO
-    public List<EspacoDTO> listarPorUsuarioId(Long usuarioId) { // <-- MUDOU AQUI
-        
-        // 1. Primeiro achamos quem é o locador desse usuário
+    // UPDATE / REENVIO - Atualizar espaço e reenviar para aprovação
+    @Transactional
+    public EspacoDTO atualizarEspaco(Long espacoId, Long usuarioId, EspacoDTO dto) {
+        Espaco espaco = espacoRepository.findById(espacoId)
+                .orElseThrow(() -> new RuntimeException("Espaço não encontrado com o ID: " + espacoId));
+
+        PerfilLocador locador = locadorRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado para este usuário."));
+
+        // Valida se o espaço realmente pertence ao locador logado
+        if (!espaco.getLocador().getId().equals(locador.getId())) {
+            throw new RuntimeException("Acesso negado: você não tem permissão para alterar este espaço.");
+        }
+
+        // Atualiza campos cadastrais
+        espaco.setTitulo(dto.getTitulo());
+        espaco.setDescricao(dto.getDescricao());
+        espaco.setValorDiaria(dto.getValorDiaria());
+        espaco.setCapacidadePessoas(dto.getCapacidadePessoas());
+        espaco.setRestricoesHorario(dto.getRestricoesHorario());
+        espaco.setHorarioFechamento(dto.getHorarioFechamento());
+
+        // Se o locador enviou uma mensagem de ajuste/réplica
+        if (dto.getRespostaLocador() != null) {
+            espaco.setRespostaLocador(dto.getRespostaLocador());
+        }
+
+        // Ao reenviar/editar, o status volta para PENDENTE para análise do Admin
+        espaco.setStatusAprovacao("PENDENTE");
+
+        // Atualiza Endereço se informado
+        if (dto.getEndereco() != null) {
+            geocodingService.preencherCoordenadas(dto.getEndereco());
+            Endereco end = espaco.getEndereco() != null ? espaco.getEndereco() : new Endereco();
+            end.setCep(dto.getEndereco().getCep());
+            end.setLogradouro(dto.getEndereco().getLogradouro());
+            end.setNumero(dto.getEndereco().getNumero());
+            end.setComplemento(dto.getEndereco().getComplemento());
+            end.setBairro(dto.getEndereco().getBairro());
+            end.setCidade(dto.getEndereco().getCidade());
+            end.setEstado(dto.getEndereco().getEstado());
+            end.setLatitude(dto.getEndereco().getLatitude());
+            end.setLongitude(dto.getEndereco().getLongitude());
+            espaco.setEndereco(end);
+        }
+
+        // Atualiza Características
+        if (dto.getCaracteristicas() != null) {
+            Set<Caracteristica> caracteristicas = new HashSet<>();
+            for (CaracteristicaDTO caracDTO : dto.getCaracteristicas()) {
+                if (caracDTO.getId() != null) {
+                    Caracteristica carac = caracteristicaRepository.findById(caracDTO.getId())
+                            .orElseThrow(() -> new RuntimeException("Característica não encontrada para o ID: " + caracDTO.getId()));
+                    caracteristicas.add(carac);
+                }
+            }
+            espaco.setCaracteristicas(caracteristicas);
+        }
+
+        Espaco espacoSalvo = espacoRepository.save(espaco);
+        return new EspacoDTO(espacoSalvo);
+    }
+
+    // READ - Listar espaços do usuário logado
+    @Transactional(readOnly = true)
+    public List<EspacoDTO> listarPorUsuarioId(Long usuarioId) {
         PerfilLocador locador = locadorRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado para este usuário."));
         
-        // 2. Agora usamos o seu EspacoRepository (que está certinho!) para buscar os espaços do locador encontrado
         return espacoRepository.findByLocadorId(locador.getId()).stream()
                 .map(EspacoDTO::new)
                 .collect(Collectors.toList());
     }
 
-    // READ - Listar TODOS os espaços do sistema (para o Painel do Admin)
+    // READ - Listar todos os espaços do sistema (Admin)
+    @Transactional(readOnly = true)
     public List<EspacoDTO> listarTodos() {
         return espacoRepository.findAll().stream()
                 .map(EspacoDTO::new)
                 .collect(Collectors.toList());
     }
 
-        // Alterar o status de aprovação de um espaço (APROVADO, REJEITADO, PENDENTE)
-    @Transactional
-    public EspacoDTO alterarStatusAprovacao(Long espacoId, String novoStatus) {
-        Espaco espaco = espacoRepository.findById(espacoId)
-                .orElseThrow(() -> new RuntimeException("Espaço não encontrado com o ID: " + espacoId));
-
-        espaco.setStatusAprovacao(novoStatus.toUpperCase());
-        Espaco espacoSalvo = espacoRepository.save(espaco);
-        
-        return new EspacoDTO(espacoSalvo);
-    }
-
-    // Listar espaços filtrados pelo status de aprovação
+    // READ - Listar por status de aprovação
+    @Transactional(readOnly = true)
     public List<EspacoDTO> listarPorStatus(String status) {
         return espacoRepository.findByStatusAprovacao(status.toUpperCase()).stream()
                 .map(EspacoDTO::new)
                 .collect(Collectors.toList());
     }
-	
+
+    // Aprovar espaço (Limpa o motivo e a resposta do locador)
+    @Transactional
+    public EspacoDTO aprovarEspaco(Long espacoId) {
+        Espaco espaco = espacoRepository.findById(espacoId)
+                .orElseThrow(() -> new RuntimeException("Espaço não encontrado com o ID: " + espacoId));
+
+        espaco.setStatusAprovacao("APROVADO");
+        espaco.setMotivoRejeicao(null);
+        espaco.setRespostaLocador(null);
+        
+        Espaco espacoSalvo = espacoRepository.save(espaco);
+        return new EspacoDTO(espacoSalvo);
+    }
+
+    // Rejeitar espaço gravando o motivo fornecido pelo admin
+    @Transactional
+    public EspacoDTO rejeitarEspaco(Long espacoId, String motivo) {
+        Espaco espaco = espacoRepository.findById(espacoId)
+                .orElseThrow(() -> new RuntimeException("Espaço não encontrado com o ID: " + espacoId));
+
+        espaco.setStatusAprovacao("REJEITADO");
+        espaco.setMotivoRejeicao(motivo);
+        espaco.setRespostaLocador(null); // Reseta para aguardar a nova réplica do locador
+        
+        Espaco espacoSalvo = espacoRepository.save(espaco);
+        return new EspacoDTO(espacoSalvo);
+    }
+
+    // Alterar status genérico
+    @Transactional
+    public EspacoDTO alterarStatusAprovacao(Long espacoId, String novoStatus) {
+        if ("APROVADO".equalsIgnoreCase(novoStatus)) {
+            return aprovarEspaco(espacoId);
+        }
+        Espaco espaco = espacoRepository.findById(espacoId)
+                .orElseThrow(() -> new RuntimeException("Espaço não encontrado com o ID: " + espacoId));
+
+        espaco.setStatusAprovacao(novoStatus.toUpperCase());
+        Espaco espacoSalvo = espacoRepository.save(espaco);
+        return new EspacoDTO(espacoSalvo);
+    }
 }

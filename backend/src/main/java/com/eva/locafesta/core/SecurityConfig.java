@@ -34,6 +34,7 @@ public class SecurityConfig {
                     "/api/locadores", "/api/locadores/**", 
                     "/api/locatarios", "/api/locatarios/**",
                     "/api/espacos", "/api/espacos/**", 
+                    "/api/admin", "/api/admin/**",
                     "/error", "/error/**"
                 ).permitAll()
                 

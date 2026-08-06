@@ -9,6 +9,6 @@ import java.util.List;
 public interface EspacoRepository extends JpaRepository<Espaco, Long> {
 
     List<Espaco> findByLocadorId(Long locadorId);
-
+    List<Espaco> findByStatusAprovacao(String statusAprovacao);
     long countByStatusAprovacao(String statusAprovacao);
 }

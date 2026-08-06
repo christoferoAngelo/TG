@@ -31,7 +31,9 @@ public class EspacoDTO {
     private String restricoesHorario;
     private String horarioFechamento;
     private String statusAprovacao;
-    
+    private String motivoRejeicao;
+    private String respostaLocador;
+
     // Lista de características convertidas para DTO
     private Set<CaracteristicaDTO> caracteristicas;
 
@@ -51,7 +53,9 @@ public class EspacoDTO {
         this.restricoesHorario = espaco.getRestricoesHorario();
         this.horarioFechamento = espaco.getHorarioFechamento();
         this.statusAprovacao = espaco.getStatusAprovacao();
-        
+        this.motivoRejeicao = espaco.getMotivoRejeicao();
+        this.respostaLocador = espaco.getRespostaLocador();
+
         // Mapeia o Set de Entidades para o Set de DTOs usando Streams
         if (espaco.getCaracteristicas() != null) {
             this.caracteristicas = espaco.getCaracteristicas().stream()
