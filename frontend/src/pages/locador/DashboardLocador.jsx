@@ -220,45 +220,79 @@ export default function DashboardLocador() {
                             Você ainda não possui nenhum espaço cadastrado. Clique em "+ Novo Anúncio" para começar a alugar!
                         </p>
                     ) : (
-                        espacos.map((espaco, index) => (
-                            <div key={espaco.id || index} style={{ marginBottom: "15px" }}>
-                                <div className="perfil-row">
-                                    <div>
-                                        <strong className="perfil-title">{espaco.titulo}</strong>
-                                        <span className="perfil-desc" style={{ display: "block", marginTop: "4px" }}>
-                                            <strong>Endereço:</strong> {formatarEndereco(espaco.endereco)} <br />
-                                            Capacidade: {espaco.capacidadePessoas} pessoas | Diária: R$ {espaco.valorDiaria}
-                                            {espaco.horarioFechamento && <><br />Fechamento: {espaco.horarioFechamento}</>}
-                                        </span>
+                        espacos.map((espaco, index) => {
+                            // Verifica se está rejeitado (tratando maiúsculas/minúsculas por segurança)
+                            const isRejeitado = espaco.statusAprovacao && espaco.statusAprovacao.toUpperCase() === 'REJEITADO';
 
-                                        {/* Exibição das Características Cadastradas */}
-                                        {espaco.caracteristicas && espaco.caracteristicas.length > 0 && (
-                                            <div style={{ marginTop: "8px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                                                {espaco.caracteristicas.map((carac) => (
-                                                    <span
-                                                        key={carac.id}
-                                                        style={{
-                                                            fontSize: "0.75rem",
-                                                            backgroundColor: "#e9ecef",
-                                                            color: "#495057",
-                                                            padding: "2px 8px",
-                                                            borderRadius: "12px",
-                                                            fontWeight: "500"
-                                                        }}
-                                                    >
-                                                        {carac.nome}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
+                            return (
+                                <div key={espaco.id || index} style={{ marginBottom: "15px" }}>
+                                    <div className="perfil-row">
+                                        <div>
+                                            <strong className="perfil-title">{espaco.titulo}</strong>
+                                            <span className="perfil-desc" style={{ display: "block", marginTop: "4px" }}>
+                                                <strong>Endereço:</strong> {formatarEndereco(espaco.endereco)} <br />
+                                                Capacidade: {espaco.capacidadePessoas} pessoas | Diária: R$ {espaco.valorDiaria}
+                                                {espaco.horarioFechamento && <><br />Fechamento: {espaco.horarioFechamento}</>}
+                                            </span>
+
+                                            {/* Exibição das Características Cadastradas */}
+                                            {espaco.caracteristicas && espaco.caracteristicas.length > 0 && (
+                                                <div style={{ marginTop: "8px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                                    {espaco.caracteristicas.map((carac) => (
+                                                        <span
+                                                            key={carac.id}
+                                                            style={{
+                                                                fontSize: "0.75rem",
+                                                                backgroundColor: "#e9ecef",
+                                                                color: "#495057",
+                                                                padding: "2px 8px",
+                                                                borderRadius: "12px",
+                                                                fontWeight: "500"
+                                                            }}
+                                                        >
+                                                            {carac.nome}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            {/* Mudando a cor da tag dependendo do status para facilitar a visualização */}
+                                            <span 
+                                                className="badge" 
+                                                style={{
+                                                    backgroundColor: isRejeitado ? "#dc3545" : (espaco.statusAprovacao === 'PENDENTE' ? "#ffc107" : "#28a745"),
+                                                    color: (espaco.statusAprovacao === 'PENDENTE') ? "#000" : "#fff",
+                                                    padding: "5px 10px",
+                                                    borderRadius: "4px",
+                                                    fontSize: "0.85rem",
+                                                    fontWeight: "bold"
+                                                }}
+                                            >
+                                                {espaco.statusAprovacao || "Publicado"}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span className="badge badge-ativo">{espaco.statusAprovacao || "Publicado"}</span>
-                                    </div>
+
+                                    {/* SEÇÃO DO MOTIVO DA REJEIÇÃO */}
+                                    {isRejeitado && espaco.motivoRejeicao && (
+                                        <div style={{
+                                            marginTop: "10px", 
+                                            padding: "10px 15px", 
+                                            backgroundColor: "#ffebee", 
+                                            borderLeft: "4px solid #f44336",
+                                            borderRadius: "4px",
+                                            color: "#c62828",
+                                            fontSize: "0.9rem"
+                                        }}>
+                                            <strong>Motivo da Rejeição:</strong> {espaco.motivoRejeicao}
+                                        </div>
+                                    )}
+
+                                    {index < espacos.length - 1 && <hr className="divisor" style={{ marginTop: "15px" }} />}
                                 </div>
-                                {index < espacos.length - 1 && <hr className="divisor" />}
-                            </div>
-                        ))
+                            )
+                        })
                     )}
                 </div>
             </main>
