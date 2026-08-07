@@ -10,6 +10,10 @@ import com.eva.locafesta.usuario.dto.UsuarioCreateDTO;
 import com.eva.locafesta.usuario.dto.UsuarioUpdateDTO;
 import com.eva.locafesta.usuario.dto.UsuarioDTO;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
+import com.eva.locafesta.event.AuditoriaEvent;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -35,8 +39,8 @@ public class UsuarioService {
     @Autowired
     private GeocodingService geocodingService; // <--- Injetando nosso novo serviço
 
-    @Autowired
-    private LogAuditoriaService logAuditoriaService;
+@Autowired
+private ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public UsuarioDTO cadastrarUsuario(UsuarioCreateDTO dto) {
@@ -148,12 +152,14 @@ public class UsuarioService {
         return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
     }
 
-    // ==========================================
-    // MÉTODOS DE ADMINISTRAÇÃO E GERENCIAMENTO
-    // ==========================================
+// ==========================================
+// MÉTODOS DE ADMINISTRAÇÃO E GERENCIAMENTO
+// ==========================================
 
 @Transactional
-public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto, Long adminExecutorId, String adminExecutorNome) {
+public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto) { // <- Parâmetros removidos
+    Usuario adminLogado = obterAdminLogado(); // <- Descobre quem tá fazendo a ação
+
     Usuario usuario = new Usuario();
     usuario.setFirebaseUid(dto.getFirebaseUid());
     usuario.setNome(dto.getNome());
@@ -163,7 +169,6 @@ public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto, Long adminExecutorId, Str
 
     if (dto.getEndereco() != null) {
         geocodingService.preencherCoordenadas(dto.getEndereco());
-
         Endereco end = Endereco.builder()
                 .cep(dto.getEndereco().getCep())
                 .logradouro(dto.getEndereco().getLogradouro())
@@ -175,27 +180,28 @@ public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto, Long adminExecutorId, Str
                 .latitude(dto.getEndereco().getLatitude())
                 .longitude(dto.getEndereco().getLongitude())
                 .build();
-        
         usuario.setEndereco(end);
     }
     
     Usuario usuarioSalvo = usuarioRepository.save(usuario);
     
-    // GRAVA O LOG DE AUDITORIA
-    logAuditoriaService.registrarAcao(
-        adminExecutorId,
-        adminExecutorNome,
+    // DISPARA O EVENTO ASSÍNCRONO!
+    eventPublisher.publishEvent(new AuditoriaEvent(
+        adminLogado.getId(),
+        adminLogado.getNome(),
         "CADASTRAR_ADMIN",
         "Usuario",
         usuarioSalvo.getId().toString(),
         "Cadastrou o novo administrador: " + usuarioSalvo.getNome() + " (" + usuarioSalvo.getEmail() + ")"
-    );
+    ));
 
     return new UsuarioDTO(usuarioSalvo, false, false);
 }
     
 @Transactional
-public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto, Long adminExecutorId, String adminExecutorNome) {
+public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto) { // <- Parâmetros removidos
+    Usuario adminLogado = obterAdminLogado(); 
+
     Usuario usuario = usuarioRepository.findById(usuarioId)
             .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
 
@@ -209,7 +215,6 @@ public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto, Long ad
 
     if (dto.getEndereco() != null) {
         geocodingService.preencherCoordenadas(dto.getEndereco());
-
         Endereco endereco = Endereco.builder()
                 .cep(dto.getEndereco().getCep())
                 .logradouro(dto.getEndereco().getLogradouro())
@@ -221,7 +226,6 @@ public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto, Long ad
                 .latitude(dto.getEndereco().getLatitude())
                 .longitude(dto.getEndereco().getLongitude())
                 .build();
-
         usuario.setEndereco(endereco);
     }
 
@@ -230,35 +234,52 @@ public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto, Long ad
     boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
     boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
 
-    // GRAVA O LOG DE AUDITORIA
-    logAuditoriaService.registrarAcao(
-        adminExecutorId,
-        adminExecutorNome,
+    // DISPARA O EVENTO ASSÍNCRONO!
+    eventPublisher.publishEvent(new AuditoriaEvent(
+        adminLogado.getId(),
+        adminLogado.getNome(),
         "ATUALIZAR_USUARIO",
         "Usuario",
         usuarioSalvo.getId().toString(),
         "Atualizou os dados do usuário ID: " + usuarioSalvo.getId()
-    );
+    ));
 
     return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
 }
 
 
 @Transactional
-public void excluirUsuario(Long idUsuarioParaExcluir, Long adminExecutorId, String adminExecutorNome) {
+public void excluirUsuario(Long idUsuarioParaExcluir) { // <- Parâmetros removidos
+    Usuario adminLogado = obterAdminLogado(); 
+
     Usuario usuario = usuarioRepository.findById(idUsuarioParaExcluir)
             .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
     
     usuarioRepository.delete(usuario);
 
-    // Grava a ação no log de auditoria
-    logAuditoriaService.registrarAcao(
-        adminExecutorId,
-        adminExecutorNome,
+    // DISPARA O EVENTO ASSÍNCRONO!
+    eventPublisher.publishEvent(new AuditoriaEvent(
+        adminLogado.getId(),
+        adminLogado.getNome(),
         "EXCLUIR_USUARIO",
         "Usuario",
         idUsuarioParaExcluir.toString(),
         "Excluiu o usuário de e-mail: " + usuario.getEmail()
-    );
-    }   
+    ));
+}
+
+    // Coloque este método no final da classe UsuarioService
+private Usuario obterAdminLogado() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    
+    if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
+        throw new IllegalStateException("Nenhum administrador logado encontrado.");
+    }
+
+    // Assumindo que o auth.getName() guarda o Firebase UID no seu sistema
+    String firebaseUid = auth.getName(); 
+    
+    return usuarioRepository.findByFirebaseUid(firebaseUid)
+            .orElseThrow(() -> new EntityNotFoundException("Admin não encontrado na base de dados."));
+}
 }

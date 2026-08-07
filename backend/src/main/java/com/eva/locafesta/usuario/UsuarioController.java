@@ -78,42 +78,24 @@ public class UsuarioController {
     // =========================================================================
 
     @PostMapping("/admin")
-    public ResponseEntity<UsuarioDTO> cadastrarAdmin(
-            @RequestBody @Valid UsuarioCreateDTO dto,
-            @RequestHeader(value = "X-Admin-Id", required = false) Long adminId,
-            @RequestHeader(value = "X-Admin-Nome", required = false) String adminNome) {
-        
-        Long executorId = (adminId != null) ? adminId : 1L; 
-        String executorNome = (adminNome != null && !adminNome.isBlank()) ? adminNome : "Administrador";
-
-        UsuarioDTO adminCriado = usuarioService.cadastrarAdmin(dto, executorId, executorNome);
+    public ResponseEntity<UsuarioDTO> cadastrarAdmin(@RequestBody @Valid UsuarioCreateDTO dto) {
+        // A assinatura no UsuarioService também perderá o adminId e adminNome
+        UsuarioDTO adminCriado = usuarioService.cadastrarAdmin(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(adminCriado);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioDTO> atualizarUsuario(
             @PathVariable Long id, 
-            @RequestBody @Valid UsuarioUpdateDTO dto,
-            @RequestHeader(value = "X-Admin-Id", required = false) Long adminId,
-            @RequestHeader(value = "X-Admin-Nome", required = false) String adminNome) {
+            @RequestBody @Valid UsuarioUpdateDTO dto) {
         
-        Long executorId = (adminId != null) ? adminId : 1L; 
-        String executorNome = (adminNome != null && !adminNome.isBlank()) ? adminNome : "Administrador";
-
-        UsuarioDTO usuarioAtualizado = usuarioService.atualizarUsuario(id, dto, executorId, executorNome);
+        UsuarioDTO usuarioAtualizado = usuarioService.atualizarUsuario(id, dto);
         return ResponseEntity.ok(usuarioAtualizado);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluirUsuario(
-            @PathVariable Long id,
-            @RequestHeader(value = "X-Admin-Id", required = false) Long adminId,
-            @RequestHeader(value = "X-Admin-Nome", required = false) String adminNome) {
-        
-        Long executorId = (adminId != null) ? adminId : 1L; 
-        String executorNome = (adminNome != null && !adminNome.isBlank()) ? adminNome : "Administrador";
-
-        usuarioService.excluirUsuario(id, executorId, executorNome);
+    public ResponseEntity<Void> excluirUsuario(@PathVariable Long id) {
+        usuarioService.excluirUsuario(id);
         return ResponseEntity.noContent().build(); 
     }
 }

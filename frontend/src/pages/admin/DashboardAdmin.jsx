@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from '../../components/admin/Sidebar';
-import OverviewTab from '../../components/admin/OverviewTab'; // <--- Import do novo componente
+import OverviewTab from '../../components/admin/OverviewTab';
+import UsuariosTab from '../../components/admin/UsuariosTab'; // <--- Importado
 import NovoAdminTab from '../../components/admin/NovoAdminTab';
 import EspacosTab from '../../components/admin/EspacosTab';
 import HistoricoAuditoria from '../../components/admin/HistoricoAuditoria';
@@ -24,7 +25,10 @@ export default function DashboardAdmin() {
   const renderConteudoAtivo = () => {
     switch (menuAtivo) {
       case 'overview':
-        return <OverviewTab />; // <--- Renderiza a Visão Geral isolada
+        return <OverviewTab />;
+
+      case 'usuarios':
+        return <UsuariosTab />; // <--- Renderizado aqui
 
       case 'espacos':
       case 'moderacao_espacos':
