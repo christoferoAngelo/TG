@@ -42,10 +42,6 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioDTO);
     }
 
-    // =========================================================================
-    // NOVO ENDPOINT: SALVAR OU ATUALIZAR O ENDEREÇO DO USUÁRIO
-    // PUT http://localhost:8080/api/users/{idUsuario}/endereco
-    // =========================================================================
     @PutMapping("/{id}/endereco")
     public ResponseEntity<?> salvarOuAtualizarEndereco(
             @PathVariable Long id, 
@@ -61,16 +57,9 @@ public class UsuarioController {
     @PatchMapping("/{id}/ativo")
     public ResponseEntity<Void> pingAtividade(@PathVariable Long id) {
         usuarioService.atualizarDataAtivo(id);
-        
-        // Retorna 204 No Content (Significa: "Deu certo, mas não tenho nenhum JSON pra te devolver")
-        // Isso é perfeito e super leve para requisições de background (pings)
         return ResponseEntity.noContent().build(); 
     }
     
-    // =========================================================================
-    // NOVO ENDPOINT: ATUALIZAR O TELEFONE DO USUÁRIO
-    // PUT http://localhost:8080/api/users/{id}/telefone
-    // =========================================================================
     @PutMapping("/{id}/telefone")
     public ResponseEntity<?> atualizarTelefone(
             @PathVariable Long id, 
@@ -84,29 +73,47 @@ public class UsuarioController {
         }
     }
 
-    // ==========================================
-    // ENDPOINTS DE ADMINISTRAÇÃO E GERENCIAMENTO
-    // ==========================================
+    // =========================================================================
+    // ENDPOINTS DE ADMINISTRAÇÃO E GERENCIAMENTO (COM AUDITORIA)
+    // =========================================================================
 
     @PostMapping("/admin")
-    public ResponseEntity<UsuarioDTO> cadastrarAdmin(@RequestBody @Valid UsuarioCreateDTO dto) {
-        UsuarioDTO adminCriado = usuarioService.cadastrarAdmin(dto);
+    public ResponseEntity<UsuarioDTO> cadastrarAdmin(
+            @RequestBody @Valid UsuarioCreateDTO dto,
+            @RequestHeader(value = "X-Admin-Id", required = false) Long adminId,
+            @RequestHeader(value = "X-Admin-Nome", required = false) String adminNome) {
+        
+        Long executorId = (adminId != null) ? adminId : 1L; 
+        String executorNome = (adminNome != null && !adminNome.isBlank()) ? adminNome : "Administrador";
+
+        UsuarioDTO adminCriado = usuarioService.cadastrarAdmin(dto, executorId, executorNome);
         return ResponseEntity.status(HttpStatus.CREATED).body(adminCriado);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioDTO> atualizarUsuario(
             @PathVariable Long id, 
-            @RequestBody @Valid UsuarioUpdateDTO dto) {
+            @RequestBody @Valid UsuarioUpdateDTO dto,
+            @RequestHeader(value = "X-Admin-Id", required = false) Long adminId,
+            @RequestHeader(value = "X-Admin-Nome", required = false) String adminNome) {
         
-        UsuarioDTO usuarioAtualizado = usuarioService.atualizarUsuario(id, dto);
+        Long executorId = (adminId != null) ? adminId : 1L; 
+        String executorNome = (adminNome != null && !adminNome.isBlank()) ? adminNome : "Administrador";
+
+        UsuarioDTO usuarioAtualizado = usuarioService.atualizarUsuario(id, dto, executorId, executorNome);
         return ResponseEntity.ok(usuarioAtualizado);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluirUsuario(@PathVariable Long id) {
-        usuarioService.excluirUsuario(id);
+    public ResponseEntity<Void> excluirUsuario(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Admin-Id", required = false) Long adminId,
+            @RequestHeader(value = "X-Admin-Nome", required = false) String adminNome) {
         
+        Long executorId = (adminId != null) ? adminId : 1L; 
+        String executorNome = (adminNome != null && !adminNome.isBlank()) ? adminNome : "Administrador";
+
+        usuarioService.excluirUsuario(id, executorId, executorNome);
         return ResponseEntity.noContent().build(); 
     }
 }

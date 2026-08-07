@@ -76,35 +76,49 @@ export default function Sidebar({
           </button>
         </div>
 
-        <div className="nav-group">
-          {sidebarExpandida && <span className="group-title">Gestão Interna</span>}
-          <button 
-            className={`nav-item ${menuAtivo === 'novo_admin' ? 'active' : ''}`} 
-            onClick={() => setMenuAtivo('novo_admin')} 
-            title="Cadastrar Novo Administrador"
-          >
-            <span className="nav-icon">➕</span>
-            {sidebarExpandida && <span className="nav-label">Novo Administrador</span>}
-          </button>
-          
-          <button 
-            className={`nav-item ${menuAtivo === 'financeiro' ? 'active' : ''}`} 
-            onClick={() => setMenuAtivo('financeiro')} 
-            title="Transações e Reservas"
-          >
-            <span className="nav-icon">💳</span>
-            {sidebarExpandida && <span className="nav-label">Reservas & Repasses</span>}
-          </button>
-          
-          <button 
-            className={`nav-item ${menuAtivo === 'denuncias' ? 'active' : ''}`} 
-            onClick={() => setMenuAtivo('denuncias')} 
-            title="Suporte e Denúncias"
-          >
-            <span className="nav-icon">🚩</span>
-            {sidebarExpandida && <span className="nav-label">Suporte & Denúncias</span>}
-          </button>
-        </div>
+{/* DENTRO DO Sidebar.jsx */}
+<div className="nav-group">
+  {sidebarExpandida && <span className="group-title">Gestão Interna</span>}
+  
+  <button 
+    className={`nav-item ${menuAtivo === 'novo_admin' ? 'active' : ''}`} 
+    onClick={() => setMenuAtivo('novo_admin')} 
+    title="Cadastrar Novo Administrador"
+  >
+    <span className="nav-icon">➕</span>
+    {sidebarExpandida && <span className="nav-label">Novo Administrador</span>}
+  </button>
+
+  {/* Novo item para a Auditoria */}
+  <button 
+    className={`nav-item ${menuAtivo === 'auditoria' ? 'active' : ''}`} 
+    onClick={() => setMenuAtivo('auditoria')} 
+    title="Histórico de Auditoria"
+  >
+    <span className="nav-icon">📜</span>
+    {sidebarExpandida && <span className="nav-label">Auditoria</span>}
+  </button>
+  
+  <button 
+    className={`nav-item ${menuAtivo === 'financeiro' ? 'active' : ''}`} 
+    onClick={() => setMenuAtivo('financeiro')} 
+    title="Transações e Reservas"
+  >
+    <span className="nav-icon">💳</span>
+    {sidebarExpandida && <span className="nav-label">Reservas & Repasses</span>}
+  </button>
+  
+  <button 
+    className={`nav-item ${menuAtivo === 'denuncias' ? 'active' : ''}`} 
+    onClick={() => setMenuAtivo('denuncias')} 
+    title="Suporte e Denúncias"
+  >
+    <span className="nav-icon">🚩</span>
+    {sidebarExpandida && <span className="nav-label">Suporte & Denúncias</span>}
+  </button>
+</div>
+
+
       </nav>
 
       <div className="sidebar-footer">

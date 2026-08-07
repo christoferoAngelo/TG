@@ -1,0 +1,119 @@
+.auditoria-container {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.auditoria-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.auditoria-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #1e293b;
+}
+
+.auditoria-header p {
+  margin: 4px 0 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.tabela-responsive {
+  overflow-x: auto;
+}
+
+.tabela-auditoria {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.tabela-auditoria th {
+  background-color: #f8fafc;
+  color: #475569;
+  padding: 12px;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.tabela-auditoria td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.col-data {
+  white-space: nowrap;
+  color: #64748b;
+}
+
+.admin-id {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.entidade-tag {
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Badges de Ação */
+.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge-success { background: #dcfce7; color: #15803d; }
+.badge-warning { background: #fef9c3; color: #a16207; }
+.badge-danger { background: #fee2e2; color: #b91c1c; }
+.badge-default { background: #f1f5f9; color: #475569; }
+
+/* Controles de Paginação */
+.paginacao-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-paginacao {
+  padding: 6px 16px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #334155;
+  transition: background 0.2s;
+}
+
+.btn-paginacao:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.btn-paginacao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auditoria-loading, .auditoria-empty {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+}

@@ -1,5 +1,6 @@
 package com.eva.locafesta.usuario;
 
+import com.eva.locafesta.auditoria.LogAuditoriaService;
 import com.eva.locafesta.endereco.Endereco;
 import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.endereco.GeocodingService;
@@ -33,6 +34,9 @@ public class UsuarioService {
 
     @Autowired
     private GeocodingService geocodingService; // <--- Injetando nosso novo serviço
+
+    @Autowired
+    private LogAuditoriaService logAuditoriaService;
 
     @Transactional
     public UsuarioDTO cadastrarUsuario(UsuarioCreateDTO dto) {
@@ -148,85 +152,113 @@ public class UsuarioService {
     // MÉTODOS DE ADMINISTRAÇÃO E GERENCIAMENTO
     // ==========================================
 
-    @Transactional
-    public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto) {
-        Usuario usuario = new Usuario();
-        usuario.setFirebaseUid(dto.getFirebaseUid());
-        usuario.setNome(dto.getNome());
-        usuario.setEmail(dto.getEmail());
-        usuario.setTelefone(dto.getTelefone());
-        
-        // A grande diferença: já nasce como administrador
-        usuario.setAdmin(true); 
+@Transactional
+public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto, Long adminExecutorId, String adminExecutorNome) {
+    Usuario usuario = new Usuario();
+    usuario.setFirebaseUid(dto.getFirebaseUid());
+    usuario.setNome(dto.getNome());
+    usuario.setEmail(dto.getEmail());
+    usuario.setTelefone(dto.getTelefone());
+    usuario.setAdmin(true); 
 
-        if (dto.getEndereco() != null) {
-            geocodingService.preencherCoordenadas(dto.getEndereco());
+    if (dto.getEndereco() != null) {
+        geocodingService.preencherCoordenadas(dto.getEndereco());
 
-            Endereco end = Endereco.builder()
-                    .cep(dto.getEndereco().getCep())
-                    .logradouro(dto.getEndereco().getLogradouro())
-                    .numero(dto.getEndereco().getNumero())
-                    .complemento(dto.getEndereco().getComplemento())
-                    .bairro(dto.getEndereco().getBairro())
-                    .cidade(dto.getEndereco().getCidade())
-                    .estado(dto.getEndereco().getEstado())
-                    .latitude(dto.getEndereco().getLatitude())
-                    .longitude(dto.getEndereco().getLongitude())
-                    .build();
-            
-            usuario.setEndereco(end);
-        }
+        Endereco end = Endereco.builder()
+                .cep(dto.getEndereco().getCep())
+                .logradouro(dto.getEndereco().getLogradouro())
+                .numero(dto.getEndereco().getNumero())
+                .complemento(dto.getEndereco().getComplemento())
+                .bairro(dto.getEndereco().getBairro())
+                .cidade(dto.getEndereco().getCidade())
+                .estado(dto.getEndereco().getEstado())
+                .latitude(dto.getEndereco().getLatitude())
+                .longitude(dto.getEndereco().getLongitude())
+                .build();
         
-        Usuario usuarioSalvo = usuarioRepository.save(usuario);
-        
-        // Como o usuário acabou de ser criado, ele ainda não é locador nem locatário
-        return new UsuarioDTO(usuarioSalvo, false, false);
+        usuario.setEndereco(end);
     }
-
-    @Transactional
-    public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
-
-        usuario.setNome(dto.getNome());
-        usuario.setEmail(dto.getEmail());
-        usuario.setTelefone(dto.getTelefone());
-
-        if (dto.getAdmin() != null) {
-            usuario.setAdmin(dto.getAdmin());
-        }
-
-        // Atualização de endereço
-        if (dto.getEndereco() != null) {
-            geocodingService.preencherCoordenadas(dto.getEndereco());
-
-            Endereco endereco = Endereco.builder()
-                    .cep(dto.getEndereco().getCep())
-                    .logradouro(dto.getEndereco().getLogradouro())
-                    .numero(dto.getEndereco().getNumero())
-                    .complemento(dto.getEndereco().getComplemento())
-                    .bairro(dto.getEndereco().getBairro())
-                    .cidade(dto.getEndereco().getCidade())
-                    .estado(dto.getEndereco().getEstado())
-                    .latitude(dto.getEndereco().getLatitude())
-                    .longitude(dto.getEndereco().getLongitude())
-                    .build();
     
-            usuario.setEndereco(endereco);
-        }
+    Usuario usuarioSalvo = usuarioRepository.save(usuario);
+    
+    // GRAVA O LOG DE AUDITORIA
+    logAuditoriaService.registrarAcao(
+        adminExecutorId,
+        adminExecutorNome,
+        "CADASTRAR_ADMIN",
+        "Usuario",
+        usuarioSalvo.getId().toString(),
+        "Cadastrou o novo administrador: " + usuarioSalvo.getNome() + " (" + usuarioSalvo.getEmail() + ")"
+    );
 
-        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+    return new UsuarioDTO(usuarioSalvo, false, false);
+}
+    
+@Transactional
+public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto, Long adminExecutorId, String adminExecutorNome) {
+    Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
 
-        boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
-        boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+    usuario.setNome(dto.getNome());
+    usuario.setEmail(dto.getEmail());
+    usuario.setTelefone(dto.getTelefone());
 
-        return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+    if (dto.getAdmin() != null) {
+        usuario.setAdmin(dto.getAdmin());
     }
 
-    @Transactional
-    public void excluirUsuario(Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));        
-        usuarioRepository.delete(usuario);
+    if (dto.getEndereco() != null) {
+        geocodingService.preencherCoordenadas(dto.getEndereco());
+
+        Endereco endereco = Endereco.builder()
+                .cep(dto.getEndereco().getCep())
+                .logradouro(dto.getEndereco().getLogradouro())
+                .numero(dto.getEndereco().getNumero())
+                .complemento(dto.getEndereco().getComplemento())
+                .bairro(dto.getEndereco().getBairro())
+                .cidade(dto.getEndereco().getCidade())
+                .estado(dto.getEndereco().getEstado())
+                .latitude(dto.getEndereco().getLatitude())
+                .longitude(dto.getEndereco().getLongitude())
+                .build();
+
+        usuario.setEndereco(endereco);
     }
+
+    Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
+    boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
+    boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+
+    // GRAVA O LOG DE AUDITORIA
+    logAuditoriaService.registrarAcao(
+        adminExecutorId,
+        adminExecutorNome,
+        "ATUALIZAR_USUARIO",
+        "Usuario",
+        usuarioSalvo.getId().toString(),
+        "Atualizou os dados do usuário ID: " + usuarioSalvo.getId()
+    );
+
+    return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+}
+
+
+@Transactional
+public void excluirUsuario(Long idUsuarioParaExcluir, Long adminExecutorId, String adminExecutorNome) {
+    Usuario usuario = usuarioRepository.findById(idUsuarioParaExcluir)
+            .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+    
+    usuarioRepository.delete(usuario);
+
+    // Grava a ação no log de auditoria
+    logAuditoriaService.registrarAcao(
+        adminExecutorId,
+        adminExecutorNome,
+        "EXCLUIR_USUARIO",
+        "Usuario",
+        idUsuarioParaExcluir.toString(),
+        "Excluiu o usuário de e-mail: " + usuario.getEmail()
+    );
+    }   
 }
