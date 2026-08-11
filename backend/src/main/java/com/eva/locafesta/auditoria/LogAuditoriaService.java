@@ -4,9 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,35 +13,18 @@ import java.util.List;
 public class LogAuditoriaService {
 
     @Autowired
-    private LogAuditoriaRepository repository;
+    private LogAuditoriaRepository logAuditoriaRepository;
 
-    /**
-     * REQUIRES_NEW garante que a gravação do log ocorra em uma nova transação.
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void registrarAcao(Long adminId, String adminNome, String acao, String tipoEntidade, String idEntidade, String detalhes) {
-        LogAuditoria log = LogAuditoria.builder()
-                .adminId(adminId)
-                .adminNome(adminNome)
-                .acao(acao)
-                .tipoEntidade(tipoEntidade)
-                .idEntidade(idEntidade)
-                .detalhes(detalhes)
-                .build();
+    // Apenas métodos de LEITURA ficam aqui!
+    // O antigo método "registrarAcao" foi apagado, pois o AuditoriaListener assumiu esse trabalho.
 
-        repository.save(log);
-    }
-
-    @Transactional(readOnly = true)
     public Page<LogAuditoria> listarTodosPaginado(int pagina, int tamanho) {
-        Pageable pageable = PageRequest.of(pagina, tamanho);
-        return repository.findAllByOrderByDataHoraDesc(pageable);
+        // Retorna da mais recente para a mais antiga
+        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by("dataHora").descending());
+        return logAuditoriaRepository.findAll(pageable);
     }
 
-    @Transactional(readOnly = true)
     public List<LogAuditoria> listarPorAdmin(Long adminId) {
-        return repository.findByAdminIdOrderByDataHoraDesc(adminId);
+        return logAuditoriaRepository.findByAdminIdOrderByDataHoraDesc(adminId);
     }
-
-    
 }

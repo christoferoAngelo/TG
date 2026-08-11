@@ -31,4 +31,4 @@ googleProvider.setCustomParameters({
 });
 
 // 3. IMPORTANTE: Exporta o auth E o googleProvider para serem usados no auth.jsx
-export { auth, googleProvider, analytics };
+export { auth, googleProvider, analytics, firebaseConfig };

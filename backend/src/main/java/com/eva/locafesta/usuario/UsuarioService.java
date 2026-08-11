@@ -157,9 +157,19 @@ private ApplicationEventPublisher eventPublisher;
 // ==========================================
 
 @Transactional
-public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto) { // <- Parâmetros removidos
-    Usuario adminLogado = obterAdminLogado(); // <- Descobre quem tá fazendo a ação
+public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto) {
+    // 1. Descobre quem tá fazendo a ação
+    Usuario adminLogado = obterAdminLogado(); 
 
+    // 2. TRAVAS DE SEGURANÇA: Evita erro 500 verificando duplicidade no banco
+    if (usuarioRepository.findByFirebaseUid(dto.getFirebaseUid()).isPresent()) {
+        throw new IllegalArgumentException("Erro: Este UID do Firebase já está cadastrado.");
+    }
+    if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
+        throw new IllegalArgumentException("Erro: Já existe um usuário com este e-mail.");
+    }
+
+    // 3. Continua o cadastro normalmente
     Usuario usuario = new Usuario();
     usuario.setFirebaseUid(dto.getFirebaseUid());
     usuario.setNome(dto.getNome());
@@ -197,7 +207,7 @@ public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto) { // <- Parâmetros remov
 
     return new UsuarioDTO(usuarioSalvo, false, false);
 }
-    
+
 @Transactional
 public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto) { // <- Parâmetros removidos
     Usuario adminLogado = obterAdminLogado(); 
@@ -268,18 +278,18 @@ public void excluirUsuario(Long idUsuarioParaExcluir) { // <- Parâmetros removi
     ));
 }
 
-    // Coloque este método no final da classe UsuarioService
-private Usuario obterAdminLogado() {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+public Usuario obterAdminLogado() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     
-    if (auth == null || !auth.isAuthenticated() || auth.getName().equals("anonymousUser")) {
+    if (authentication == null || !authentication.isAuthenticated()) {
         throw new IllegalStateException("Nenhum administrador logado encontrado.");
     }
 
-    // Assumindo que o auth.getName() guarda o Firebase UID no seu sistema
-    String firebaseUid = auth.getName(); 
-    
+    // Se você estiver salvando o firebaseUid no Principal ou no nome do Authentication:
+    String firebaseUid = authentication.getName(); 
+
     return usuarioRepository.findByFirebaseUid(firebaseUid)
-            .orElseThrow(() -> new EntityNotFoundException("Admin não encontrado na base de dados."));
-}
+            .filter(Usuario::isAdmin) // Garante que é admin
+            .orElseThrow(() -> new IllegalStateException("Nenhum administrador logado encontrado."));
+    }
 }

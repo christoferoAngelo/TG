@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from "../../config/firebaseConfig";
+import { initializeApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth, firebaseConfig } from "../../config/firebaseConfig";
 import './NovoAdminTab.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -29,6 +30,21 @@ export default function NovoAdminTab() {
   const [adminEmEdicao, setAdminEmEdicao] = useState(null);
 
   // --------------------------------------------------------------------------
+  // FUNÇÃO AUXILIAR DE AUTENTICAÇÃO (AGUARDA O FIREBASE INICIALIZAR)
+  // --------------------------------------------------------------------------
+
+
+
+  const obterConfigComToken = async () => { // Aguarda o Firebase terminar de restaurar a sessão
+    const user = auth.currentUser; if (!user) { throw new Error( "Usuário não autenticado. Faça login novamente." ); } 
+    // Obtém o token atual da sessão 
+    const token = await user.getIdToken(); if (!token) { throw new Error( "Não foi possível obter o token de autenticação." ); 
+
+    } console.log("Token Firebase obtido:", { uid: user.uid, email: user.email, tokenPresente: !!token }); 
+    return { headers: { Authorization: `Bearer ${token}` } }; };
+
+
+  // --------------------------------------------------------------------------
   // EFEITOS
   // --------------------------------------------------------------------------
   useEffect(() => {
@@ -37,16 +53,18 @@ export default function NovoAdminTab() {
 
   const carregarAdmins = async () => {
     setLoadingList(true);
+    setErro(null);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/users`);
-      const todosUsuarios = Array.isArray(response.data) ? response.data : (response.data.content || []);
+      const config = await obterConfigComToken();
       
-      // Filtra apenas os usuários que são admins
+      const response = await axios.get(`${API_BASE_URL}/api/users`, config);
+      
+      const todosUsuarios = Array.isArray(response.data) ? response.data : (response.data.content || []);
       const apenasAdmins = todosUsuarios.filter(u => u.admin || u.isAdmin);
       setAdmins(apenasAdmins);
     } catch (err) {
       console.error("Erro ao carregar lista de administradores:", err);
-      setErro("Não foi possível carregar a lista de administradores.");
+      setErro("Não foi possível carregar a lista de administradores. Verifique sua sessão.");
     } finally {
       setLoadingList(false);
     }
@@ -74,25 +92,28 @@ export default function NovoAdminTab() {
     setErro(null);
 
     try {
+      const config = await obterConfigComToken();
+
       if (isEditing) {
         // --- FLUXO DE EDIÇÃO ---
-        // Nota: A atualização de e-mail/senha geralmente exige integração com o Admin SDK no backend.
-        // Aqui estamos atualizando os dados do perfil no Spring Boot.
         const id = adminEmEdicao.id || adminEmEdicao.firebaseUid;
         
         await axios.put(`${API_BASE_URL}/api/users/${id}`, {
           nome: formData.nome,
           telefone: formData.telefone,
           email: formData.email 
-        });
+        }, config); 
 
         setMensagem(`Administrador "${formData.nome}" atualizado com sucesso!`);
         cancelarEdicao();
 
       } else {
-        // --- FLUXO DE CRIAÇÃO (Seu código original) ---
+        // --- FLUXO DE CRIAÇÃO ---
+        const secondaryApp = initializeApp(firebaseConfig, `SecondaryApp-${Date.now()}`);
+        const secondaryAuth = getAuth(secondaryApp);
+
         const userCredential = await createUserWithEmailAndPassword(
-          auth, 
+          secondaryAuth, 
           formData.email, 
           formData.senha
         );
@@ -100,18 +121,19 @@ export default function NovoAdminTab() {
         const user = userCredential.user;
         const uidDoFirebase = user.uid;
 
+        await signOut(secondaryAuth);
+
         await axios.post(`${API_BASE_URL}/api/users/admin`, {
           firebaseUid: uidDoFirebase,
           nome: formData.nome,
           email: formData.email,
           telefone: formData.telefone
-        });
+        }, config);
 
         setMensagem(`Administrador "${formData.nome}" cadastrado com sucesso!`);
         setFormData({ nome: '', email: '', telefone: '', senha: '' });
       }
       
-      // Atualiza a lista após salvar
       carregarAdmins();
 
     } catch (err) {
@@ -122,9 +144,9 @@ export default function NovoAdminTab() {
       } else if (err.code === 'auth/weak-password') {
          setErro("A senha deve ter pelo menos 6 caracteres.");
       } else if (err.code === 'auth/invalid-email') { 
-         setErro("O formato do e-mail é inválido. Digite um e-mail correto (ex: nome@empresa.com).");
+         setErro("O formato do e-mail é inválido.");
       } else {
-        setErro(`Erro ao ${isEditing ? 'atualizar' : 'cadastrar'} o administrador. Verifique o console.`);
+        setErro(err.message || `Erro ao ${isEditing ? 'atualizar' : 'cadastrar'} o administrador.`);
       }
     } finally {
       setLoading(false);
@@ -141,28 +163,28 @@ export default function NovoAdminTab() {
       nome: admin.nome || '',
       email: admin.email || '',
       telefone: admin.telefone || '',
-      senha: '' // Deixamos vazio pois não vamos editar a senha por aqui
+      senha: ''
     });
     setMensagem(null);
     setErro(null);
     
-    // Rola a página para o formulário
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
   const handleDeleteClick = async (admin) => {
     if (admins.length <= 1) {
-      alert("⚠️ Operação Negada: O sistema não pode ficar sem administradores. Cadastre outro admin antes de excluir este.");
+      alert("⚠️ Operação Negada: O sistema não pode ficar sem administradores.");
       return;
     }
 
-    const confirmar = window.confirm(`Tem certeza que deseja excluir o administrador "${admin.nome || admin.email}"? Esta ação não pode ser desfeita.`);
+    const confirmar = window.confirm(`Tem certeza que deseja excluir o administrador "${admin.nome || admin.email}"?`);
     if (!confirmar) return;
 
     try {
+      const config = await obterConfigComToken();
       const id = admin.id || admin.firebaseUid;
-      // Certifique-se de que este endpoint DELETE existe no seu Spring Boot
-      await axios.delete(`${API_BASE_URL}/api/users/${id}`);
+      
+      await axios.delete(`${API_BASE_URL}/api/users/${id}`, config);
       
       setMensagem("Administrador excluído com sucesso!");
       carregarAdmins();
@@ -260,7 +282,7 @@ export default function NovoAdminTab() {
               placeholder="admin@locafesta.com" 
               className="date-input" 
               required
-              disabled={isEditing} // O ideal é não mudar o e-mail se estiver usando Firebase
+              disabled={isEditing}
               title={isEditing ? "Não é possível alterar o e-mail de uma conta existente." : ""}
             />
           </div>
@@ -277,7 +299,6 @@ export default function NovoAdminTab() {
             />
           </div>
 
-          {/* Só exibe o campo de senha se for CRIAÇÃO */}
           {!isEditing && (
             <div className="form-group" style={{ marginBottom: '20px' }}>
               <label className="filter-label">Senha Temporária:</label>

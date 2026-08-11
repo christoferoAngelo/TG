@@ -8,8 +8,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 public class LocafestaApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(LocafestaApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(LocafestaApplication.class, args);
+    }
 
 }
