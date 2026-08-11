@@ -196,24 +196,41 @@ public UsuarioDTO cadastrarAdmin(UsuarioCreateDTO dto) {
     Usuario usuarioSalvo = usuarioRepository.save(usuario);
     
     // DISPARA O EVENTO ASSÍNCRONO!
-    eventPublisher.publishEvent(new AuditoriaEvent(
-        adminLogado.getId(),
-        adminLogado.getNome(),
-        "CADASTRAR_ADMIN",
-        "Usuario",
-        usuarioSalvo.getId().toString(),
-        "Cadastrou o novo administrador: " + usuarioSalvo.getNome() + " (" + usuarioSalvo.getEmail() + ")"
-    ));
+eventPublisher.publishEvent(new AuditoriaEvent(
+    adminLogado.getId(),
+    adminLogado.getNome(),
+    "CADASTRAR_ADMIN",
+    "Usuario",
+    usuarioSalvo.getId().toString(),
+    "Cadastrou o administrador "
+        + "'" + usuarioSalvo.getNome() + "'"
+        + ", e-mail: " + usuarioSalvo.getEmail()
+        + ", telefone: " + usuarioSalvo.getTelefone()
+));
 
     return new UsuarioDTO(usuarioSalvo, false, false);
 }
 
 @Transactional
-public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto) { // <- Parâmetros removidos
-    Usuario adminLogado = obterAdminLogado(); 
+public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto) {
+
+    Usuario adminLogado = obterAdminLogado();
 
     Usuario usuario = usuarioRepository.findById(usuarioId)
             .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+
+    // ==========================================
+    // GUARDA OS VALORES ANTIGOS PARA AUDITORIA
+    // ==========================================
+
+    String nomeAntigo = usuario.getNome();
+    String emailAntigo = usuario.getEmail();
+    String telefoneAntigo = usuario.getTelefone();
+    Boolean adminAntigo = usuario.isAdmin();
+
+    // ==========================================
+    // ATUALIZA OS DADOS
+    // ==========================================
 
     usuario.setNome(dto.getNome());
     usuario.setEmail(dto.getEmail());
@@ -224,7 +241,9 @@ public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto) { // <-
     }
 
     if (dto.getEndereco() != null) {
+
         geocodingService.preencherCoordenadas(dto.getEndereco());
+
         Endereco endereco = Endereco.builder()
                 .cep(dto.getEndereco().getCep())
                 .logradouro(dto.getEndereco().getLogradouro())
@@ -236,45 +255,115 @@ public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto) { // <-
                 .latitude(dto.getEndereco().getLatitude())
                 .longitude(dto.getEndereco().getLongitude())
                 .build();
+
         usuario.setEndereco(endereco);
     }
 
     Usuario usuarioSalvo = usuarioRepository.save(usuario);
 
-    boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
-    boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+    // ==========================================
+    // MONTA OS DETALHES DA AUDITORIA
+    // ==========================================
 
-    // DISPARA O EVENTO ASSÍNCRONO!
+    StringBuilder detalhes = new StringBuilder();
+
+    if (!java.util.Objects.equals(nomeAntigo, usuarioSalvo.getNome())) {
+        detalhes.append("Nome alterado de '")
+                .append(nomeAntigo)
+                .append("' para '")
+                .append(usuarioSalvo.getNome())
+                .append("'. ");
+    }
+
+    if (!java.util.Objects.equals(emailAntigo, usuarioSalvo.getEmail())) {
+        detalhes.append("E-mail alterado de '")
+                .append(emailAntigo)
+                .append("' para '")
+                .append(usuarioSalvo.getEmail())
+                .append("'. ");
+    }
+
+    if (!java.util.Objects.equals(telefoneAntigo, usuarioSalvo.getTelefone())) {
+        detalhes.append("Telefone alterado de '")
+                .append(telefoneAntigo)
+                .append("' para '")
+                .append(usuarioSalvo.getTelefone())
+                .append("'. ");
+    }
+
+    if (!java.util.Objects.equals(adminAntigo, usuarioSalvo.isAdmin())) {
+        detalhes.append("Permissão de administrador alterada de '")
+                .append(adminAntigo)
+                .append("' para '")
+                .append(usuarioSalvo.isAdmin())
+                .append("'. ");
+    }
+
+    // Caso nenhuma dessas informações tenha mudado
+    if (detalhes.length() == 0) {
+        detalhes.append("Dados do usuário atualizados.");
+    }
+
+    // ==========================================
+    // REGISTRA A AUDITORIA
+    // ==========================================
+
     eventPublisher.publishEvent(new AuditoriaEvent(
-        adminLogado.getId(),
-        adminLogado.getNome(),
-        "ATUALIZAR_USUARIO",
-        "Usuario",
-        usuarioSalvo.getId().toString(),
-        "Atualizou os dados do usuário ID: " + usuarioSalvo.getId()
+            adminLogado.getId(),
+            adminLogado.getNome(),
+            "ATUALIZAR_USUARIO",
+            "Usuario",
+            usuarioSalvo.getId().toString(),
+            detalhes.toString()
     ));
 
-    return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+    // ==========================================
+    // RETORNA O USUÁRIO
+    // ==========================================
+
+    boolean isLocador =
+            perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
+
+    boolean isLocatario =
+            perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+
+    return new UsuarioDTO(
+            usuarioSalvo,
+            isLocatario,
+            isLocador
+    );
 }
 
-
 @Transactional
-public void excluirUsuario(Long idUsuarioParaExcluir) { // <- Parâmetros removidos
-    Usuario adminLogado = obterAdminLogado(); 
+public void excluirUsuario(Long idUsuarioParaExcluir) {
+
+    Usuario adminLogado = obterAdminLogado();
 
     Usuario usuario = usuarioRepository.findById(idUsuarioParaExcluir)
-            .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
-    
+            .orElseThrow(() ->
+                    new EntityNotFoundException("Usuário não encontrado."));
+
+    // Guarda as informações antes de excluir
+    Long idExcluido = usuario.getId();
+    String nomeExcluido = usuario.getNome();
+    String emailExcluido = usuario.getEmail();
+    String telefoneExcluido = usuario.getTelefone();
+
+    // Exclui o usuário
     usuarioRepository.delete(usuario);
 
-    // DISPARA O EVENTO ASSÍNCRONO!
+    // Registra a auditoria
     eventPublisher.publishEvent(new AuditoriaEvent(
-        adminLogado.getId(),
-        adminLogado.getNome(),
-        "EXCLUIR_USUARIO",
-        "Usuario",
-        idUsuarioParaExcluir.toString(),
-        "Excluiu o usuário de e-mail: " + usuario.getEmail()
+            adminLogado.getId(),
+            adminLogado.getNome(),
+            "EXCLUIR_USUARIO",
+            "Usuario",
+            idExcluido.toString(),
+            "Excluiu o usuário "
+                    + "'" + nomeExcluido + "'"
+                    + ", e-mail: " + emailExcluido
+                    + ", telefone: " + telefoneExcluido
+                    + "."
     ));
 }
 
