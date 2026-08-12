@@ -512,3 +512,99 @@
         text-align: center;
     }
 }
+
+/* ==========================================================================
+   NOVAS CLASSES EXTRÍDAS DOS ESTILOS INLINE
+   ========================================================================== */
+
+/* Utilitários e Layout */
+.cursor-pointer { cursor: pointer; }
+.mt-10 { margin-top: 10px; }
+.mt-15 { margin-top: 15px; }
+.text-success { color: #28a745 !important; }
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Container de Ações do Espaço */
+.espaco-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* Badges Dinâmicos (Status de Aprovação e Atividade) */
+.badge-rejeitado { background-color: #dc3545; color: #fff; }
+.badge-pendente { background-color: #ffc107; color: #000; }
+.badge-aprovado { background-color: #28a745; color: #fff; }
+.badge-inativo { background-color: #6c757d; color: #fff; }
+.badge-info { background-color: #17a2b8; color: #fff; }
+
+.badge-caracteristica {
+    font-size: 0.75rem;
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* Botões Dinâmicos */
+.btn-status-desativar { background-color: #dc3545; color: #fff; }
+.btn-status-desativar:hover { background-color: #c82333; }
+.btn-status-reativar { background-color: #28a745; color: #fff; }
+.btn-status-reativar:hover { background-color: #218838; }
+
+/* Bloco de Rejeição */
+.rejeicao-box {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: #ffebee;
+    border-left: 4px solid #f44336;
+    border-radius: 4px;
+    color: #c62828;
+    font-size: 0.9rem;
+}
+
+/* Estilos do Modal e Formulário */
+.section-title-sm {
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 1rem;
+}
+
+.caracteristicas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.caracteristica-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+
+.caracteristica-label.selecionado {
+    border-color: #4f46e5;
+    background-color: #e0e7ff;
+}
