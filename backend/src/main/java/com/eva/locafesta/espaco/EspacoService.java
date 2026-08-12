@@ -214,4 +214,30 @@ public class EspacoService {
         Espaco espacoSalvo = espacoRepository.save(espaco);
         return new EspacoDTO(espacoSalvo);
     }
+    
+    @Transactional
+    public EspacoDTO alternarStatusAtivo(Long locadorId, Long espacoId) {
+        // 1. Busca o espaço no banco de dados
+        Espaco espaco = espacoRepository.findById(espacoId)
+                .orElseThrow(() -> new RuntimeException("Espaço não encontrado"));
+
+        // 2. Validação de segurança: Verifica se o espaço pertence ao locador que fez a requisição
+        if (!espaco.getLocador().getId().equals(locadorId)) {
+            throw new RuntimeException("Acesso negado: Você não tem permissão para alterar este espaço.");
+        }
+
+        // 3. Inverte o status atual. (Se for nulo por causa de dados legados, trata como true)
+        boolean statusAtual = espaco.getAtivo() != null ? espaco.getAtivo() : true;
+        espaco.setAtivo(!statusAtual);
+
+        // 4. Salva a alteração no banco de dados
+        Espaco espacoSalvo = espacoRepository.save(espaco);
+
+        // 5. Retorna convertido para DTO (Ajuste o nome do seu método conversor, se for diferente)
+        return converterParaDTO(espacoSalvo);
+    }
+    
+    private EspacoDTO converterParaDTO(Espaco espaco) {
+        return new EspacoDTO(espaco);
+    }
 }

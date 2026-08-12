@@ -82,6 +82,38 @@ export default function DashboardLocador() {
         }));
     };
 
+    // Alterna o status Ativo/Inativo do espaço
+    const handleAlternarStatus = async (espacoId) => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/locadores/${usuarioLogado.id}/espacos/${espacoId}/status`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" }
+            });
+
+            if (!response.ok) {
+                const erro = await response.text();
+                throw new Error(erro || "Falha ao atualizar o status do espaço.");
+            }
+
+            // Atualiza a tela imediatamente (Optimistic UI)
+            // Se era ativo, vira inativo e vice-versa, sem precisar esperar/ler o JSON da API.
+            setEspacos(prevEspacos => 
+                prevEspacos.map(esp => {
+                    if (esp.id === espacoId) {
+                        // Confere se atualmente está ativo (lidando com booleano ou 1/0 do banco)
+                        const estaAtivo = esp.ativo === true || esp.ativo === 1;
+                        return { ...esp, ativo: !estaAtivo }; // Inverte o valor
+                    }
+                    return esp;
+                })
+            );
+
+        } catch (err) {
+            console.error(err);
+            alert("Erro: " + err.message);
+        }
+    };
+
     // Busca CEP via ViaCEP API
     const handleBuscarCep = async (cep) => {
         const cleanCep = cep.replace(/\D/g, "");
@@ -256,8 +288,11 @@ export default function DashboardLocador() {
                                                 </div>
                                             )}
                                         </div>
-                                        <div>
-                                            {/* Mudando a cor da tag dependendo do status para facilitar a visualização */}
+                                        
+                                        {/* AQUI ESTÁ A MUDANÇA: DIV que agrupa os status e o botão */}
+                                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                                            
+                                            {/* Tag Original: Status de Aprovação */}
                                             <span 
                                                 className="badge" 
                                                 style={{
@@ -271,6 +306,40 @@ export default function DashboardLocador() {
                                             >
                                                 {espaco.statusAprovacao || "Publicado"}
                                             </span>
+
+                                            {/* Nova Tag: Status de Atividade (Ativo/Inativo) */}
+                                            <span
+                                            className="badge" 
+                                            style={{
+                                                backgroundColor: (espaco.ativo === true || espaco.ativo === 1) ? "#17a2b8" : "#6c757d",
+                                                color: "#fff",
+                                                padding: "5px 10px",
+                                                borderRadius: "4px",
+                                                fontSize: "0.85rem",
+                                                fontWeight: "bold"
+                                            }}
+                                        >
+                                            {(espaco.ativo === true || espaco.ativo === 1) ? "Ativo" : "Inativo"}
+                                        </span>
+
+                                        {/* Novo Botão: Alternar Status */}
+                                        <button 
+                                            onClick={() => handleAlternarStatus(espaco.id)}
+                                            className="btn"
+                                            style={{
+                                                padding: "5px 10px",
+                                                backgroundColor: (espaco.ativo === true || espaco.ativo === 1) ? "#dc3545" : "#28a745",
+                                                color: "#fff",
+                                                border: "none",
+                                                borderRadius: "4px",
+                                                cursor: "pointer",
+                                                fontSize: "0.85rem",
+                                                fontWeight: "bold"
+                                            }}
+                                        >
+                                            {(espaco.ativo === true || espaco.ativo === 1) ? "Desativar" : "Reativar"}
+                                        </button>
+
                                         </div>
                                     </div>
 

@@ -38,15 +38,28 @@ public class EspacoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-// GET http://localhost:8080/api/locadores/espacos/todos
-@GetMapping("/espacos/todos")
-public ResponseEntity<?> listarTodosEspacos() {
-    try {
-        List<EspacoDTO> espacos = espacoService.listarTodos(); // Crie este método na sua Service se ainda não existir
-        return ResponseEntity.ok(espacos);
-    } catch (RuntimeException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    
+	// GET http://localhost:8080/api/locadores/espacos/todos
+	@GetMapping("/espacos/todos")
+	public ResponseEntity<?> listarTodosEspacos() {
+	    try {
+	        List<EspacoDTO> espacos = espacoService.listarTodos(); // Crie este método na sua Service se ainda não existir
+	        return ResponseEntity.ok(espacos);
+	    } catch (RuntimeException e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+	    }
+	}
+	
+	// UPDATE - PATCH http://localhost:8080/api/locadores/{locadorId}/espacos/{espacoId}/status
+    @PatchMapping("/{locadorId}/espacos/{espacoId}/status")
+    public ResponseEntity<?> alternarStatusAtivo(@PathVariable Long locadorId, @PathVariable Long espacoId) {
+        try {
+            // Esse método precisará ser criado no seu EspacoService
+            EspacoDTO espacoAtualizado = espacoService.alternarStatusAtivo(locadorId, espacoId);
+            return ResponseEntity.ok(espacoAtualizado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
-}
 
 }

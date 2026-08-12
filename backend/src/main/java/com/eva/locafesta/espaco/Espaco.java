@@ -69,6 +69,10 @@ public class Espaco {
 
     @Column(name = "status_aprovacao", nullable = false, length = 20) @Builder.Default
     private String statusAprovacao = "PENDENTE";
+    
+    @Column(name = "ativo", nullable = false)
+    @Builder.Default
+    private Boolean ativo = true;
 
     @CreationTimestamp
     @Column(name = "data_cadastro", updatable = false)
