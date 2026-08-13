@@ -240,4 +240,17 @@ public class EspacoService {
     private EspacoDTO converterParaDTO(Espaco espaco) {
         return new EspacoDTO(espaco);
     }
+    
+    @Transactional(readOnly = true)
+    public List<EspacoDTO> buscarEspacosPorTermo(String termo) {
+        // Se a pessoa pesquisar vazio, devolvemos todos
+        if (termo == null || termo.trim().isEmpty()) {
+            return listarTodos();
+        }
+        
+        // Busca no banco e converte para DTO
+        return espacoRepository.buscarPorTermoMultiplo(termo).stream()
+                .map(EspacoDTO::new)
+                .collect(Collectors.toList());
+    }
 }

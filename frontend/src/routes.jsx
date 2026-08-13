@@ -44,11 +44,11 @@ function getRotaPorRole(usuario) {
 
     // 2. Se for Locador
     if (usuario.locador) {
-        return "/dashboard-locador";
+        return "/home"; //depois tem que mudar pra direcionar pra home locador (a ser criada)
     }
 
     // 3. Padrão: Cliente / Locatário
-    return "/dashboard";
+    return "/home";
 }
 
 export default function AppRoutes() {

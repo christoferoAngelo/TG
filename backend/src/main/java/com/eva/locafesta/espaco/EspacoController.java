@@ -61,5 +61,15 @@ public class EspacoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+    
+    @GetMapping("/espacos/busca")
+    public ResponseEntity<?> buscarEspacos(@RequestParam(name = "q", defaultValue = "") String termo) {
+        try {
+            List<EspacoDTO> espacos = espacoService.buscarEspacosPorTermo(termo);
+            return ResponseEntity.ok(espacos);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
 
 }
