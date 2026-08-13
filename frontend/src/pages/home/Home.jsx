@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { ListaEspacos } from "/src/components/locatario/ListaEspacos.jsx"; // Ajuste o caminho se necessário
-import "../dashboard/Dashboard.css"; 
+import { ListaEspacos } from "../../components/locatario/ListaEspacos.jsx"; // Ajuste o caminho
+import HeaderHome from "./components/HeaderHome.jsx"; // Ajuste o caminho
+import "./Home.css"; // CSS exclusivo da Home
 
 export default function Home() {
-    const navigate = useNavigate();
-    
     const [espacos, setEspacos] = useState([]);
     const [carregando, setCarregando] = useState(true);
 
@@ -21,29 +19,24 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="dashboard">
-            <header className="header">
-                <h2 className="logo" style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
-                    LocaFesta
-                </h2>
-                <div className="user-menu">
-                    <button onClick={() => navigate("/login")} className="btn btn-destaque">
-                        Entrar / Cadastrar
-                    </button>
+        <div className="home-container">
+            {/* Componente Header Exclusivo da Home */}
+            <HeaderHome />
+            
+            <main className="home-main">
+                {/* Banner de Boas-vindas (Hero) */}
+                <section className="hero-section">
+                    <h1>Encontre o espaço perfeito para o seu próximo evento</h1>
+                    <p>Explore centenas de salões, chácaras e rooftops incríveis disponíveis para locação.</p>
+                </section>
+
+                {/* Conteúdo Central */}
+                <div className="home-content">
+                    <h2 className="section-title">Espaços em Destaque</h2>
+                    
+                    {/* Lista reaproveitada */}
+                    <ListaEspacos espacos={espacos} carregando={carregando} />
                 </div>
-            </header>
-
-            <main className="main">
-                <div className="home-hero">
-                    <h3>Encontre o espaço perfeito para o seu evento</h3>
-                    <p>Explore salões, chácaras e espaços disponíveis.</p>
-                </div>
-
-                <h4 className="section-title">Espaços em Destaque</h4>
-
-                {/* Aqui entra o componente que reaproveitamos */}
-                <ListaEspacos espacos={espacos} carregando={carregando} />
-                
             </main>
         </div>
     );
