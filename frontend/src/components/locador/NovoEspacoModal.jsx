@@ -4,10 +4,19 @@ export default function NovoEspacoModal({ onClose, onSalvar, carregando, caracte
     const estadoInicial = {
         titulo: "", descricao: "", valorDiaria: "", capacidadePessoas: "",
         restricoesHorario: "", horarioFechamento: "", caracteristicas: [],
-        endereco: { cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "" }
+        endereco: { cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "" },
+        ambientes: [] // <--- Lista de ambientes estilo Airbnb
     };
 
     const [formEspaco, setFormEspaco] = useState(estadoInicial);
+    const [uploadingImg, setUploadingImg] = useState(false);
+
+    // Estado temporário para criar um novo ambiente antes de adicionar à lista
+    const [novoAmbiente, setNovoAmbiente] = useState({
+        titulo: "",
+        descricao: "",
+        arquivosImagens: [] // Arquivos locais selecionados para este ambiente
+    });
 
     const handleToggleCaracteristica = (item) => {
         setFormEspaco((prev) => {
@@ -50,28 +59,170 @@ export default function NovoEspacoModal({ onClose, onSalvar, carregando, caracte
         }
     };
 
-    const handleSubmit = (e) => {
+    // Adiciona o cômodo configurado na lista de ambientes do espaço
+    const handleAdicionarAmbiente = () => {
+        if (!novoAmbiente.titulo.trim()) {
+            alert("Informe o título do cômodo (Ex: Cozinha completa, Quarto 1).");
+            return;
+        }
+        if (novoAmbiente.arquivosImagens.length === 0) {
+            alert("Adicione pelo menos uma foto para este cômodo.");
+            return;
+        }
+
+        setFormEspaco((prev) => ({
+            ...prev,
+            ambientes: [...prev.ambientes, novoAmbiente]
+        }));
+
+        // Limpa o form temporário do ambiente para cadastrar outro se quiser
+        setNovoAmbiente({ titulo: "", descricao: "", arquivosImagens: [] });
+    };
+
+    // Remove um ambiente da lista
+    const handleRemoverAmbiente = (index) => {
+        setFormEspaco((prev) => ({
+            ...prev,
+            ambientes: prev.ambientes.filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSalvar(formEspaco);
+
+        if (formEspaco.ambientes.length === 0) {
+            alert("Adicione pelo menos um cômodo com fotos para o seu espaço.");
+            return;
+        }
+
+        setUploadingImg(true);
+
+        try {
+            // Processa o upload de cada imagem de cada ambiente para o Cloudinary
+            const ambientesProcessados = [];
+
+            for (const amb of formEspaco.ambientes) {
+                const urlsUrlsImagens = [];
+
+                for (const arquivo of amb.arquivosImagens) {
+                    const formData = new FormData();
+                    formData.append("file", arquivo);
+                    formData.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const data = await res.json();
+                    if (data.secure_url) {
+                        urlsUrlsImagens.push(data.secure_url);
+                    }
+                }
+
+                ambientesProcessados.push({
+                    titulo: amb.titulo,
+                    descricao: amb.descricao,
+                    imagensUrls: urlsUrlsImagens
+                });
+            }
+
+            setUploadingImg(false);
+
+            // Envia para o backend a estrutura completa mapeada para o DTO
+            onSalvar({
+                ...formEspaco,
+                ambientes: ambientesProcessados
+            });
+
+        } catch (err) {
+            console.error("Erro no upload das imagens:", err);
+            alert("Erro ao fazer upload das imagens para o Cloudinary. Tente novamente.");
+            setUploadingImg(false);
+        }
     };
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content" style={{ maxWidth: "600px", maxHeight: "90vh", overflowY: "auto" }}>
-                <h3>Anunciar Novo Espaço</h3>
-                <p className="modal-desc">Preencha as informações do seu espaço para eventos.</p>
+            <div className="modal-content" style={{ maxWidth: "700px", maxHeight: "90vh", overflowY: "auto" }}>
+                <h3>Anunciar Novo Espaço (Estilo Airbnb)</h3>
+                <p className="modal-desc">Organize seu espaço dividindo por cômodos e adicione fotos para cada um.</p>
 
                 <form onSubmit={handleSubmit}>
+
+                    {/* --- SEÇÃO DE CÔMODOS / AMBIENTES (ESTILO AIRBNB) --- */}
+                    <div style={{ background: "#f9f9f9", padding: "15px", borderRadius: "8px", marginBottom: "20px", border: "1px solid #ddd" }}>
+                        <h4 className="section-title-sm" style={{ marginTop: 0 }}>Adicionar Cômodos / Ambientes</h4>
+                        
+                        <div className="input-group">
+                            <label>Nome do Cômodo / Ambiente:</label>
+                            <input 
+                                type="text" 
+                                placeholder="Ex: Cozinha completa, Quarto 1, Área Gourmet..."
+                                value={novoAmbiente.titulo}
+                                onChange={(e) => setNovoAmbiente({ ...novoAmbiente, titulo: e.target.value })}
+                                className="input" 
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label>Descrição do Cômodo (Opcional):</label>
+                            <input 
+                                type="text" 
+                                placeholder="Ex: Fogão, Forno, Freezer, Utensílios básicos..."
+                                value={novoAmbiente.descricao}
+                                onChange={(e) => setNovoAmbiente({ ...novoAmbiente, descricao: e.target.value })}
+                                className="input" 
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <label>Fotos deste Cômodo:</label>
+                            <input 
+                                type="file" 
+                                multiple 
+                                accept="image/*"
+                                onChange={(e) => setNovoAmbiente({ ...novoAmbiente, arquivosImagens: Array.from(e.target.files) })} 
+                                className="input" 
+                            />
+                            {novoAmbiente.arquivosImagens.length > 0 && (
+                                <p style={{ fontSize: "0.8rem", color: "green", marginTop: "5px" }}>
+                                    {novoAmbiente.arquivosImagens.length} foto(s) selecionada(s) para este cômodo.
+                                </p>
+                            )}
+                        </div>
+
+                        <button type="button" onClick={handleAdicionarAmbiente} className="btn" style={{ background: "#333", color: "#fff", width: "100%", marginTop: "5px" }}>
+                            + Incluir este Cômodo na Lista
+                        </button>
+
+                        {/* Listagem visual dos cômodos já adicionados */}
+                        {formEspaco.ambientes.length > 0 && (
+                            <div style={{ marginTop: "15px" }}>
+                                <label style={{ fontWeight: "bold", fontSize: "0.9rem" }}>Cômodos Adicionados:</label>
+                                <ul style={{ paddingLeft: "20px", margin: "5px 0" }}>
+                                    {formEspaco.ambientes.map((amb, index) => (
+                                        <li key={index} style={{ fontSize: "0.85rem", marginBottom: "5px" }}>
+                                            <strong>{amb.titulo}</strong> ({amb.arquivosImagens.length} fotos) 
+                                            <button type="button" onClick={() => handleRemoverAmbiente(index)} style={{ marginLeft: "10px", color: "red", border: "none", background: "none", cursor: "pointer" }}>[Remover]</button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                    {/* --------------------------------------------------- */}
+
                     <div className="input-group">
-                        <label>Título do Anúncio:</label>
-                        <input type="text" required placeholder="Ex: Salão de Festas Recanto"
+                        <label>Título do Anúncio Principal:</label>
+                        <input type="text" required placeholder="Ex: Sítio Recanto das Festas"
                             value={formEspaco.titulo} onChange={(e) => setFormEspaco({ ...formEspaco, titulo: e.target.value })}
                             className="input" />
                     </div>
 
                     <div className="input-group">
-                        <label>Descrição:</label>
-                        <textarea required placeholder="Ex: Espaço amplo com piscina e churrasqueira"
+                        <label>Descrição Geral:</label>
+                        <textarea required placeholder="Ex: Amplo espaço com verde, ideal para confraternizações."
                             value={formEspaco.descricao} onChange={(e) => setFormEspaco({ ...formEspaco, descricao: e.target.value })}
                             className="input" rows="3" />
                     </div>
@@ -177,9 +328,9 @@ export default function NovoEspacoModal({ onClose, onSalvar, carregando, caracte
                     </div>
 
                     <div className="modal-actions mt-15">
-                        <button type="button" onClick={onClose} className="btn btn-cancelar">Cancelar</button>
-                        <button type="submit" disabled={carregando} className="btn btn-destaque">
-                            {carregando ? "Anunciando..." : "Salvar Anúncio"}
+                        <button type="button" onClick={onClose} className="btn btn-cancelar" disabled={uploadingImg || carregando}>Cancelar</button>
+                        <button type="submit" disabled={uploadingImg || carregando} className="btn btn-destaque">
+                            {uploadingImg ? "Enviando fotos..." : (carregando ? "Anunciando..." : "Salvar Anúncio")}
                         </button>
                     </div>
                 </form>

@@ -9,9 +9,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import java.util.List;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
@@ -77,6 +78,11 @@ public class Espaco {
     @CreationTimestamp
     @Column(name = "data_cadastro", updatable = false)
     private LocalDateTime dataCadastro;
+
+    // Relacionamento 1 para N com os Ambientes
+    @OneToMany(mappedBy = "espaco", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<EspacoAmbiente> ambientes = new ArrayList<>();
 
     
 }

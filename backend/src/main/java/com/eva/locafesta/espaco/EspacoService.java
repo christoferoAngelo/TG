@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -67,6 +68,7 @@ public class EspacoService {
                 .statusAprovacao("PENDENTE")
                 .build();
 
+        // 1. Vincula as Características
         if (dto.getCaracteristicas() != null && !dto.getCaracteristicas().isEmpty()) {
             Set<Caracteristica> caracteristicas = new HashSet<>();
             for (CaracteristicaDTO caracDTO : dto.getCaracteristicas()) {
@@ -77,6 +79,19 @@ public class EspacoService {
                 }
             }
             espaco.setCaracteristicas(caracteristicas);
+        }
+
+        // 2. Vincula os Ambientes e as Imagens (Nova Estrutura Estilo Airbnb)
+        if (dto.getAmbientes() != null && !dto.getAmbientes().isEmpty()) {
+            List<EspacoAmbiente> ambientes = dto.getAmbientes().stream().map(ambDTO -> {
+                return EspacoAmbiente.builder()
+                        .espaco(espaco) // Importante: Relaciona o ambiente ao espaço recém-criado!
+                        .titulo(ambDTO.getTitulo())
+                        .descricao(ambDTO.getDescricao())
+                        .imagensUrls(ambDTO.getImagensUrls() != null ? ambDTO.getImagensUrls() : new ArrayList<>())
+                        .build();
+            }).collect(Collectors.toList());
+            espaco.setAmbientes(ambientes);
         }
 
         Espaco espacoSalvo = espacoRepository.save(espaco);
@@ -142,6 +157,23 @@ public class EspacoService {
             espaco.setCaracteristicas(caracteristicas);
         }
 
+        // Atualiza os Ambientes e Imagens
+        if (dto.getAmbientes() != null) {
+            // Remove os antigos e insere os novos (aproveitando o orphanRemoval=true no Espaco.java)
+            espaco.getAmbientes().clear();
+
+            List<EspacoAmbiente> novosAmbientes = dto.getAmbientes().stream().map(ambDTO -> {
+                return EspacoAmbiente.builder()
+                        .espaco(espaco)
+                        .titulo(ambDTO.getTitulo())
+                        .descricao(ambDTO.getDescricao())
+                        .imagensUrls(ambDTO.getImagensUrls() != null ? ambDTO.getImagensUrls() : new ArrayList<>())
+                        .build();
+            }).collect(Collectors.toList());
+
+            espaco.getAmbientes().addAll(novosAmbientes);
+        }
+
         Espaco espacoSalvo = espacoRepository.save(espaco);
         return new EspacoDTO(espacoSalvo);
     }
@@ -151,7 +183,7 @@ public class EspacoService {
     public List<EspacoDTO> listarPorUsuarioId(Long usuarioId) {
         PerfilLocador locador = locadorRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado para este usuário."));
-        
+
         return espacoRepository.findByLocadorId(locador.getId()).stream()
                 .map(EspacoDTO::new)
                 .collect(Collectors.toList());
@@ -182,7 +214,7 @@ public class EspacoService {
         espaco.setStatusAprovacao("APROVADO");
         espaco.setMotivoRejeicao(null);
         espaco.setRespostaLocador(null);
-        
+
         Espaco espacoSalvo = espacoRepository.save(espaco);
         return new EspacoDTO(espacoSalvo);
     }
@@ -196,7 +228,7 @@ public class EspacoService {
         espaco.setStatusAprovacao("REJEITADO");
         espaco.setMotivoRejeicao(motivo);
         espaco.setRespostaLocador(null); // Reseta para aguardar a nova réplica do locador
-        
+
         Espaco espacoSalvo = espacoRepository.save(espaco);
         return new EspacoDTO(espacoSalvo);
     }
@@ -214,41 +246,43 @@ public class EspacoService {
         Espaco espacoSalvo = espacoRepository.save(espaco);
         return new EspacoDTO(espacoSalvo);
     }
-    
+
     @Transactional
-    public EspacoDTO alternarStatusAtivo(Long locadorId, Long espacoId) {
+    public EspacoDTO alternarStatusAtivo(Long usuarioId, Long espacoId) { 
         // 1. Busca o espaço no banco de dados
         Espaco espaco = espacoRepository.findById(espacoId)
                 .orElseThrow(() -> new RuntimeException("Espaço não encontrado"));
 
-        // 2. Validação de segurança: Verifica se o espaço pertence ao locador que fez a requisição
-        if (!espaco.getLocador().getId().equals(locadorId)) {
+        // 2. Busca o perfil do locador através do usuarioId
+        PerfilLocador locador = locadorRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Perfil de locador não encontrado para este usuário."));
+
+        // 3. Validação de segurança
+        if (!espaco.getLocador().getId().equals(locador.getId())) {
             throw new RuntimeException("Acesso negado: Você não tem permissão para alterar este espaço.");
         }
 
-        // 3. Inverte o status atual. (Se for nulo por causa de dados legados, trata como true)
+        // 4. Inverte o status atual.
         boolean statusAtual = espaco.getAtivo() != null ? espaco.getAtivo() : true;
         espaco.setAtivo(!statusAtual);
 
-        // 4. Salva a alteração no banco de dados
+        // 5. Salva a alteração no banco de dados
         Espaco espacoSalvo = espacoRepository.save(espaco);
 
-        // 5. Retorna convertido para DTO (Ajuste o nome do seu método conversor, se for diferente)
+        // 6. Retorna convertido para DTO
         return converterParaDTO(espacoSalvo);
     }
-    
+
     private EspacoDTO converterParaDTO(Espaco espaco) {
         return new EspacoDTO(espaco);
     }
-    
+
     @Transactional(readOnly = true)
     public List<EspacoDTO> buscarEspacosPorTermo(String termo) {
-        // Se a pessoa pesquisar vazio, devolvemos todos
         if (termo == null || termo.trim().isEmpty()) {
             return listarTodos();
         }
-        
-        // Busca no banco e converte para DTO
+
         return espacoRepository.buscarPorTermoMultiplo(termo).stream()
                 .map(EspacoDTO::new)
                 .collect(Collectors.toList());
