@@ -1,14 +1,13 @@
 package com.eva.locafesta.documento;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/documentos")
+@RequestMapping("/documentos")
 @CrossOrigin(origins = "*")
 public class DocumentoController {
 
@@ -17,239 +16,126 @@ public class DocumentoController {
 
 
     // =========================================================
-    // DOCUMENTOS DE USUÁRIO
+    // USUÁRIO
     // =========================================================
 
     @PostMapping("/usuario/{usuarioId}")
-    public ResponseEntity<?> criarDocumentoUsuario(
+    public ResponseEntity<DocumentoDTO> criarDocumentoUsuario(
             @PathVariable Long usuarioId,
-            @RequestBody DocumentoDTO dto
+            @RequestBody DocumentoCreateDTO dto
     ) {
 
-        try {
-
-            DocumentoDTO documento =
-                    documentoService.criarDocumentoUsuario(
-                            usuarioId,
-                            dto
-                    );
-
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(documento);
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(e.getMessage());
-        }
+        return ResponseEntity.ok(
+                documentoService.criarDocumentoUsuario(
+                        usuarioId,
+                        dto
+                )
+        );
     }
 
-
-    // =========================================================
-    // DOCUMENTOS DE ESPAÇO
-    // =========================================================
-
-    @PostMapping("/espaco/{espacoId}")
-    public ResponseEntity<?> criarDocumentoEspaco(
-            @PathVariable Long espacoId,
-            @RequestBody DocumentoDTO dto
-    ) {
-
-        try {
-
-            DocumentoDTO documento =
-                    documentoService.criarDocumentoEspaco(
-                            espacoId,
-                            dto
-                    );
-
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(documento);
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(e.getMessage());
-        }
-    }
-
-
-    // =========================================================
-    // LISTAR DOCUMENTOS DO USUÁRIO
-    // =========================================================
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<?> listarPorUsuario(
+    public ResponseEntity<List<DocumentoDTO>> listarPorUsuario(
             @PathVariable Long usuarioId
     ) {
 
-        try {
-
-            List<DocumentoDTO> documentos =
-                    documentoService.listarPorUsuario(usuarioId);
-
-            return ResponseEntity.ok(documentos);
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(e.getMessage());
-        }
+        return ResponseEntity.ok(
+                documentoService.listarPorUsuario(usuarioId)
+        );
     }
 
 
     // =========================================================
-    // LISTAR DOCUMENTOS DO ESPAÇO
+    // ESPAÇO
     // =========================================================
 
+    @PostMapping("/espaco/{espacoId}")
+    public ResponseEntity<DocumentoDTO> criarDocumentoEspaco(
+            @PathVariable Long espacoId,
+            @RequestBody DocumentoCreateDTO dto
+    ) {
+
+        return ResponseEntity.ok(
+                documentoService.criarDocumentoEspaco(
+                        espacoId,
+                        dto
+                )
+        );
+    }
+
+
     @GetMapping("/espaco/{espacoId}")
-    public ResponseEntity<?> listarPorEspaco(
+    public ResponseEntity<List<DocumentoDTO>> listarPorEspaco(
             @PathVariable Long espacoId
     ) {
 
-        try {
-
-            List<DocumentoDTO> documentos =
-                    documentoService.listarPorEspaco(espacoId);
-
-            return ResponseEntity.ok(documentos);
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(e.getMessage());
-        }
+        return ResponseEntity.ok(
+                documentoService.listarPorEspaco(espacoId)
+        );
     }
 
 
     // =========================================================
-    // ADMIN - DOCUMENTOS PENDENTES
+    // ADMIN
     // =========================================================
 
-    @GetMapping("/pendentes")
-    public ResponseEntity<?> listarPendentes() {
+    @GetMapping("/admin/pendentes")
+    public ResponseEntity<List<DocumentoDTO>> listarPendentes() {
 
-        try {
-
-            return ResponseEntity.ok(
-                    documentoService.listarPendentes()
-            );
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(e.getMessage());
-        }
+        return ResponseEntity.ok(
+                documentoService.listarPendentes()
+        );
     }
 
-
-    // =========================================================
-    // BUSCAR DOCUMENTO
-    // =========================================================
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscarPorId(
+    public ResponseEntity<DocumentoDTO> buscarPorId(
             @PathVariable Long id
     ) {
 
-        try {
-
-            return ResponseEntity.ok(
-                    documentoService.buscarPorId(id)
-            );
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(e.getMessage());
-        }
+        return ResponseEntity.ok(
+                documentoService.buscarPorId(id)
+        );
     }
 
 
-    // =========================================================
-    // ADMIN - APROVAR
-    // =========================================================
-
-    @PutMapping("/{id}/aprovar")
-    public ResponseEntity<?> aprovar(
+    @PutMapping("/admin/{id}/aprovar")
+    public ResponseEntity<DocumentoDTO> aprovar(
             @PathVariable Long id
     ) {
 
-        try {
-
-            return ResponseEntity.ok(
-                    documentoService.aprovarDocumento(id)
-            );
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(e.getMessage());
-        }
+        return ResponseEntity.ok(
+                documentoService.aprovarDocumento(id)
+        );
     }
 
 
-    // =========================================================
-    // ADMIN - REJEITAR
-    // =========================================================
-
-    @PutMapping("/{id}/rejeitar")
-    public ResponseEntity<?> rejeitar(
+    @PutMapping("/admin/{id}/rejeitar")
+    public ResponseEntity<DocumentoDTO> rejeitar(
             @PathVariable Long id,
             @RequestParam String motivo
     ) {
 
-        try {
-
-            return ResponseEntity.ok(
-                    documentoService.rejeitarDocumento(
-                            id,
-                            motivo
-                    )
-            );
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(e.getMessage());
-        }
+        return ResponseEntity.ok(
+                documentoService.rejeitarDocumento(
+                        id,
+                        motivo
+                )
+        );
     }
 
 
-    // =========================================================
-    // ADMIN - SOLICITAR CORREÇÃO
-    // =========================================================
-
-    @PutMapping("/{id}/solicitar-correcao")
-    public ResponseEntity<?> solicitarCorrecao(
+    @PutMapping("/admin/{id}/correcao")
+    public ResponseEntity<DocumentoDTO> solicitarCorrecao(
             @PathVariable Long id,
             @RequestParam String motivo
     ) {
 
-        try {
-
-            return ResponseEntity.ok(
-                    documentoService.solicitarCorrecao(
-                            id,
-                            motivo
-                    )
-            );
-
-        } catch (RuntimeException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(e.getMessage());
-        }
+        return ResponseEntity.ok(
+                documentoService.solicitarCorrecao(
+                        id,
+                        motivo
+                )
+        );
     }
 }

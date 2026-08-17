@@ -2,9 +2,10 @@ package com.eva.locafesta.documento;
 
 import com.eva.locafesta.espaco.Espaco;
 import com.eva.locafesta.espaco.EspacoRepository;
+import com.eva.locafesta.event.AuditoriaEvent;
 import com.eva.locafesta.usuario.Usuario;
 import com.eva.locafesta.usuario.UsuarioRepository;
-import com.eva.locafesta.event.AuditoriaEvent;
+import com.eva.locafesta.usuario.UsuarioService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,21 +28,21 @@ public class DocumentoService {
     @Autowired
     private EspacoRepository espacoRepository;
 
-    /*
-     * Mesmo mecanismo de auditoria que já existe no projeto.
-     */
+    @Autowired
+    private UsuarioService usuarioService;
+
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
 
     // =========================================================
-    // CRIAR DOCUMENTO DE USUÁRIO
+    // DOCUMENTO DE USUÁRIO
     // =========================================================
 
     @Transactional
     public DocumentoDTO criarDocumentoUsuario(
             Long usuarioId,
-            DocumentoDTO dto
+            DocumentoCreateDTO dto
     ) {
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
@@ -57,6 +58,7 @@ public class DocumentoService {
                 .usuario(usuario)
                 .nomeArquivo(dto.getNomeArquivo())
                 .arquivoUrl(dto.getArquivoUrl())
+                .observacao(dto.getObservacao())
                 .status("PENDENTE")
                 .build();
 
@@ -68,13 +70,13 @@ public class DocumentoService {
 
 
     // =========================================================
-    // CRIAR DOCUMENTO DE ESPAÇO
+    // DOCUMENTO DE ESPAÇO
     // =========================================================
 
     @Transactional
     public DocumentoDTO criarDocumentoEspaco(
             Long espacoId,
-            DocumentoDTO dto
+            DocumentoCreateDTO dto
     ) {
 
         Espaco espaco = espacoRepository.findById(espacoId)
@@ -90,6 +92,7 @@ public class DocumentoService {
                 .espaco(espaco)
                 .nomeArquivo(dto.getNomeArquivo())
                 .arquivoUrl(dto.getArquivoUrl())
+                .observacao(dto.getObservacao())
                 .status("PENDENTE")
                 .build();
 
@@ -101,7 +104,7 @@ public class DocumentoService {
 
 
     // =========================================================
-    // LISTAR DOCUMENTOS DO USUÁRIO
+    // DOCUMENTOS DO USUÁRIO
     // =========================================================
 
     @Transactional(readOnly = true)
@@ -115,7 +118,7 @@ public class DocumentoService {
 
 
     // =========================================================
-    // LISTAR DOCUMENTOS DO ESPAÇO
+    // DOCUMENTOS DO ESPAÇO
     // =========================================================
 
     @Transactional(readOnly = true)
@@ -129,7 +132,7 @@ public class DocumentoService {
 
 
     // =========================================================
-    // ADMIN - LISTAR DOCUMENTOS PENDENTES
+    // ADMIN - PENDENTES
     // =========================================================
 
     @Transactional(readOnly = true)
@@ -143,7 +146,7 @@ public class DocumentoService {
 
 
     // =========================================================
-    // ADMIN - APROVAR DOCUMENTO
+    // ADMIN - APROVAR
     // =========================================================
 
     @Transactional
@@ -167,25 +170,17 @@ public class DocumentoService {
         DocumentoEntity salvo =
                 documentoRepository.save(documento);
 
-        /*
-         * AUDITORIA
-         *
-         * IMPORTANTE:
-         * Aqui estou deixando o ponto preparado.
-         *
-         * Vamos conectar exatamente ao AuditoriaEvent
-         * que você já possui no projeto.
-         */
-        Usuario adminLogado = obterAdminLogado();
+        Usuario adminLogado =
+                usuarioService.obterAdminLogado();
 
         String detalhes =
                 "Aprovou o documento "
-                + documento.getTipoDocumento()
-                + " ID "
-                + documento.getId()
-                + ". Status anterior: "
-                + statusAnterior
-                + ". Novo status: APROVADO.";
+                        + documento.getTipoDocumento()
+                        + " ID "
+                        + documento.getId()
+                        + ". Status anterior: "
+                        + statusAnterior
+                        + ". Novo status: APROVADO.";
 
         eventPublisher.publishEvent(
                 new AuditoriaEvent(
@@ -203,7 +198,7 @@ public class DocumentoService {
 
 
     // =========================================================
-    // ADMIN - REJEITAR DOCUMENTO
+    // ADMIN - REJEITAR
     // =========================================================
 
     @Transactional
@@ -230,18 +225,19 @@ public class DocumentoService {
         DocumentoEntity salvo =
                 documentoRepository.save(documento);
 
-        Usuario adminLogado = obterAdminLogado();
+        Usuario adminLogado =
+                usuarioService.obterAdminLogado();
 
         String detalhes =
                 "Rejeitou o documento "
-                + documento.getTipoDocumento()
-                + " ID "
-                + documento.getId()
-                + ". Status anterior: "
-                + statusAnterior
-                + ". Novo status: REJEITADO."
-                + " Motivo: "
-                + motivo;
+                        + documento.getTipoDocumento()
+                        + " ID "
+                        + documento.getId()
+                        + ". Status anterior: "
+                        + statusAnterior
+                        + ". Novo status: REJEITADO."
+                        + " Motivo: "
+                        + motivo;
 
         eventPublisher.publishEvent(
                 new AuditoriaEvent(
@@ -286,18 +282,19 @@ public class DocumentoService {
         DocumentoEntity salvo =
                 documentoRepository.save(documento);
 
-        Usuario adminLogado = obterAdminLogado();
+        Usuario adminLogado =
+                usuarioService.obterAdminLogado();
 
         String detalhes =
-                "Solicitou correção/reenvio do documento "
-                + documento.getTipoDocumento()
-                + " ID "
-                + documento.getId()
-                + ". Status anterior: "
-                + statusAnterior
-                + ". Novo status: CORRECAO_SOLICITADA."
-                + " Motivo: "
-                + motivo;
+                "Solicitou correção do documento "
+                        + documento.getTipoDocumento()
+                        + " ID "
+                        + documento.getId()
+                        + ". Status anterior: "
+                        + statusAnterior
+                        + ". Novo status: CORRECAO_SOLICITADA."
+                        + " Motivo: "
+                        + motivo;
 
         eventPublisher.publishEvent(
                 new AuditoriaEvent(
@@ -315,7 +312,7 @@ public class DocumentoService {
 
 
     // =========================================================
-    // BUSCAR DOCUMENTO
+    // BUSCAR POR ID
     // =========================================================
 
     @Transactional(readOnly = true)
@@ -330,27 +327,5 @@ public class DocumentoService {
                         );
 
         return new DocumentoDTO(documento);
-    }
-
-
-    // =========================================================
-    // ADMIN LOGADO
-    // =========================================================
-
-    private Usuario obterAdminLogado() {
-
-        /*
-         * IMPORTANTE:
-         *
-         * Se o seu projeto já possui esse método em UsuarioService,
-         * NÃO mantenha uma segunda implementação aqui.
-         *
-         * Nesse caso vamos injetar UsuarioService e reutilizar
-         * o método existente.
-         */
-
-        throw new UnsupportedOperationException(
-                "Conectar ao método obterAdminLogado() já existente no projeto."
-        );
     }
 }

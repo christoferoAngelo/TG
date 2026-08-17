@@ -2,111 +2,84 @@ package com.eva.locafesta.documento;
 
 import com.eva.locafesta.espaco.Espaco;
 import com.eva.locafesta.usuario.Usuario;
+
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "documentos")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "documentos")
 public class DocumentoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /*
-     * Tipo do documento.
-     *
-     * Exemplos:
-     * RG
-     * CNH
-     * CPF
-     * CNPJ
-     * ALVARA
-     * LICENCA
-     * OUTRO
-     */
-    @Column(name = "tipo_documento", nullable = false, length = 30)
+    // =========================================================
+    // TIPO DO DOCUMENTO
+    // =========================================================
+
+    @Column(name = "tipo_documento", nullable = false, length = 50)
     private String tipoDocumento;
 
-    /*
-     * Indica se o documento pertence a uma PESSOA
-     * ou a um ESPACO.
-     *
-     * Valores esperados:
-     * PESSOA
-     * ESPACO
-     */
+    // PESSOA ou ESPACO
     @Column(nullable = false, length = 20)
     private String categoria;
 
-    /*
-     * Usuário proprietário do documento.
-     *
-     * Será preenchido para documentos pessoais
-     * de locadores e locatários.
-     */
+    // =========================================================
+    // RELACIONAMENTOS
+    // =========================================================
+
+    // Documento pertencente a um usuário
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    /*
-     * Espaço ao qual o documento pertence.
-     *
-     * Será preenchido para documentos do espaço.
-     */
+    // Documento pertencente a um espaço
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "espaco_id")
     private Espaco espaco;
 
-    /*
-     * Nome original do arquivo enviado.
-     *
-     * Não armazenamos o conteúdo do documento aqui.
-     */
+    // =========================================================
+    // ARQUIVO
+    // =========================================================
+
     @Column(name = "nome_arquivo", length = 255)
     private String nomeArquivo;
 
     /*
-     * Referência para o arquivo armazenado.
+     * Para o TG vamos armazenar somente a URL.
      *
-     * Pode ser uma URL ou caminho do Firebase Storage.
+     * Não estamos armazenando o arquivo físico no MySQL.
      */
-    @Column(name = "arquivo_url", length = 1000)
+    @Column(name = "arquivo_url", columnDefinition = "TEXT")
     private String arquivoUrl;
 
-    /*
-     * Status da análise administrativa.
-     *
-     * PENDENTE
-     * APROVADO
-     * REJEITADO
-     * CORRECAO_SOLICITADA
-     */
+    // =========================================================
+    // STATUS
+    // =========================================================
+
     @Column(nullable = false, length = 30)
     @Builder.Default
     private String status = "PENDENTE";
 
-    /*
-     * Motivo informado pelo administrador
-     * em caso de rejeição/correção.
-     */
     @Column(name = "motivo_rejeicao", columnDefinition = "TEXT")
     private String motivoRejeicao;
 
-    /*
-     * Observação administrativa.
-     */
     @Column(columnDefinition = "TEXT")
     private String observacao;
+
+    // =========================================================
+    // DATAS
+    // =========================================================
 
     @CreationTimestamp
     @Column(name = "data_envio", updatable = false)

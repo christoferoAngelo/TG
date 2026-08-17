@@ -38,7 +38,9 @@ public class DocumentoDTO {
     public DocumentoDTO(DocumentoEntity documento) {
 
         this.id = documento.getId();
+
         this.tipoDocumento = documento.getTipoDocumento();
+
         this.categoria = documento.getCategoria();
 
         if (documento.getUsuario() != null) {
@@ -50,11 +52,17 @@ public class DocumentoDTO {
         }
 
         this.nomeArquivo = documento.getNomeArquivo();
+
         this.arquivoUrl = documento.getArquivoUrl();
+
         this.status = documento.getStatus();
+
         this.motivoRejeicao = documento.getMotivoRejeicao();
+
         this.observacao = documento.getObservacao();
+
         this.dataEnvio = documento.getDataEnvio();
+
         this.dataAnalise = documento.getDataAnalise();
     }
 }

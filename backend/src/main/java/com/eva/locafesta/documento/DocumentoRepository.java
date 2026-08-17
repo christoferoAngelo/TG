@@ -14,13 +14,18 @@ public interface DocumentoRepository extends JpaRepository<DocumentoEntity, Long
 
     List<DocumentoEntity> findByStatus(String status);
 
-    List<DocumentoEntity> findByUsuarioIdAndStatus(
-            Long usuarioId,
+    List<DocumentoEntity> findByCategoriaAndStatus(
+            String categoria,
             String status
     );
 
-    List<DocumentoEntity> findByEspacoIdAndStatus(
+    boolean existsByUsuarioIdAndTipoDocumento(
+            Long usuarioId,
+            String tipoDocumento
+    );
+
+    boolean existsByEspacoIdAndTipoDocumento(
             Long espacoId,
-            String status
+            String tipoDocumento
     );
 }
