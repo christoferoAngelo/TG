@@ -38,7 +38,8 @@ public class EspacoAmbiente {
         name = "ambiente_imagens", 
         joinColumns = @JoinColumn(name = "ambiente_id")
     )
-    @Column(name = "url_imagem", nullable = false)
+    // ADICIONADO columnDefinition = "TEXT" AQUI:
+    @Column(name = "url_imagem", nullable = false, columnDefinition = "TEXT")
     @Builder.Default
     private List<String> imagensUrls = new ArrayList<>();
 }

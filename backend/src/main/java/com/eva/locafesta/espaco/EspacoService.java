@@ -246,6 +246,13 @@ public class EspacoService {
         Espaco espacoSalvo = espacoRepository.save(espaco);
         return new EspacoDTO(espacoSalvo);
     }
+    
+    public EspacoDTO buscarPorId(Long espacoId) {
+        Espaco espaco = espacoRepository.findById(espacoId)
+            .orElseThrow(() -> new RuntimeException("Espaço não encontrado!"));
+            
+        return converterParaDTO(espaco); // Use o seu método de conversão aqui
+    }
 
     @Transactional
     public EspacoDTO alternarStatusAtivo(Long usuarioId, Long espacoId) { 

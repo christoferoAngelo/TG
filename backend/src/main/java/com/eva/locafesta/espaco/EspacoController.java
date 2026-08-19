@@ -27,6 +27,18 @@ public class EspacoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+    
+    // READ - GET http://localhost:8080/api/locadores/espacos/{espacoId}
+    @GetMapping("/espacos/{espacoId}")
+    public ResponseEntity<?> buscarEspacoPorId(@PathVariable Long espacoId) {
+        try {
+            // Esse método precisará existir no seu EspacoService
+            EspacoDTO espaco = espacoService.buscarPorId(espacoId); 
+            return ResponseEntity.ok(espaco);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
 
     // READ - GET http://localhost:8080/api/locadores/{locadorId}/espacos
     @GetMapping("/{locadorId}/espacos")

@@ -10,6 +10,7 @@ import CaracteristicasPage from "./pages/locador/CaracteristicasPage";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Home from "./pages/home/Home";
+import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco"; // Importa a página de detalhes do espaço
 
 /**
  * Componente Wrapper para proteger rotas privadas.
@@ -121,12 +122,16 @@ export default function AppRoutes() {
                         </RouteProtegida>
                     } 
                 />
+                
+                {/* Rota Privada: Detalhes do Espaço */}
+                <Route path="/espaco/:id" element={<DetalhesEspaco />} />
 
                 {/* Qualquer rota inválida redireciona baseado na role do usuário */}
                 <Route 
                     path="*" 
                     element={<Navigate to={usuarioLogado ? rotaInicial : "/home"} replace />} 
                 />
+            
             </Routes>
         </BrowserRouter>
     );

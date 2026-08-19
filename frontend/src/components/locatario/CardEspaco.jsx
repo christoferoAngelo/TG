@@ -10,10 +10,37 @@ export function CardEspaco({ espaco }) {
         return `${endereco.bairro}, ${endereco.cidade}/${endereco.estado}`; 
     };
 
+    // Lógica para pegar a PRIMEIRA foto do PRIMEIRO ambiente que tiver imagens cadastradas
+    let urlCapa = null;
+    if (espaco.ambientes && espaco.ambientes.length > 0) {
+        for (const ambiente of espaco.ambientes) {
+            if (ambiente.imagensUrls && ambiente.imagensUrls.length > 0) {
+                urlCapa = ambiente.imagensUrls[0];
+                break; // Achou uma foto, para de procurar
+            }
+        }
+    }
+
     return (
-        <div className="espaco-card">
+        <div className="espaco-card" style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+            
+            {/* NOVO: Seção da Imagem de Capa */}
+            <div className="espaco-imagem-capa" style={{ width: "250px", flexShrink: 0 }}>
+                {urlCapa ? (
+                    <img 
+                        src={urlCapa} 
+                        alt={`Capa do espaço ${espaco.titulo}`} 
+                        style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "8px" }}
+                    />
+                ) : (
+                    <div style={{ width: "100%", height: "200px", backgroundColor: "#e9ecef", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "8px", color: "#6c757d", fontSize: "0.9rem" }}>
+                        Sem foto
+                    </div>
+                )}
+            </div>
+
             {/* Lado Esquerdo: Informações do Espaço */}
-            <div className="espaco-info">
+            <div className="espaco-info" style={{ flex: 1 }}>
                 <h4 className="espaco-titulo">{espaco.titulo}</h4>
                 <p className="espaco-descricao">{espaco.descricao}</p>
                 
