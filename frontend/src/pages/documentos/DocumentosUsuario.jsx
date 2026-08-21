@@ -74,22 +74,32 @@ export default function DocumentosUsuario() {
     }, [usuarioId]);
 
 
-    const handleDocumentoEnviado =
-        async (documento) => {
+const handleDocumentoEnviado = async (documento) => {
+    try {
+        await criarDocumentoUsuario(
+            usuarioLogado.id,
+            documento
+        );
 
-            if (!usuarioId) {
-                throw new Error(
-                    "Usuário não identificado."
-                );
-            }
-
-            await criarDocumentoUsuario(
-                usuarioId,
-                documento
+        const documentosAtualizados =
+            await listarDocumentosUsuario(
+                usuarioLogado.id
             );
 
-            await carregarDocumentos();
-        };
+        setDocumentos(documentosAtualizados);
+
+        alert("Documento enviado para validação.");
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao cadastrar documento:",
+            error
+        );
+
+        throw error;
+    }
+};
 
 
     return (

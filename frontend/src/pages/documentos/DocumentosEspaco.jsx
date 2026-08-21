@@ -10,26 +10,6 @@ import {
 } from "../../services/documentoService";
 
 
-const TIPOS_DOCUMENTO = [
-    {
-        valor: "COMPROVANTE_PROPRIEDADE",
-        label: "Comprovante de propriedade"
-    },
-    {
-        valor: "ALVARA_FUNCIONAMENTO",
-        label: "Alvará de funcionamento"
-    },
-    {
-        valor: "COMPROVANTE_ENDERECO",
-        label: "Comprovante de endereço"
-    },
-    {
-        valor: "OUTRO",
-        label: "Outro"
-    }
-];
-
-
 export default function DocumentosEspaco() {
 
     const { id } = useParams();
@@ -91,6 +71,15 @@ export default function DocumentosEspaco() {
 
             alert("Documento enviado.");
 
+        } catch (error) {
+
+            console.error(
+                "Erro ao cadastrar documento do espaço:",
+                error
+            );
+
+            throw error;
+
         } finally {
 
             setEnviando(false);
@@ -112,10 +101,9 @@ export default function DocumentosEspaco() {
 
 
             <DocumentoUpload
-                titulo="Enviar documento"
-                tiposDocumento={TIPOS_DOCUMENTO}
-                onEnviar={handleEnviar}
-                carregando={enviando}
+                categoria="ESPACO"
+                espacoId={id}
+                onDocumentoEnviado={handleEnviar}
             />
 
 

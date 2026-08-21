@@ -12,6 +12,19 @@ export default function DocumentoUpload({
     onDocumentoEnviado
 }) {
 
+    console.log("========================================");
+    console.log("📄 DocumentoUpload MONTADO");
+    console.log("📄 categoria:", categoria);
+    console.log("📄 usuarioId:", usuarioId);
+    console.log("📄 espacoId:", espacoId);
+    console.log("📄 onDocumentoEnviado:", onDocumentoEnviado);
+    console.log(
+        "📄 typeof onDocumentoEnviado:",
+        typeof onDocumentoEnviado
+    );
+    console.log("========================================");
+
+
     const [tipoDocumento, setTipoDocumento] =
         useState("");
 
@@ -45,94 +58,167 @@ export default function DocumentoUpload({
             : tiposEspaco;
 
 
-    const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
 
-        e.preventDefault();
+    e.preventDefault();
 
-        if (!tipoDocumento) {
-            alert("Selecione o tipo do documento.");
-            return;
-        }
-
-        if (!arquivo) {
-            alert("Selecione um arquivo.");
-            return;
-        }
-
-        try {
-
-            setEnviando(true);
-
-            /*
-             * 1. Envia imagem para Cloudinary
-             */
-            const upload =
-                await uploadDocumentoCloudinary(
-                    arquivo
-                );
+    console.log("========================================");
+    console.log("🚀 INÍCIO DO ENVIO DO DOCUMENTO");
+    console.log("categoria:", categoria);
+    console.log("usuarioId:", usuarioId);
+    console.log("espacoId:", espacoId);
+    console.log("tipoDocumento:", tipoDocumento);
+    console.log("observacao:", observacao);
+    console.log("arquivo:", arquivo);
+    console.log("onDocumentoEnviado:", onDocumentoEnviado);
+    console.log(
+        "typeof onDocumentoEnviado:",
+        typeof onDocumentoEnviado
+    );
+    console.log("========================================");
 
 
-            /*
-             * 2. Monta o objeto esperado pelo backend
-             */
-            const documento = {
+    if (!tipoDocumento) {
+        console.error("❌ Nenhum tipo de documento selecionado.");
+        alert("Selecione o tipo do documento.");
+        return;
+    }
 
-                tipoDocumento,
-
-                categoria,
-
-                nomeArquivo:
-                    upload.nomeArquivo,
-
-                arquivoUrl:
-                    upload.url,
-
-                observacao:
-                    observacao || null
-            };
+    if (!arquivo) {
+        console.error("❌ Nenhum arquivo selecionado.");
+        alert("Selecione um arquivo.");
+        return;
+    }
 
 
-            /*
-             * 3. Delega a criação para o componente pai.
-             */
-            await onDocumentoEnviado(
-                documento
+    try {
+
+        setEnviando(true);
+
+        console.log("☁️ Enviando arquivo para Cloudinary...");
+
+        const upload =
+            await uploadDocumentoCloudinary(
+                arquivo
             );
 
+        console.log("☁️ Cloudinary respondeu:", upload);
 
-            /*
-             * Limpa formulário
-             */
-            setTipoDocumento("");
-            setObservacao("");
-            setArquivo(null);
 
-            const input =
-                document.getElementById(
-                    "arquivo-documento"
-                );
+        const documento = {
 
-            if (input) {
-                input.value = "";
-            }
+            tipoDocumento,
 
-        } catch (error) {
+            categoria,
+
+            nomeArquivo:
+                upload.nomeArquivo,
+
+            arquivoUrl:
+                upload.url,
+
+            observacao:
+                observacao || null
+        };
+
+
+        console.log("📦 Documento montado:");
+        console.log(documento);
+
+
+        console.log(
+            "🔎 Verificando callback antes de chamar..."
+        );
+
+        console.log(
+            "onDocumentoEnviado:",
+            onDocumentoEnviado
+        );
+
+        console.log(
+            "typeof:",
+            typeof onDocumentoEnviado
+        );
+
+
+        if (typeof onDocumentoEnviado !== "function") {
 
             console.error(
-                "Erro ao enviar documento:",
-                error
+                "❌ ERRO: onDocumentoEnviado NÃO É UMA FUNÇÃO!"
             );
 
-            alert(
-                error.message ||
-                "Não foi possível enviar o documento."
+            console.error(
+                "Props recebidas pelo DocumentoUpload:",
+                {
+                    categoria,
+                    usuarioId,
+                    espacoId,
+                    onDocumentoEnviado
+                }
             );
 
-        } finally {
-
-            setEnviando(false);
+            throw new Error(
+                "O componente pai não forneceu uma função onDocumentoEnviado."
+            );
         }
-    };
+
+
+        console.log(
+            "✅ Callback encontrado. Chamando onDocumentoEnviado..."
+        );
+
+
+        await onDocumentoEnviado(
+            documento
+        );
+
+
+        console.log(
+            "✅ onDocumentoEnviado executado com sucesso."
+        );
+
+
+        setTipoDocumento("");
+        setObservacao("");
+        setArquivo(null);
+
+
+        const input =
+            document.getElementById(
+                "arquivo-documento"
+            );
+
+        if (input) {
+            input.value = "";
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "❌ ERRO AO ENVIAR DOCUMENTO:",
+            error
+        );
+
+        console.error(
+            "Stack:",
+            error.stack
+        );
+
+        alert(
+            error.message ||
+            "Não foi possível enviar o documento."
+        );
+
+    } finally {
+
+        setEnviando(false);
+
+        console.log(
+            "🏁 FIM DO PROCESSAMENTO DO DOCUMENTO"
+        );
+    }
+};
 
 
     return (

@@ -8,26 +8,6 @@ import {
 } from "../../services/documentoService";
 
 
-const TIPOS_DOCUMENTO_ESPACO = [
-    {
-        valor: "COMPROVANTE_PROPRIEDADE",
-        label: "Comprovante de propriedade"
-    },
-    {
-        valor: "ALVARA_FUNCIONAMENTO",
-        label: "Alvará de funcionamento"
-    },
-    {
-        valor: "COMPROVANTE_ENDERECO",
-        label: "Comprovante de endereço do espaço"
-    },
-    {
-        valor: "OUTRO",
-        label: "Outro documento"
-    }
-];
-
-
 export default function DocumentacaoEspacoModal({
     espaco,
     onClose,
@@ -45,6 +25,12 @@ export default function DocumentacaoEspacoModal({
 
     const handleEnviar = async (documento) => {
 
+        console.log("========================================");
+        console.log("📤 DocumentacaoEspacoModal - handleEnviar");
+        console.log("📤 Documento recebido:", documento);
+        console.log("📤 ID do espaço:", espaco.id);
+        console.log("========================================");
+
         try {
 
             setEnviando(true);
@@ -54,6 +40,9 @@ export default function DocumentacaoEspacoModal({
                     espaco.id,
                     documento
                 );
+
+            console.log("✅ Documento cadastrado no backend:");
+            console.log(novoDocumento);
 
             setDocumentos((prev) => [
                 ...prev,
@@ -66,7 +55,10 @@ export default function DocumentacaoEspacoModal({
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                "❌ Erro ao cadastrar documento do espaço:",
+                error
+            );
 
             alert(
                 error.message ||
@@ -90,6 +82,15 @@ export default function DocumentacaoEspacoModal({
     };
 
 
+    console.log("========================================");
+    console.log("📋 DocumentacaoEspacoModal");
+    console.log("📋 espaco:", espaco);
+    console.log("📋 espaco.id:", espaco?.id);
+    console.log("📋 handleEnviar:", handleEnviar);
+    console.log("📋 typeof handleEnviar:", typeof handleEnviar);
+    console.log("========================================");
+
+
     return (
         <div className="modal-overlay">
 
@@ -111,10 +112,9 @@ export default function DocumentacaoEspacoModal({
 
 
                 <DocumentoUpload
-                    titulo="Adicionar documento do espaço"
-                    tiposDocumento={TIPOS_DOCUMENTO_ESPACO}
-                    onEnviar={handleEnviar}
-                    carregando={enviando}
+                    categoria="ESPACO"
+                    espacoId={espaco.id}
+                    onDocumentoEnviado={handleEnviar}
                 />
 
 
@@ -151,6 +151,7 @@ export default function DocumentacaoEspacoModal({
                     <button
                         type="button"
                         onClick={handleConcluir}
+                        disabled={enviando}
                     >
                         Concluir documentação
                     </button>
