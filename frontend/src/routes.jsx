@@ -2,26 +2,51 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 
-// --- IMPORTS DAS PÁGINAS ---
+// =====================================================
+// IMPORTS DAS PÁGINAS
+// =====================================================
+
 import Auth from "./pages/login/Auth";
 import CadastroLocador from "./pages/login/CadastroLocador";
+
 import DashboardLocador from "./pages/locador/DashboardLocador";
 import CaracteristicasPage from "./pages/locador/CaracteristicasPage";
+
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Dashboard from "./pages/dashboard/Dashboard";
-import Home from "./pages/home/Home";
-import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco"; // Importa a página de detalhes do espaço
 
-/**
- * Componente Wrapper para proteger rotas privadas.
- * Se o usuário não estiver logado, manda ele de volta para a tela de login.
- */
+import Home from "./pages/home/Home";
+
+import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco";
+
+// =====================================================
+// DOCUMENTOS
+// =====================================================
+
+import DocumentosUsuario from "./pages/documentos/DocumentosUsuario";
+import DocumentosEspaco from "./pages/documentos/DocumentosEspaco";
+import DocumentosAdmin from "./pages/documentos/DocumentosAdmin";
+
+
+// =====================================================
+// COMPONENTE PARA PROTEGER ROTAS
+// =====================================================
+
 function RouteProtegida({ children }) {
+
     const { usuarioLogado, carregando } = useAuth();
 
     if (carregando) {
         return (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "sans-serif" }}>
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100vh",
+                    fontFamily: "sans-serif"
+                }}
+            >
                 <p>Verificando credenciais...</p>
             </div>
         );
@@ -34,106 +59,212 @@ function RouteProtegida({ children }) {
     return children;
 }
 
-// Função para saber a rota padrão do usuário baseado na Role
+
+// =====================================================
+// DEFINIR ROTA INICIAL DE ACORDO COM O PERFIL
+// =====================================================
+
 function getRotaPorRole(usuario) {
-    if (!usuario) return "/login";
-    
-    // 1. Se o seu backend tiver o campo 'admin' (boolean)
+
+    if (!usuario) {
+        return "/login";
+    }
+
+    // Administrador
     if (usuario.admin) {
         return "/dashboard-admin";
     }
 
-    // 2. Se for Locador
+    // Locador
     if (usuario.locador) {
-        return "/home"; //depois tem que mudar pra direcionar pra home locador (a ser criada)
+        return "/dashboard-locador";
     }
 
-    // 3. Padrão: Cliente / Locatário
+    // Cliente / Locatário
     return "/home";
 }
 
+
+// =====================================================
+// ROTAS DA APLICAÇÃO
+// =====================================================
+
 export default function AppRoutes() {
+
     const { usuarioLogado } = useAuth();
+
     console.log("=== USUÁRIO LOGADO ===", usuarioLogado);
-    // 1. Pega a rota correta baseada no perfil do usuário logado
+
     const rotaInicial = getRotaPorRole(usuarioLogado);
 
     return (
         <BrowserRouter>
+
             <Routes>
-                {/* Rota Pública de Login: Se já estiver logado, manda para a rota do perfil dele */}
-                <Route 
-                    path="/login" 
-                    element={usuarioLogado ? <Navigate to={rotaInicial} replace /> : <Auth />} 
+
+                {/* =====================================================
+                    LOGIN
+                ===================================================== */}
+
+                <Route
+                    path="/login"
+                    element={
+                        usuarioLogado
+                            ? <Navigate to={rotaInicial} replace />
+                            : <Auth />
+                    }
                 />
 
-                {/* ROTA PÚBLICA: Home (Livre para qualquer um acessar) */}
-                <Route 
-                    path="/home" 
-                    element={<Home />} 
+
+                {/* =====================================================
+                    HOME
+                ===================================================== */}
+
+                <Route
+                    path="/home"
+                    element={<Home />}
                 />
 
-                {/* Rota Privada: Painel Principal (Cliente/Locatário) */}
-                <Route 
-                    path="/dashboard" 
+
+                {/* =====================================================
+                    DASHBOARD DO CLIENTE / LOCATÁRIO
+                ===================================================== */}
+
+                <Route
+                    path="/dashboard"
                     element={
                         <RouteProtegida>
                             <Dashboard />
                         </RouteProtegida>
-                    } 
+                    }
                 />
 
-                {/* Rota Privada: Cadastro de Locador */}
-                <Route 
-                    path="/cadastro-locador" 
+
+                {/* =====================================================
+                    CADASTRO DE LOCADOR
+                ===================================================== */}
+
+                <Route
+                    path="/cadastro-locador"
                     element={
                         <RouteProtegida>
                             <CadastroLocador />
                         </RouteProtegida>
-                    } 
+                    }
                 />
 
-                {/* Rota Privada: Painel do Locador */}
-                <Route 
-                    path="/dashboard-locador" 
+
+                {/* =====================================================
+                    DASHBOARD DO LOCADOR
+                ===================================================== */}
+
+                <Route
+                    path="/dashboard-locador"
                     element={
                         <RouteProtegida>
                             <DashboardLocador />
                         </RouteProtegida>
-                    } 
+                    }
                 />
 
-                {/* Rota Privada: Adicionar Características */}
-                <Route 
-                    path="/admin-caracteristicas" 
+
+                {/* =====================================================
+                    CARACTERÍSTICAS
+                ===================================================== */}
+
+                <Route
+                    path="/admin-caracteristicas"
                     element={
                         <RouteProtegida>
                             <CaracteristicasPage />
                         </RouteProtegida>
-                    } 
+                    }
                 />
 
-                {/* Rota Privada: Painel do Administrador */}
-                <Route 
-                    path="/dashboard-admin" 
+
+                {/* =====================================================
+                    DASHBOARD DO ADMINISTRADOR
+                ===================================================== */}
+
+                <Route
+                    path="/dashboard-admin"
                     element={
                         <RouteProtegida>
                             <DashboardAdmin />
                         </RouteProtegida>
-                    } 
+                    }
                 />
-                
-                {/* Rota Privada: Detalhes do Espaço */}
-                <Route path="/espaco/:id" element={<DetalhesEspaco />} />
 
-                {/* Qualquer rota inválida redireciona baseado na role do usuário */}
-                <Route 
-                    path="*" 
-                    element={<Navigate to={usuarioLogado ? rotaInicial : "/home"} replace />} 
+
+                {/* =====================================================
+                    DETALHES DO ESPAÇO
+                ===================================================== */}
+
+                <Route
+                    path="/espaco/:id"
+                    element={<DetalhesEspaco />}
                 />
-            
+
+
+                {/* =====================================================
+                    DOCUMENTOS DO USUÁRIO
+                ===================================================== */}
+
+                <Route
+                    path="/documentos/usuario"
+                    element={
+                        <RouteProtegida>
+                            <DocumentosUsuario />
+                        </RouteProtegida>
+                    }
+                />
+
+
+                {/* =====================================================
+                    DOCUMENTOS DO ESPAÇO
+                ===================================================== */}
+
+                <Route
+                    path="/documentos/espaco/:id"
+                    element={
+                        <RouteProtegida>
+                            <DocumentosEspaco />
+                        </RouteProtegida>
+                    }
+                />
+
+
+                {/* =====================================================
+                    DOCUMENTOS DO ADMIN
+                ===================================================== */}
+
+                <Route
+                    path="/documentos-admin"
+                    element={
+                        <RouteProtegida>
+                            <DocumentosAdmin />
+                        </RouteProtegida>
+                    }
+                />
+
+
+                {/* =====================================================
+                    ROTA NÃO ENCONTRADA
+                    DEVE FICAR SEMPRE POR ÚLTIMO
+                ===================================================== */}
+
+                <Route
+                    path="*"
+                    element={
+                        <Navigate
+                            to={usuarioLogado ? rotaInicial : "/home"}
+                            replace
+                        />
+                    }
+                />
+
             </Routes>
+
         </BrowserRouter>
     );
 }
-

@@ -7,6 +7,7 @@ import Header from "../../components/locador/Header";
 import ResumoAnuncios from "../../components/locador/ResumoAnuncios";
 import EspacoItem from "../../components/locador/EspacoItem";
 import NovoEspacoModal from "../../components/locador/NovoEspacoModal";
+import DocumentacaoEspacoModal from "../../components/documento/DocumentacaoEspacoModal";
 
 export default function DashboardLocador() {
     const { usuarioLogado, logout } = useAuth();
@@ -16,6 +17,8 @@ export default function DashboardLocador() {
     const [caracteristicasDisponiveis, setCaracteristicasDisponiveis] = useState([]);
     const [carregando, setCarregando] = useState(false);
     const [modalAberto, setModalAberto] = useState(false);
+    const [espacoCriado, setEspacoCriado] = useState(null);
+    const [modalDocumentacaoAberto, setModalDocumentacaoAberto] = useState(false);
 
     // Carregar espaços
     useEffect(() => {
@@ -67,34 +70,56 @@ export default function DashboardLocador() {
     };
 
     // Função que recebe os dados prontos do Modal e manda para a API
-    const handleSalvarEspaco = async (dadosFormulario) => {
-        setCarregando(true);
+const handleSalvarEspaco = async (dadosFormulario) => {
+    setCarregando(true);
 
-        try {
-            const response = await fetch(`http://localhost:8080/api/locadores/${usuarioLogado.id}/espacos`, {
+    try {
+        const response = await fetch(
+            `http://localhost:8080/api/locadores/${usuarioLogado.id}/espacos`,
+            {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify({
                     ...dadosFormulario,
                     locadorId: usuarioLogado.id
                 })
-            });
-
-            if (!response.ok) {
-                const erro = await response.text();
-                throw new Error(erro || "Falha ao cadastrar o espaço.");
             }
+        );
 
-            const novoEspaco = await response.json();
-            setEspacos((prev) => [...prev, novoEspaco]);
-            alert("Espaço anunciado com sucesso!");
-            setModalAberto(false);
-        } catch (err) {
-            alert("Erro: " + err.message);
-        } finally {
-            setCarregando(false);
+        if (!response.ok) {
+            const erro = await response.text();
+            throw new Error(
+                erro || "Falha ao cadastrar o espaço."
+            );
         }
-    };
+
+        const novoEspaco = await response.json();
+
+        setEspacos((prev) => [
+            ...prev,
+            novoEspaco
+        ]);
+
+        setModalAberto(false);
+
+        setEspacoCriado(novoEspaco);
+        setModalDocumentacaoAberto(true);
+
+        alert(
+            "Espaço criado! Agora vamos adicionar a documentação."
+        );
+
+    } catch (err) {
+
+        alert("Erro: " + err.message);
+
+    } finally {
+
+        setCarregando(false);
+    }
+};
 
     return (
         <div className="dashboard">
@@ -145,6 +170,20 @@ export default function DashboardLocador() {
                     caracteristicasDisponiveis={caracteristicasDisponiveis}
                 />
             )}
+
+            {modalDocumentacaoAberto && espacoCriado && (
+    <DocumentacaoEspacoModal
+        espaco={espacoCriado}
+        onClose={() => {
+            setModalDocumentacaoAberto(false);
+            setEspacoCriado(null);
+        }}
+        onConcluir={() => {
+            setModalDocumentacaoAberto(false);
+            setEspacoCriado(null);
+        }}
+    />
+)}
         </div>
     );
 }
