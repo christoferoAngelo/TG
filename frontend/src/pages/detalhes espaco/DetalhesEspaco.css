@@ -1,0 +1,188 @@
+/* Container Principal */
+.detalhes-page {
+    background-color: #ffffff;
+    min-height: 100vh;
+}
+
+.detalhes-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 30px 20px 80px 20px;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Botão de Voltar */
+.btn-voltar {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #e9ecef;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+    transition: background-color 0.2s;
+}
+
+.btn-voltar:hover {
+    background-color: #e2e6ea;
+}
+
+/* Cabeçalho do Espaço */
+.detalhes-header h1 {
+    font-size: 2.5rem;
+    color: #222;
+    margin: 0 0 8px 0;
+}
+
+.detalhes-header .endereco {
+    color: #717171;
+    font-size: 1.1rem;
+    margin-bottom: 32px;
+}
+
+/* Títulos de Seção */
+.detalhes-secao {
+    margin-bottom: 48px;
+}
+
+.detalhes-secao h2 {
+    font-size: 1.5rem;
+    color: #222;
+    border-bottom: 1px solid #ebebeb;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+}
+
+/* Ambientes e Imagens */
+.ambiente-item {
+    margin-bottom: 40px;
+}
+
+.ambiente-info h3 {
+    font-size: 1.3rem;
+    color: #222;
+    margin: 0 0 5px 0;
+}
+
+.ambiente-info p {
+    color: #717171;
+    font-size: 1rem;
+    margin-bottom: 16px;
+}
+
+.galeria-scroll {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 15px;
+    /* Comportamento suave no mobile ao arrastar */
+    scroll-snap-type: x mandatory; 
+}
+
+/* Estilizando a barra de rolagem da galeria */
+.galeria-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+.galeria-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+    border-radius: 10px;
+}
+.galeria-scroll::-webkit-scrollbar-thumb {
+    background: #c1c1c1; 
+    border-radius: 10px;
+}
+.galeria-scroll::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8; 
+}
+
+.img-ambiente {
+    width: 320px;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+    scroll-snap-align: start;
+}
+
+.sem-fotos {
+    color: #999;
+    font-style: italic;
+}
+
+/* Informações Gerais */
+.descricao-geral {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #444;
+}
+
+.cards-info {
+    display: grid;
+    /* Faz os cards se ajustarem sozinhos no celular ou pc */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 32px;
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #eee;
+}
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.card-info strong {
+    color: #222;
+    font-size: 1rem;
+}
+
+.card-info span {
+    color: #555;
+    font-size: 1.15rem;
+    font-weight: 500;
+}
+
+/* Caixa de Avisos / Restrições */
+.aviso-restricoes {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background-color: #fff8e1;
+    color: #856404;
+    border-radius: 8px;
+    border-left: 5px solid #ffc107;
+    font-size: 1.05rem;
+}
+
+/* Tags de Características */
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.tag {
+    background-color: #f1f3f5;
+    color: #333;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 1px solid #e2e6ea;
+}
+
+/* Telas de Loading e Erro */
+.detalhes-loading, .detalhes-erro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    font-size: 1.2rem;
+    color: #555;
+}
