@@ -186,3 +186,104 @@
     font-size: 1.2rem;
     color: #555;
 }
+
+/* Botão de Reservar (Call to Action) */
+.btn-reservar {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 30px;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-reservar:hover {
+    background-color: #218838;
+}
+
+.btn-reservar:active {
+    transform: scale(0.98);
+}
+
+/* Overlay escuro de fundo */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Card centralizado */
+.modal-content {
+    background: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.form-group input, .form-group textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+.modal-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-cancelar {
+    background: #e0e0e0;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-confirmar {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-confirmar:disabled {
+    background: #94d3a2;
+}

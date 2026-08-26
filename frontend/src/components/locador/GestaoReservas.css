@@ -1,0 +1,82 @@
+.gestao-reservas-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.gestao-header {
+    margin-bottom: 30px;
+}
+
+.gestao-header h1 {
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.lista-reservas {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.reserva-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border-left: 6px solid #ccc;
+}
+
+/* Cores por Status */
+.status-pendente { border-left-color: #ffc107; }
+.status-aprovada { border-left-color: #28a745; }
+.status-rejeitada { border-left-color: #dc3545; }
+
+.reserva-info h3 {
+    margin: 0 0 10px 0;
+    color: #222;
+}
+
+.reserva-info p {
+    margin: 4px 0;
+    color: #555;
+}
+
+.badge-status {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    background: #f1f1f1;
+    color: #333;
+}
+
+.reserva-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-aprovar, .btn-rejeitar {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #fff;
+    transition: opacity 0.2s;
+}
+
+.btn-aprovar { background-color: #28a745; }
+.btn-rejeitar { background-color: #dc3545; }
+
+.btn-aprovar:hover, .btn-rejeitar:hover {
+    opacity: 0.85;
+}

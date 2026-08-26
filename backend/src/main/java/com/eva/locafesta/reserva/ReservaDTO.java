@@ -1,5 +1,11 @@
 package com.eva.locafesta.reserva;
 
-public class ReservaDTO {
+import java.time.LocalDate;
+import java.math.BigDecimal;
 
-}
+public record ReservaDTO(
+    Long espacoId,
+    LocalDate dataEvento,
+    String observacao, // Adicionado
+    BigDecimal valorTotal // Adicionado
+) {}

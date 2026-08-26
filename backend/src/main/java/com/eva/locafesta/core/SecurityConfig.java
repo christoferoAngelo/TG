@@ -41,12 +41,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/caracteristicas", "/api/caracteristicas/**").permitAll()
                 .requestMatchers("/error", "/error/**").permitAll()
                 
-                // 4. Libera todas as rotas de negócio e auditoria para visualização/operação no painel
+                // 4. Libera todas as rotas de negócio, reservas e auditoria
                 .requestMatchers(
                     "/api/users", "/api/users/**", 
                     "/api/locadores", "/api/locadores/**", 
                     "/api/locatarios", "/api/locatarios/**",
                     "/api/espacos", "/api/espacos/**", 
+                    "/api/reservas", "/api/reservas/**",
                     "/api/admin", "/api/admin/**",
                     "/api/logs-auditoria", "/api/logs-auditoria/**"
                 ).permitAll()
@@ -64,7 +65,11 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("*")); 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        
+        // Permite todos os cabeçalhos padrão e explicitamente o Usuario-Id usado no backend
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Usuario-Id", "*"));
+        configuration.setExposedHeaders(Arrays.asList("Usuario-Id"));
+        
         configuration.setAllowCredentials(false);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

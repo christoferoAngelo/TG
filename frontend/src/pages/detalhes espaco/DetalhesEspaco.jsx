@@ -3,12 +3,77 @@ import { useParams, useNavigate } from "react-router-dom";
 import HeaderHome from "../home/components/HeaderHome"; // Importando o Header da Home
 import "./DetalhesEspaco.css"; // Nosso novo arquivo de estilos
 
+
+
+import { useAuth } from '../../contexts/AuthContext'; // Ajuste o caminho do seu AuthContext
+
 export default function DetalhesEspaco() {
     const { id } = useParams();
+    const { usuarioLogado } = useAuth();
     const navigate = useNavigate();
     
     const [espaco, setEspaco] = useState(null);
     const [carregando, setCarregando] = useState(true);
+
+    // Função para caso o usuário use a barra de pesquisa...
+    const handlePesquisar = (termo) => {
+        navigate("/home"); 
+    };
+
+    const [modalAberto, setModalAberto] = useState(false);
+    // Dados do formulário de reserva
+    const [dataEvento, setDataEvento] = useState('');
+    const [observacao, setObservacao] = useState('');
+    const [enviando, setEnviando] = useState(false);
+
+
+    const handleSolicitarReserva = () => {
+    // Abre o modal na própria página
+    setModalAberto(true);
+    };
+
+    const handleAbrirModal = () => {
+        setModalAberto(true);
+    };
+
+    const handleFecharModal = () => {
+        setModalAberto(false);
+        setDataEvento('');
+        setObservacao('');
+    };
+
+    const handleConfirmarReserva = async (e) => {
+        e.preventDefault();
+        setEnviando(true);
+
+        try {
+            const response = await fetch('http://localhost:8080/api/reservas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Usuario-Id': usuarioLogado.id
+                },
+                body: JSON.stringify({
+                    espacoId: id,
+                    dataEvento: dataEvento,
+                    observacao: observacao,
+                    valorTotal: espaco.valorDiaria                })
+            });
+
+            if (!response.ok) {
+                const erroMsg = await response.text();
+                throw new Error(erroMsg || "Erro ao solicitar reserva");
+            }
+
+            alert("Solicitação enviada com sucesso! O locador responderá em breve.");
+            handleFecharModal();
+        } catch (error) {
+            console.error("Erro:", error);
+            alert(`Falha ao reservar: ${error.message}`);
+        } finally {
+            setEnviando(false);
+        }
+    };
 
     useEffect(() => {
         fetch(`http://localhost:8080/api/locadores/espacos/${id}`)
@@ -26,12 +91,7 @@ export default function DetalhesEspaco() {
             });
     }, [id]);
 
-    // Função para caso o usuário use a barra de pesquisa do Header estando nesta tela
-    const handlePesquisar = (termo) => {
-        // Redireciona para a Home. 
-        // Dica: Futuramente você pode passar o 'termo' via rota para a home já abrir filtrada!
-        navigate("/home"); 
-    };
+
 
     if (carregando) {
         return (
@@ -102,7 +162,7 @@ export default function DetalhesEspaco() {
                     )}
                 </section>
 
-                {/* SEÇÃO DE INFORMAÇÕES GERAIS */}
+               {/* SEÇÃO DE INFORMAÇÕES GERAIS */}
                 <section className="detalhes-secao">
                     <h2>Detalhes Gerais</h2>
                     <p className="descricao-geral">{espaco.descricao}</p>
@@ -121,6 +181,51 @@ export default function DetalhesEspaco() {
                             <span>{espaco.horarioFechamento || "Não informado"}</span>
                         </div>
                     </div>
+
+                    {/* NOVO BOTÃO DE RESERVA AQUI */}
+                    <button onClick={handleSolicitarReserva} className="btn-reservar">
+                        📅 Solicitar Reserva
+                    </button>
+                    
+                    {/* MODAL DE RESERVA */}
+                    {modalAberto && (
+                        <div className="modal-overlay">
+                            <div className="modal-content">
+                                <h2>Reservar {espaco?.titulo}</h2>
+                                
+                                <form onSubmit={handleConfirmarReserva}>
+                                    <div className="form-group">
+                                        <label>Data do Evento:</label>
+                                        <input 
+                                            type="date" 
+                                            required 
+                                            value={dataEvento}
+                                            onChange={(e) => setDataEvento(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>Observações / Tipo de Evento:</label>
+                                        <textarea 
+                                            rows="3"
+                                            placeholder="Ex: Aniversário para 50 pessoas..."
+                                            value={observacao}
+                                            onChange={(e) => setObservacao(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="modal-acoes">
+                                        <button type="button" className="btn-cancelar" onClick={handleFecharModal}>
+                                            Cancelar
+                                        </button>
+                                        <button type="submit" className="btn-confirmar" disabled={enviando}>
+                                            {enviando ? "Enviando..." : "Confirmar Solicitação"}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
 
                     {espaco.restricoesHorario && (
                         <div className="aviso-restricoes">

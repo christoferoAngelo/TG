@@ -26,6 +26,8 @@ import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco";
 import DocumentosUsuario from "./pages/documentos/DocumentosUsuario";
 import DocumentosEspaco from "./pages/documentos/DocumentosEspaco";
 import DocumentosAdmin from "./pages/documentos/DocumentosAdmin";
+import GestaoReservas from "./components/locador/GestaoReservas";
+
 
 
 // =====================================================
@@ -247,6 +249,20 @@ export default function AppRoutes() {
                     }
                 />
 
+                {/* =====================================================
+                    GESTÃO DE RESERVAS DO LOCADOR
+                ===================================================== */}
+                <Route 
+                    path="/locador/reservas" 
+                    element={
+                        <RouteProtegida>
+                            <GestaoReservas />
+                        </RouteProtegida>
+                    } 
+                />
+
+
+
 
                 {/* =====================================================
                     ROTA NÃO ENCONTRADA
@@ -263,6 +279,7 @@ export default function AppRoutes() {
                     }
                 />
 
+                
             </Routes>
 
         </BrowserRouter>
