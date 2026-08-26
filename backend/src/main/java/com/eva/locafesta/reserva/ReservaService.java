@@ -37,9 +37,22 @@ public class ReservaService {
 
         return reservaRepository.save(novaReserva);
     }
-    // Listar para o Dashboard do Locador
-    public List<Reserva> listarSolicitacoesDoLocador(Long usuarioId) {
-        return reservaRepository.findByEspacoLocadorUsuarioId(usuarioId);
+
+   // Listar para o Dashboard do Locador
+    public List<ReservaResponseDTO> listarSolicitacoesDoLocador(Long usuarioId) {
+        List<Reserva> reservas = reservaRepository.findByEspacoLocadorUsuarioId(usuarioId);
+        
+        // Converte a lista de entidades para a lista de DTOs seguros
+        return reservas.stream().map(reserva -> new ReservaResponseDTO(
+                reserva.getId(),
+                new ReservaResponseDTO.EspacoResumoDTO(
+                        reserva.getEspaco().getId(),
+                        reserva.getEspaco().getTitulo()
+                ),
+                reserva.getDataEvento(),
+                reserva.getValorTotal(),
+                reserva.getStatus()
+        )).toList();
     }
 
     // Aprovar Reserva

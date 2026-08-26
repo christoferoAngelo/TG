@@ -24,9 +24,10 @@ public class ReservaController {
         return ResponseEntity.ok(novaReserva);
     }
     // Rota para listar todas as solicitações recebidas pelo locador
+
     @GetMapping("/minhas-solicitacoes")
-    public ResponseEntity<List<Reserva>> listarMinhasSolicitacoes(@RequestHeader("Usuario-Id") Long usuarioId) {
-        List<Reserva> solicitacoes = reservaService.listarSolicitacoesDoLocador(usuarioId);
+    public ResponseEntity<List<ReservaResponseDTO>> listarMinhasSolicitacoes(@RequestHeader("Usuario-Id") Long usuarioId) {
+        List<ReservaResponseDTO> solicitacoes = reservaService.listarSolicitacoesDoLocador(usuarioId);
         return ResponseEntity.ok(solicitacoes);
     }
 
