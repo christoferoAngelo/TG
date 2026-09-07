@@ -8,6 +8,16 @@ import ResumoAnuncios from "../../components/locador/ResumoAnuncios";
 import EspacoItem from "../../components/locador/EspacoItem";
 import NovoEspacoModal from "../../components/locador/NovoEspacoModal";
 import DocumentacaoEspacoModal from "../../components/documento/DocumentacaoEspacoModal";
+import CalendarioSolicitacoes from "../../components/locador/CalendarioSolicitacoes";
+
+// As classes de badge já existentes no Dashboard.css usam sufixos em
+// português no masculino (aprovado/rejeitado), enquanto o status vem no
+// feminino (APROVADA/REJEITADA) — este mapa faz a ponte entre os dois.
+const BADGE_POR_STATUS = {
+    PENDENTE: "badge-pendente",
+    APROVADA: "badge-aprovado",
+    REJEITADA: "badge-rejeitado",
+};
 
 export default function DashboardLocador() {
     const { usuarioLogado, logout } = useAuth();
@@ -21,6 +31,8 @@ export default function DashboardLocador() {
     const [modalDocumentacaoAberto, setModalDocumentacaoAberto] = useState(false);
     // Armazena os pedidos de locação
     const [solicitacoes, setSolicitacoes] = useState([]);
+    // Controla se os pedidos aparecem como lista ou como calendário
+    const [visualizacaoPedidos, setVisualizacaoPedidos] = useState("lista"); // "lista" | "calendario"
 
     // Carregar espaços
     // Carregar espaços E solicitações
@@ -186,38 +198,59 @@ export default function DashboardLocador() {
 
                 <ResumoAnuncios totalEspacos={espacos.length} />
 
-                {/* NOVO CARD: Pedidos de Locação */}
-                <div className="card" style={{ marginBottom: "30px" }}>
-                    <h4 className="card-title">Pedidos de Locação</h4>
-                    
+                {/* Pedidos de Locação */}
+                <div className="card">
+                    <div className="card-header card-header-spaced">
+                        <h4 className="card-title">Pedidos de Locação</h4>
+
+                        <div className="segmented-control">
+                            <button
+                                type="button"
+                                className={visualizacaoPedidos === "lista" ? "ativo" : ""}
+                                onClick={() => setVisualizacaoPedidos("lista")}
+                            >
+                                Lista
+                            </button>
+                            <button
+                                type="button"
+                                className={visualizacaoPedidos === "calendario" ? "ativo" : ""}
+                                onClick={() => setVisualizacaoPedidos("calendario")}
+                            >
+                                Calendário
+                            </button>
+                        </div>
+                    </div>
+
                     {solicitacoes.length === 0 && !carregando ? (
                         <p className="data-line data-line-empty">Você ainda não recebeu nenhum pedido de locação.</p>
+                    ) : visualizacaoPedidos === "calendario" ? (
+                        <CalendarioSolicitacoes
+                            solicitacoes={solicitacoes}
+                            onAprovar={handleAprovarReserva}
+                            onRejeitar={handleRejeitarReserva}
+                        />
                     ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "15px", marginTop: "15px" }}>
+                        <div className="pedidos-lista">
                             {solicitacoes.map(req => (
-                                <div key={req.id} style={{ border: "1px solid #eee", padding: "15px", borderRadius: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <div>
-                                        <strong>{req.espaco.titulo}</strong>
-                                        <p style={{ margin: "5px 0", fontSize: "0.9rem", color: "#666" }}>
-                                            Data: {new Date(req.dataEvento).toLocaleDateString('pt-BR')} | Valor: R$ {req.valorTotal.toFixed(2)}
-                                        </p>
-                                        <span style={{ 
-                                            fontSize: "0.8rem", 
-                                            padding: "4px 8px", 
-                                            borderRadius: "12px",
-                                            backgroundColor: req.status === "PENDENTE" ? "#fff3cd" : req.status === "APROVADA" ? "#d4edda" : "#f8d7da",
-                                            color: req.status === "PENDENTE" ? "#856404" : req.status === "APROVADA" ? "#155724" : "#721c24"
-                                        }}>
+                                <div key={req.id} className="pedido-card">
+                                    <div className="pedido-info">
+                                        <strong className="pedido-titulo">{req.espaco.titulo}</strong>
+                                        <div className="pedido-meta">
+                                            <span>{new Date(req.dataEvento).toLocaleDateString('pt-BR')}</span>
+                                            <span className="pedido-meta-dot">•</span>
+                                            <span>R$ {req.valorTotal.toFixed(2)}</span>
+                                        </div>
+                                        <span className={`badge ${BADGE_POR_STATUS[req.status] || ""}`}>
                                             {req.status}
                                         </span>
                                     </div>
-                                    
+
                                     {req.status === "PENDENTE" && (
-                                        <div style={{ display: "flex", gap: "10px" }}>
-                                            <button onClick={() => handleAprovarReserva(req.id)} style={{ background: "#28a745", color: "white", border: "none", padding: "8px 15px", borderRadius: "5px", cursor: "pointer" }}>
+                                        <div className="pedido-acoes">
+                                            <button className="btn btn-aprovar" onClick={() => handleAprovarReserva(req.id)}>
                                                 Aprovar
                                             </button>
-                                            <button onClick={() => handleRejeitarReserva(req.id)} style={{ background: "#dc3545", color: "white", border: "none", padding: "8px 15px", borderRadius: "5px", cursor: "pointer" }}>
+                                            <button className="btn btn-rejeitar" onClick={() => handleRejeitarReserva(req.id)}>
                                                 Rejeitar
                                             </button>
                                         </div>
@@ -232,7 +265,7 @@ export default function DashboardLocador() {
                     <h4 className="card-title card-title-spaced">Meus Espaços Cadastrados</h4>
 
                     {carregando ? (
-                        <p className="data-line">Carregando seus anúncios...</p>
+                        <p className="estado-info">Carregando seus anúncios...</p>
                     ) : espacos.length === 0 ? (
                         <p className="data-line data-line-empty">
                             Você ainda não possui nenhum espaço cadastrado. Clique em "+ Novo Anúncio" para começar a alugar!
