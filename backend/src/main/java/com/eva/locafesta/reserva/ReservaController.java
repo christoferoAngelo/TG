@@ -31,6 +31,13 @@ public class ReservaController {
         return ResponseEntity.ok(solicitacoes);
     }
 
+    // Rota para o locatário ver as próprias reservas
+    @GetMapping("/minhas-reservas")
+    public ResponseEntity<List<ReservaResponseDTO>> listarMinhasReservas(@RequestHeader("Usuario-Id") Long usuarioId) {
+        List<ReservaResponseDTO> reservas = reservaService.listarMinhasReservas(usuarioId);
+        return ResponseEntity.ok(reservas);
+    }
+
     // Rota para APROVAR
     @PatchMapping("/{reservaId}/aprovar")
     public ResponseEntity<Reserva> aprovar(@PathVariable Long reservaId, @RequestHeader("Usuario-Id") Long usuarioId) {
@@ -42,6 +49,17 @@ public class ReservaController {
     @PatchMapping("/{reservaId}/rejeitar")
     public ResponseEntity<Reserva> rejeitar(@PathVariable Long reservaId, @RequestHeader("Usuario-Id") Long usuarioId) {
         Reserva atualizada = reservaService.rejeitarReserva(reservaId, usuarioId);
+        return ResponseEntity.ok(atualizada);
+    }
+
+    // Rota para o locatário AVALIAR uma reserva já concluída
+    @PatchMapping("/{reservaId}/avaliar")
+    public ResponseEntity<Reserva> avaliar(
+            @PathVariable Long reservaId,
+            @RequestBody AvaliacaoDTO dto,
+            @RequestHeader("Usuario-Id") Long usuarioId) {
+
+        Reserva atualizada = reservaService.avaliarReserva(reservaId, usuarioId, dto);
         return ResponseEntity.ok(atualizada);
     }
 }

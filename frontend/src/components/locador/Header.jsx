@@ -6,14 +6,12 @@ export default function Header({ usuarioLogado, logout }) {
 
     return (
         <header className="header">
-            <h2 className="logo cursor-pointer" onClick={() => navigate("/")}>
+            <h2 className="logo cursor-pointer" onClick={() => navigate("/home")}>
                 LocaFesta - Área do Anunciante
             </h2>
             <div className="user-menu header-actions">
                 <span>Olá, <strong>{usuarioLogado?.nome}</strong>!</span>
-                <button onClick={() => navigate("/admin-caracteristicas")} className="btn btn-cancelar">
-                    Gerenciar Características
-                </button>
+                
                 <button onClick={() => navigate("/dashboard")} className="btn btn-cancelar">
                     Voltar ao Painel
                 </button>

@@ -1,34 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+
 /* ==========================================================================
-   RESET GLOBAL (Sobrescrevendo o padrão do navegador)
+   RESET GLOBAL
    ========================================================================== */
 body {
     margin: 0;
     padding: 0;
-    box-sizing: border-box; 
-    /* O border-box garante que os paddings internos não aumentem o tamanho total dos elementos */
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
 }
 
 /* ==========================================================================
-   HOME - ESTILOS PRINCIPAIS
+   TOKENS
    ========================================================================== */
+:root {
+    --lf-primary: #FF385C;
+    --lf-primary-dark: #D6003D;
+    --lf-primary-soft: #FFE4E9;
+    --lf-accent-soft: #E8F1FF;
+    --lf-ink: #222222;
+    --lf-muted: #717171;
+    --lf-border: #E4E4E4;
+    --lf-surface: #FFFFFF;
+    --lf-surface-alt: #F7F7F7;
+    --lf-radius-pill: 999px;
+    --lf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --lf-shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
 
+/* ==========================================================================
+   HOME - ESTRUTURA GERAL
+   ========================================================================== */
 .home-container {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8fafc;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--lf-surface-alt);
     min-height: 100vh;
-    color: #0f172a;
+    color: var(--lf-ink);
 }
 
 /* ==========================================================================
    HEADER DA HOME
    ========================================================================== */
 .header-home {
-    background-color: #ffffff;
-    padding: 15px 40px;
+    background-color: var(--lf-surface);
+    padding: 14px 48px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    gap: 24px;
+    border-bottom: 1px solid var(--lf-border);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -39,34 +62,37 @@ body {
 }
 
 .logo {
-    color: #4f46e5;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--lf-primary);
     margin: 0;
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.02em;
 }
 
 /* --- BARRA DE PESQUISA --- */
 .search-container {
     display: flex;
-    flex: 0 1 500px;
+    flex: 0 1 420px;
     position: relative;
 }
 
 .search-input {
     width: 100%;
-    padding: 14px 20px;
-    border-radius: 30px;
-    border: 1px solid #cbd5e1;
-    font-size: 15px;
+    padding: 12px 52px 12px 20px;
+    border-radius: var(--lf-radius-pill);
+    border: 1px solid var(--lf-border);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    background: var(--lf-surface);
     outline: none;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: var(--lf-shadow-sm);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .search-input:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    border-color: var(--lf-ink);
+    box-shadow: var(--lf-shadow-sm), 0 0 0 1px var(--lf-ink);
 }
 
 .search-btn {
@@ -74,60 +100,63 @@ body {
     right: 6px;
     top: 50%;
     transform: translateY(-50%);
-    background: #4f46e5;
+    background: var(--lf-primary);
     color: white;
     border: none;
     border-radius: 50%;
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s;
-    font-size: 16px;
+    font-size: 14px;
+    transition: background-color 0.18s ease, transform 0.12s ease;
 }
 
 .search-btn:hover {
-    background: #4338ca;
+    background: var(--lf-primary-dark);
+}
+
+.search-btn:active {
+    transform: translateY(-50%) scale(0.94);
 }
 
 /* --- BOTÕES DE NAVEGAÇÃO --- */
 .nav-buttons {
     display: flex;
-    gap: 15px;
+    gap: 10px;
+    align-items: center;
 }
 
 .btn-nav {
     background: transparent;
-    border: 1px solid #cbd5e1;
-    color: #334155;
-    padding: 10px 20px;
-    border-radius: 20px;
+    border: 1px solid transparent;
+    color: var(--lf-ink);
+    padding: 10px 16px;
+    border-radius: var(--lf-radius-pill);
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s;
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .btn-nav:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
+    background: var(--lf-surface-alt);
+    border-color: var(--lf-border);
 }
 
 .btn-highlight {
-    background: #4f46e5;
+    background: var(--lf-ink);
     color: white;
-    border-color: #4f46e5;
 }
 
 .btn-highlight:hover {
-    background: #4338ca;
-    border-color: #4338ca;
-    color: white;
+    background: #000000;
 }
 
 /* ==========================================================================
@@ -139,37 +168,143 @@ body {
 
 /* --- BANNER PRINCIPAL (HERO) --- */
 .hero-section {
-    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-    color: white;
+    position: relative;
+    overflow: hidden;
+    padding: 96px 24px 56px;
     text-align: center;
-    padding: 90px 20px;
-    margin-bottom: 40px;
+    background:
+        radial-gradient(600px circle at 12% 20%, var(--lf-primary-soft), transparent 60%),
+        radial-gradient(520px circle at 88% 25%, var(--lf-accent-soft), transparent 55%);
+}
+
+.hero-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    position: relative;
 }
 
 .hero-section h1 {
-    font-size: 2.8rem;
-    margin: 0 auto 15px auto;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
     font-weight: 800;
-    max-width: 800px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--lf-ink);
+    margin: 0 0 16px;
 }
 
 .hero-section p {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    max-width: 600px;
-    margin: 0 auto;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    color: var(--lf-muted);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* --- BARRA DE CATEGORIAS --- */
+.categorias-bar {
+    display: flex;
+    gap: 10px;
+    padding: 20px 48px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--lf-surface);
+    border-bottom: 1px solid var(--lf-border);
+}
+
+.categorias-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.chip-categoria {
+    flex: 0 0 auto;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--lf-muted);
+    background: transparent;
+    border: 1px solid var(--lf-border);
+    padding: 9px 18px;
+    border-radius: var(--lf-radius-pill);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.chip-categoria:hover {
+    border-color: var(--lf-ink);
+    color: var(--lf-ink);
+}
+
+.chip-categoria--ativo {
+    background: var(--lf-ink);
+    border-color: var(--lf-ink);
+    color: white;
 }
 
 /* --- LISTA DE ESPAÇOS --- */
 .home-content {
-    max-width: 1200px; /* Mais largo que o dashboard para caber um grid bonito */
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 0 30px 60px;
+    padding: 40px 48px 72px;
 }
 
 .section-title {
-    font-size: 1.7rem;
-    color: #0f172a;
-    margin-bottom: 30px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.5rem;
     font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--lf-ink);
+    margin: 0 0 24px;
+}
+
+/* ==========================================================================
+   RESPONSIVO
+   ========================================================================== */
+@media (max-width: 900px) {
+    .header-home {
+        padding: 12px 20px;
+        flex-wrap: wrap;
+    }
+
+    .search-container {
+        order: 3;
+        flex-basis: 100%;
+    }
+
+    .hero-section {
+        padding: 64px 20px 40px;
+    }
+
+    .categorias-bar {
+        padding: 16px 20px;
+    }
+
+    .home-content {
+        padding: 32px 20px 56px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section h1 {
+        font-size: 1.6rem;
+    }
+
+    .btn-nav {
+        padding: 10px 12px;
+    }
+}
+
+/* ==========================================================================
+   ACESSIBILIDADE
+   ========================================================================== */
+:focus-visible {
+    outline: 2px solid var(--lf-ink);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
 }

@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,5 +40,13 @@ public class Reserva {
 
     @Column(length = 500) // Opcional: aumenta o limite de caracteres no banco
     private String observacao;
+
+    // --- Avaliação (preenchidos só depois que o evento acontece) ---
+    private Integer nota; // 1 a 5
+
+    @Column(length = 500)
+    private String comentarioAvaliacao;
+
+    private LocalDateTime dataAvaliacao;
 
 }

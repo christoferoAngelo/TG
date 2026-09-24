@@ -65,6 +65,11 @@ export default function HeaderHome({ onSearch }) { // Recebendo a função onSea
                 <button onClick={handleAnunciarClick} className="btn-nav btn-highlight">
                     {textoBotaoAnunciar}
                 </button>
+                {usuarioLogado && (
+                    <button onClick={() => navigate("/minhas-reservas")} className="btn-nav">
+                        📅 Minhas Reservas
+                    </button>
+                )}
                 <button 
                     onClick={() => navigate(usuarioLogado ? "/dashboard" : "/login")} 
                     className="btn-nav"

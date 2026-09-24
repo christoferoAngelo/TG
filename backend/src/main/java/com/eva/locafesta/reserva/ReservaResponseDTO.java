@@ -8,7 +8,9 @@ public record ReservaResponseDTO(
     EspacoResumoDTO espaco,
     LocalDate dataEvento,
     BigDecimal valorTotal,
-    String status
+    String status,
+    Integer nota,
+    String comentarioAvaliacao
 ) {
     // Sub-record para enviar apenas o que importa do Espaço
     public record EspacoResumoDTO(Long id, String titulo) {}

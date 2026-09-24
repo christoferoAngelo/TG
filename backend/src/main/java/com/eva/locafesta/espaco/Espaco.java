@@ -84,5 +84,12 @@ public class Espaco {
     @Builder.Default
     private List<EspacoAmbiente> ambientes = new ArrayList<>();
 
-    
+    // --- Avaliação do espaço (recalculada a cada avaliação de reserva) ---
+    @Column(name = "nota_media")
+    private Double notaMedia;
+
+    @Column(name = "quantidade_avaliacoes")
+    @Builder.Default
+    private Integer quantidadeAvaliacoes = 0;
+
 }

@@ -14,6 +14,7 @@ import CaracteristicasPage from "./pages/locador/CaracteristicasPage";
 
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Dashboard from "./pages/dashboard/Dashboard";
+import MinhasReservas from "./pages/dashboard/components/MinhasReservas";
 
 import Home from "./pages/home/Home";
 
@@ -137,6 +138,20 @@ export default function AppRoutes() {
                     element={
                         <RouteProtegida>
                             <Dashboard />
+                        </RouteProtegida>
+                    }
+                />
+
+
+                {/* =====================================================
+                    MINHAS RESERVAS (LOCATÁRIO)
+                ===================================================== */}
+
+                <Route
+                    path="/minhas-reservas"
+                    element={
+                        <RouteProtegida>
+                            <MinhasReservas />
                         </RouteProtegida>
                     }
                 />

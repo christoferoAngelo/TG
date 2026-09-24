@@ -808,3 +808,68 @@
         flex: 1;
     }
 }
+
+/* ==========================================================================
+   AVALIAÇÃO (ESTRELAS) — usado em Minhas Reservas
+   ========================================================================== */
+
+.estrelas-input {
+    display: flex;
+    gap: 6px;
+    margin: 4px 0 4px;
+}
+
+.estrela-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 28px;
+    line-height: 1;
+    padding: 2px;
+    color: #d1d5db;
+    transition: color 0.15s ease, transform 0.1s ease;
+}
+
+.estrela-btn:hover {
+    transform: scale(1.1);
+}
+
+.estrela-btn.preenchida {
+    color: #f59e0b;
+}
+
+.estrelas-exibicao {
+    font-size: 15px;
+    color: #f59e0b;
+    letter-spacing: 1px;
+}
+
+.avaliacao-recebida {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background-color: var(--color-bg);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.avaliacao-recebida p {
+    margin: 6px 0 0;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.btn-avaliar {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border: none;
+}
+
+.btn-avaliar:hover:not(:disabled) {
+    background-color: var(--color-primary-dark);
+}
+
+.badge-cancelada {
+    background-color: #6c757d;
+    color: #fff;
+}

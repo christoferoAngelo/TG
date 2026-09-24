@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import "./Dashboard.css"; // Seu arquivo CSS intacto pode ser importado aqui
 
 // Importando nossos novos componentes
-import Header from "./components/Header";
+import Header from "../../components/locador/Header"; // Ajuste o caminho se necessário
 import StatusCadastro from "./components/StatusCadastro";
 import MeusPerfis from "./components/MeusPerfis";
 import DadosCadastrais from "./components/DadosCadastrais";
@@ -13,6 +14,7 @@ import ModalEndereco from "./components/modals/ModalEndereco";
 
 export default function Dashboard() {
     const { usuarioLogado, atualizarUsuario } = useAuth();
+    const navigate = useNavigate();
     const [modalAberto, setModalAberto] = useState(null);
 
     const [perfilLocador, setPerfilLocador] = useState(null);
@@ -50,8 +52,15 @@ export default function Dashboard() {
             <Header />
 
             <main className="main">
-                <h3>Painel do Cliente</h3>
-                <p>Seja bem-vindo ao seu painel de locações de espaços para eventos.</p>
+                <div className="main-header">
+                    <div>
+                        <h3>Painel do Cliente</h3>
+                        <p>Seja bem-vindo ao seu painel de locações de espaços para eventos.</p>
+                    </div>
+                    <button onClick={() => navigate("/minhas-reservas")} className="btn btn-destaque">
+                        📅 Minhas Reservas
+                    </button>
+                </div>
 
                 <StatusCadastro 
                     contaCompleta={contaCompleta} 

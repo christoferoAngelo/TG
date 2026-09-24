@@ -40,6 +40,9 @@ public class EspacoDTO {
     // Lista de ambientes/cômodos (Nova estrutura estilo Airbnb)
     private List<EspacoAmbienteDTO> ambientes;
 
+    private Double notaMedia;
+    private Integer quantidadeAvaliacoes;
+
     public EspacoDTO(Espaco espaco) {
         this.id = espaco.getId();
         if (espaco.getLocador() != null) {
@@ -57,6 +60,8 @@ public class EspacoDTO {
         this.statusAprovacao = espaco.getStatusAprovacao();
         this.motivoRejeicao = espaco.getMotivoRejeicao();
         this.respostaLocador = espaco.getRespostaLocador();
+        this.notaMedia = espaco.getNotaMedia();
+        this.quantidadeAvaliacoes = espaco.getQuantidadeAvaliacoes();
 
         // Mapeia o Set de Entidades para o Set de DTOs
         if (espaco.getCaracteristicas() != null) {
