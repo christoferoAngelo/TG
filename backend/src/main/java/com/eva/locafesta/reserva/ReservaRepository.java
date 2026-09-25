@@ -16,6 +16,9 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     // Reservas feitas pelo próprio locatário, mais recentes primeiro
     List<Reserva> findByLocatarioIdOrderByDataEventoDesc(Long locatarioId);
 
+    // Avaliações públicas de um espaço, mais recentes primeiro
+    List<Reserva> findByEspacoIdAndNotaIsNotNullOrderByDataAvaliacaoDesc(Long espacoId);
+
     // Média das notas de todas as reservas avaliadas dos espaços de um locador
     @Query("SELECT AVG(r.nota) FROM Reserva r " +
            "WHERE r.espaco.locador.usuario.id = :locadorUsuarioId AND r.nota IS NOT NULL")

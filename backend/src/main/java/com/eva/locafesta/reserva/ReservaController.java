@@ -38,6 +38,13 @@ public class ReservaController {
         return ResponseEntity.ok(reservas);
     }
 
+    // Rota pública: avaliações de um espaço, pra exibir na página de detalhes
+    @GetMapping("/espaco/{espacoId}/avaliacoes")
+    public ResponseEntity<List<AvaliacaoResponseDTO>> listarAvaliacoesDoEspaco(@PathVariable Long espacoId) {
+        List<AvaliacaoResponseDTO> avaliacoes = reservaService.listarAvaliacoesDoEspaco(espacoId);
+        return ResponseEntity.ok(avaliacoes);
+    }
+
     // Rota para APROVAR
     @PatchMapping("/{reservaId}/aprovar")
     public ResponseEntity<Reserva> aprovar(@PathVariable Long reservaId, @RequestHeader("Usuario-Id") Long usuarioId) {

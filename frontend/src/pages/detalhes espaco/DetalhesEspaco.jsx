@@ -15,6 +15,9 @@ export default function DetalhesEspaco() {
     const [espaco, setEspaco] = useState(null);
     const [carregando, setCarregando] = useState(true);
 
+    const [avaliacoes, setAvaliacoes] = useState([]);
+    const [carregandoAvaliacoes, setCarregandoAvaliacoes] = useState(true);
+
     // Função para caso o usuário use a barra de pesquisa...
     const handlePesquisar = (termo) => {
         navigate("/home"); 
@@ -91,6 +94,17 @@ export default function DetalhesEspaco() {
             });
     }, [id]);
 
+    useEffect(() => {
+        fetch(`http://localhost:8080/api/reservas/espaco/${id}/avaliacoes`)
+            .then((res) => {
+                if (!res.ok) throw new Error("Erro ao buscar avaliações");
+                return res.json();
+            })
+            .then((data) => setAvaliacoes(Array.isArray(data) ? data : []))
+            .catch((err) => console.error("Erro ao buscar avaliações:", err))
+            .finally(() => setCarregandoAvaliacoes(false));
+    }, [id]);
+
 
 
     if (carregando) {
@@ -125,6 +139,17 @@ export default function DetalhesEspaco() {
                     <p className="endereco">
                         📍 {espaco.endereco?.bairro}, {espaco.endereco?.cidade} - {espaco.endereco?.estado}
                     </p>
+                    {espaco.notaMedia ? (
+                        <p className="nota-resumo">
+                            <span className="estrela-preenchida">★</span>
+                            {espaco.notaMedia.toFixed(1)}
+                            <span className="quantidade">
+                                · {espaco.quantidadeAvaliacoes} avaliaç{espaco.quantidadeAvaliacoes === 1 ? "ão" : "ões"}
+                            </span>
+                        </p>
+                    ) : (
+                        <p className="nota-resumo sem-avaliacoes">Ainda sem avaliações</p>
+                    )}
                 </header>
 
                 {/* SEÇÃO DE FOTOS POR AMBIENTE */}
@@ -245,6 +270,37 @@ export default function DetalhesEspaco() {
                         </div>
                     </section>
                 )}
+
+                {/* AVALIAÇÕES */}
+                <section className="detalhes-secao">
+                    <h2>Avaliações dos hóspedes</h2>
+
+                    {carregandoAvaliacoes ? (
+                        <p className="sem-avaliacoes">Carregando avaliações...</p>
+                    ) : avaliacoes.length === 0 ? (
+                        <p className="sem-avaliacoes">Este espaço ainda não recebeu nenhuma avaliação.</p>
+                    ) : (
+                        <div className="avaliacoes-lista">
+                            {avaliacoes.map((avaliacao, index) => (
+                                <div key={index} className="avaliacao-card">
+                                    <div className="avaliacao-cabecalho">
+                                        <span className="avaliacao-nome">{avaliacao.nomeLocatario}</span>
+                                        <span className="avaliacao-estrelas">
+                                            {"★".repeat(avaliacao.nota)}
+                                            {"☆".repeat(5 - avaliacao.nota)}
+                                        </span>
+                                        <span className="avaliacao-data">
+                                            {new Date(avaliacao.dataAvaliacao).toLocaleDateString("pt-BR")}
+                                        </span>
+                                    </div>
+                                    {avaliacao.comentario && (
+                                        <p className="avaliacao-comentario">{avaliacao.comentario}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </section>
             </main>
         </div>
     );

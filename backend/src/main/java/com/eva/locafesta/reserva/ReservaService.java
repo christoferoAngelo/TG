@@ -54,6 +54,24 @@ public class ReservaService {
         return reservas.stream().map(this::mapearParaResponseDTO).toList();
     }
 
+    // Listar as avaliações públicas de um espaço (para a página de detalhes)
+    public List<AvaliacaoResponseDTO> listarAvaliacoesDoEspaco(Long espacoId) {
+        List<Reserva> reservas = reservaRepository.findByEspacoIdAndNotaIsNotNullOrderByDataAvaliacaoDesc(espacoId);
+
+        return reservas.stream().map(reserva -> new AvaliacaoResponseDTO(
+                primeiroNome(reserva.getLocatario().getNome()),
+                reserva.getNota(),
+                reserva.getComentarioAvaliacao(),
+                reserva.getDataAvaliacao()
+        )).toList();
+    }
+
+    // Evita expor o nome completo do locatário na página pública do espaço
+    private String primeiroNome(String nomeCompleto) {
+        if (nomeCompleto == null || nomeCompleto.isBlank()) return "Cliente";
+        return nomeCompleto.trim().split("\\s+")[0];
+    }
+
     private ReservaResponseDTO mapearParaResponseDTO(Reserva reserva) {
         return new ReservaResponseDTO(
                 reserva.getId(),
