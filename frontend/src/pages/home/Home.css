@@ -1,57 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
-
-/* ==========================================================================
-   RESET GLOBAL
-   ========================================================================== */
-body {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-*, *::before, *::after {
-    box-sizing: inherit;
-}
-
-/* ==========================================================================
-   TOKENS
-   ========================================================================== */
-:root {
-    --lf-primary: #FF385C;
-    --lf-primary-dark: #D6003D;
-    --lf-primary-soft: #FFE4E9;
-    --lf-accent-soft: #E8F1FF;
-    --lf-ink: #222222;
-    --lf-muted: #717171;
-    --lf-border: #E4E4E4;
-    --lf-surface: #FFFFFF;
-    --lf-surface-alt: #F7F7F7;
-    --lf-radius-pill: 999px;
-    --lf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-    --lf-shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
-}
-
 /* ==========================================================================
    HOME - ESTRUTURA GERAL
    ========================================================================== */
 .home-container {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background-color: var(--lf-surface-alt);
+    font-family: var(--font-body);
+    background-color: var(--color-bg);
     min-height: 100vh;
-    color: var(--lf-ink);
+    color: var(--color-text);
 }
 
 /* ==========================================================================
    HEADER DA HOME
    ========================================================================== */
 .header-home {
-    background-color: var(--lf-surface);
+    background-color: var(--color-surface);
     padding: 14px 48px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 24px;
-    border-bottom: 1px solid var(--lf-border);
+    border-bottom: 1px solid var(--color-border);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -62,8 +29,8 @@ body {
 }
 
 .logo {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    color: var(--lf-primary);
+    font-family: var(--font-heading);
+    color: var(--color-primary-text);
     margin: 0;
     font-size: 24px;
     font-weight: 800;
@@ -80,19 +47,19 @@ body {
 .search-input {
     width: 100%;
     padding: 12px 52px 12px 20px;
-    border-radius: var(--lf-radius-pill);
-    border: 1px solid var(--lf-border);
-    font-family: 'Inter', sans-serif;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border);
+    font-family: var(--font-body);
     font-size: 14px;
-    background: var(--lf-surface);
+    background: var(--color-surface);
     outline: none;
-    box-shadow: var(--lf-shadow-sm);
+    box-shadow: var(--shadow-sm);
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .search-input:focus {
-    border-color: var(--lf-ink);
-    box-shadow: var(--lf-shadow-sm), 0 0 0 1px var(--lf-ink);
+    border-color: var(--color-text);
+    box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-text);
 }
 
 .search-btn {
@@ -100,8 +67,8 @@ body {
     right: 6px;
     top: 50%;
     transform: translateY(-50%);
-    background: var(--lf-primary);
-    color: white;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
     border: none;
     border-radius: 50%;
     width: 34px;
@@ -115,7 +82,7 @@ body {
 }
 
 .search-btn:hover {
-    background: var(--lf-primary-dark);
+    background: var(--color-primary-dark);
 }
 
 .search-btn:active {
@@ -132,10 +99,10 @@ body {
 .btn-nav {
     background: transparent;
     border: 1px solid transparent;
-    color: var(--lf-ink);
+    color: var(--color-text);
     padding: 10px 16px;
-    border-radius: var(--lf-radius-pill);
-    font-family: 'Inter', sans-serif;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-body);
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
@@ -146,17 +113,17 @@ body {
 }
 
 .btn-nav:hover {
-    background: var(--lf-surface-alt);
-    border-color: var(--lf-border);
+    background: var(--color-bg);
+    border-color: var(--color-border);
 }
 
 .btn-highlight {
-    background: var(--lf-ink);
-    color: white;
+    background: var(--color-text);
+    color: var(--color-bg);
 }
 
 .btn-highlight:hover {
-    background: #000000;
+    background: var(--color-text-secondary);
 }
 
 /* ==========================================================================
@@ -173,8 +140,8 @@ body {
     padding: 96px 24px 56px;
     text-align: center;
     background:
-        radial-gradient(600px circle at 12% 20%, var(--lf-primary-soft), transparent 60%),
-        radial-gradient(520px circle at 88% 25%, var(--lf-accent-soft), transparent 55%);
+        radial-gradient(600px circle at 12% 20%, var(--color-primary-soft), transparent 60%),
+        radial-gradient(520px circle at 88% 25%, var(--color-accent-soft), transparent 55%);
 }
 
 .hero-inner {
@@ -184,19 +151,19 @@ body {
 }
 
 .hero-section h1 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: var(--font-heading);
     font-size: clamp(2rem, 4vw, 3rem);
     font-weight: 800;
     line-height: 1.15;
     letter-spacing: -0.02em;
-    color: var(--lf-ink);
+    color: var(--color-text);
     margin: 0 0 16px;
 }
 
 .hero-section p {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     font-size: 1.05rem;
-    color: var(--lf-muted);
+    color: var(--color-text-muted);
     line-height: 1.5;
     margin: 0;
 }
@@ -208,8 +175,8 @@ body {
     padding: 20px 48px;
     overflow-x: auto;
     scrollbar-width: none;
-    background: var(--lf-surface);
-    border-bottom: 1px solid var(--lf-border);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .categorias-bar::-webkit-scrollbar {
@@ -218,28 +185,28 @@ body {
 
 .chip-categoria {
     flex: 0 0 auto;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 600;
-    color: var(--lf-muted);
+    color: var(--color-text-muted);
     background: transparent;
-    border: 1px solid var(--lf-border);
+    border: 1px solid var(--color-border);
     padding: 9px 18px;
-    border-radius: var(--lf-radius-pill);
+    border-radius: var(--radius-pill);
     cursor: pointer;
     white-space: nowrap;
     transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
 }
 
 .chip-categoria:hover {
-    border-color: var(--lf-ink);
-    color: var(--lf-ink);
+    border-color: var(--color-text);
+    color: var(--color-text);
 }
 
 .chip-categoria--ativo {
-    background: var(--lf-ink);
-    border-color: var(--lf-ink);
-    color: white;
+    background: var(--color-text);
+    border-color: var(--color-text);
+    color: var(--color-bg);
 }
 
 /* --- LISTA DE ESPAÇOS --- */
@@ -250,11 +217,11 @@ body {
 }
 
 .section-title {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: var(--font-heading);
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -0.01em;
-    color: var(--lf-ink);
+    color: var(--color-text);
     margin: 0 0 24px;
 }
 
@@ -292,19 +259,5 @@ body {
 
     .btn-nav {
         padding: 10px 12px;
-    }
-}
-
-/* ==========================================================================
-   ACESSIBILIDADE
-   ========================================================================== */
-:focus-visible {
-    outline: 2px solid var(--lf-ink);
-    outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    * {
-        transition: none !important;
     }
 }

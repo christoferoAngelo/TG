@@ -1,0 +1,9 @@
+/* Ponto de entrada dos estilos globais. Importe SÓ este arquivo, uma vez,
+   no main.jsx:   import './styles/index.css';
+
+   O @import remoto de fonte precisa vir antes de qualquer regra. Esta é a
+   única declaração de fontes do projeto (antes havia uma em cada CSS). */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+@import './tokens.css';
+@import './base.css';

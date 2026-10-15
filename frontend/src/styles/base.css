@@ -1,0 +1,32 @@
+/* ==========================================================================
+   BASE — reset e padrões globais. Só elementos HTML, nunca classes de tela.
+   (O que é de uma tela específica vive no CSS da própria tela.)
+   ========================================================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-body);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+}
+
+/* Foco visível para navegação por teclado */
+:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}
+
+/* Respeita quem desativa animações no sistema */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}

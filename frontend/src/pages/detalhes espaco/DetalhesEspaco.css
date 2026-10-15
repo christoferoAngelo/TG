@@ -1,6 +1,6 @@
 /* Container Principal */
 .detalhes-page {
-    background-color: #ffffff;
+    background-color: var(--color-bg);
     min-height: 100vh;
 }
 
@@ -8,14 +8,14 @@
     max-width: 1100px;
     margin: 0 auto;
     padding: 30px 20px 80px 20px;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--font-body);
 }
 
 /* Botão de Voltar */
 .btn-voltar {
-    background-color: #f8f9fa;
-    color: #333;
-    border: 1px solid #e9ecef;
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
     padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
@@ -26,18 +26,18 @@
 }
 
 .btn-voltar:hover {
-    background-color: #e2e6ea;
+    background-color: var(--color-bg-muted);
 }
 
 /* Cabeçalho do Espaço */
 .detalhes-header h1 {
     font-size: 2.5rem;
-    color: #222;
+    color: var(--color-text);
     margin: 0 0 8px 0;
 }
 
 .detalhes-header .endereco {
-    color: #717171;
+    color: var(--color-text-muted);
     font-size: 1.1rem;
     margin-bottom: 32px;
 }
@@ -49,8 +49,8 @@
 
 .detalhes-secao h2 {
     font-size: 1.5rem;
-    color: #222;
-    border-bottom: 1px solid #ebebeb;
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border-soft);
     padding-bottom: 12px;
     margin-bottom: 24px;
 }
@@ -62,12 +62,12 @@
 
 .ambiente-info h3 {
     font-size: 1.3rem;
-    color: #222;
+    color: var(--color-text);
     margin: 0 0 5px 0;
 }
 
 .ambiente-info p {
-    color: #717171;
+    color: var(--color-text-muted);
     font-size: 1rem;
     margin-bottom: 16px;
 }
@@ -86,15 +86,15 @@
     height: 8px;
 }
 .galeria-scroll::-webkit-scrollbar-track {
-    background: #f1f1f1; 
+    background: var(--color-bg-subtle); 
     border-radius: 10px;
 }
 .galeria-scroll::-webkit-scrollbar-thumb {
-    background: #c1c1c1; 
+    background: var(--color-border-strong); 
     border-radius: 10px;
 }
 .galeria-scroll::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8; 
+    background: var(--color-text-faint); 
 }
 
 .img-ambiente {
@@ -102,13 +102,13 @@
     height: 220px;
     object-fit: cover;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px var(--shadow-color);
     flex-shrink: 0;
     scroll-snap-align: start;
 }
 
 .sem-fotos {
-    color: #999;
+    color: var(--color-text-faint);
     font-style: italic;
 }
 
@@ -116,7 +116,7 @@
 .descricao-geral {
     font-size: 1.1rem;
     line-height: 1.6;
-    color: #444;
+    color: var(--color-text-secondary);
 }
 
 .cards-info {
@@ -125,10 +125,10 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     margin-top: 32px;
-    background-color: #f8f9fa;
+    background-color: var(--color-bg-subtle);
     padding: 25px;
     border-radius: 12px;
-    border: 1px solid #eee;
+    border: 1px solid var(--color-border-soft);
 }
 
 .card-info {
@@ -138,12 +138,12 @@
 }
 
 .card-info strong {
-    color: #222;
+    color: var(--color-text);
     font-size: 1rem;
 }
 
 .card-info span {
-    color: #555;
+    color: var(--color-text-secondary);
     font-size: 1.15rem;
     font-weight: 500;
 }
@@ -152,10 +152,10 @@
 .aviso-restricoes {
     margin-top: 24px;
     padding: 16px 20px;
-    background-color: #fff8e1;
-    color: #856404;
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning-text);
     border-radius: 8px;
-    border-left: 5px solid #ffc107;
+    border-left: 5px solid var(--color-warning-solid);
     font-size: 1.05rem;
 }
 
@@ -167,13 +167,13 @@
 }
 
 .tag {
-    background-color: #f1f3f5;
-    color: #333;
+    background-color: var(--color-bg-muted);
+    color: var(--color-text);
     padding: 10px 18px;
     border-radius: 30px;
     font-size: 0.95rem;
     font-weight: 500;
-    border: 1px solid #e2e6ea;
+    border: 1px solid var(--color-border);
 }
 
 /* Telas de Loading e Erro */
@@ -184,13 +184,13 @@
     justify-content: center;
     min-height: 50vh;
     font-size: 1.2rem;
-    color: #555;
+    color: var(--color-text-secondary);
 }
 
 /* Botão de Reservar (Call to Action) */
 .btn-reservar {
-    background-color: #28a745;
-    color: white;
+    background-color: var(--color-approve);
+    color: var(--color-on-status);
     border: none;
     padding: 16px 24px;
     border-radius: 8px;
@@ -200,7 +200,7 @@
     width: 100%;
     margin-top: 30px;
     transition: background-color 0.2s, transform 0.1s;
-    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 4px 10px var(--color-approve-glow);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -208,7 +208,7 @@
 }
 
 .btn-reservar:hover {
-    background-color: #218838;
+    background-color: var(--color-approve-dark);
 }
 
 .btn-reservar:active {
@@ -222,7 +222,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: var(--color-overlay);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -231,18 +231,18 @@
 
 /* Card centralizado */
 .modal-content {
-    background: #fff;
+    background: var(--color-surface);
     padding: 25px;
     border-radius: 8px;
     width: 90%;
     max-width: 450px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px var(--shadow-color-strong);
 }
 
 .modal-content h2 {
     margin-top: 0;
     margin-bottom: 20px;
-    color: #333;
+    color: var(--color-text);
 }
 
 .form-group {
@@ -254,7 +254,7 @@
 
 .form-group input, .form-group textarea {
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-border-strong);
     border-radius: 4px;
     font-size: 0.95rem;
 }
@@ -267,7 +267,7 @@
 }
 
 .btn-cancelar {
-    background: #e0e0e0;
+    background: var(--color-bg-muted);
     border: none;
     padding: 10px 16px;
     border-radius: 4px;
@@ -275,8 +275,8 @@
 }
 
 .btn-confirmar {
-    background: #28a745;
-    color: white;
+    background: var(--color-approve);
+    color: var(--color-on-status);
     border: none;
     padding: 10px 16px;
     border-radius: 4px;
@@ -285,7 +285,7 @@
 }
 
 .btn-confirmar:disabled {
-    background: #94d3a2;
+    background: var(--color-approve-disabled);
 }
 
 /* Resumo de nota, ao lado do endereço */
@@ -294,23 +294,23 @@
     align-items: center;
     gap: 6px;
     font-size: 1.05rem;
-    color: #222;
+    color: var(--color-text);
     font-weight: 600;
     margin-bottom: 32px;
     margin-left: 4px;
 }
 
 .nota-resumo .estrela-preenchida {
-    color: #f59e0b;
+    color: var(--color-warning);
 }
 
 .nota-resumo .quantidade {
-    color: #717171;
+    color: var(--color-text-muted);
     font-weight: 400;
 }
 
 .sem-avaliacoes {
-    color: #999;
+    color: var(--color-text-faint);
     font-style: italic;
 }
 
@@ -323,7 +323,7 @@
 
 .avaliacao-card {
     padding-bottom: 24px;
-    border-bottom: 1px solid #ebebeb;
+    border-bottom: 1px solid var(--color-border-soft);
 }
 
 .avaliacao-card:last-child {
@@ -340,24 +340,24 @@
 
 .avaliacao-nome {
     font-weight: 600;
-    color: #222;
+    color: var(--color-text);
     font-size: 1rem;
 }
 
 .avaliacao-estrelas {
-    color: #f59e0b;
+    color: var(--color-warning);
     font-size: 0.95rem;
     letter-spacing: 1px;
 }
 
 .avaliacao-data {
-    color: #999;
+    color: var(--color-text-faint);
     font-size: 0.85rem;
     margin-left: auto;
 }
 
 .avaliacao-comentario {
-    color: #444;
+    color: var(--color-text-secondary);
     font-size: 1rem;
     line-height: 1.5;
     margin: 0;

@@ -1,0 +1,144 @@
+/* ==========================================================================
+   TOKENS — única fonte de verdade de cor, tipografia, raio e sombra.
+
+   Como trocar a paleta: edite SOMENTE a seção 1 (--palette-*).
+   Tudo abaixo (hover, "soft", texto secundário, bordas, sombras) é derivado
+   dela com color-mix(), então acompanha sozinho.
+
+   Regra do projeto: nenhum .css de página/componente escreve cor em hex ou
+   rgba. Se faltar um tom, crie um token aqui em vez de usar o literal.
+   ========================================================================== */
+
+:root {
+
+    /* ------------------------------------------------------------------
+       1. PALETA  (as únicas cores "cruas" do tema)
+       ------------------------------------------------------------------ */
+    --palette-golden: #FECB5A; /* Golden Pollen */
+    --palette-coffee: #130501; /* Coffee Bean   */
+    --palette-wheat:  #EDDAB0; /* Wheat         */
+    --palette-ivory:  #FEFBE6; /* Ivory         */
+
+
+    /* ------------------------------------------------------------------
+       2. SUPERFÍCIES
+       ------------------------------------------------------------------ */
+    --color-bg:        var(--palette-ivory);                                              /* fundo da página */
+    --color-bg-subtle: color-mix(in srgb, var(--palette-wheat) 30%, var(--palette-ivory)); /* cabeçalho de tabela, tags, hover leve */
+    --color-bg-muted:  color-mix(in srgb, var(--palette-wheat) 60%, var(--palette-ivory)); /* botão neutro, item desabilitado */
+    --color-surface:   #FFFFFF;                                                           /* cards, modais, inputs (neutro, fora da paleta) */
+    --color-overlay:   color-mix(in srgb, var(--palette-coffee) 55%, transparent);        /* fundo escuro atrás de modal */
+
+
+    /* Superfície ESCURA (sidebar do admin) e o que vai por cima dela */
+    --color-surface-dark:       var(--palette-coffee);
+    --color-on-dark:            var(--palette-ivory);
+    --color-on-dark-muted:      color-mix(in srgb, var(--palette-ivory) 70%, var(--palette-coffee));
+    --color-on-dark-faint:      color-mix(in srgb, var(--palette-ivory) 50%, var(--palette-coffee));
+    --color-on-dark-line:       color-mix(in srgb, var(--palette-ivory)  8%, transparent);  /* divisores */
+    --color-on-dark-fill:       color-mix(in srgb, var(--palette-ivory)  6%, transparent);  /* fundo de item em repouso/hover leve */
+    --color-on-dark-fill-hover: color-mix(in srgb, var(--palette-ivory) 12%, transparent);  /* hover */
+
+
+    /* ------------------------------------------------------------------
+       3. TEXTO  (escala derivada do Coffee Bean)
+       ------------------------------------------------------------------ */
+    --color-text:           var(--palette-coffee);
+    --color-text-secondary: color-mix(in srgb, var(--palette-coffee) 82%, var(--palette-ivory));
+    --color-text-muted:     color-mix(in srgb, var(--palette-coffee) 66%, var(--palette-ivory));
+    --color-text-faint:     color-mix(in srgb, var(--palette-coffee) 58%, var(--palette-ivory)); /* placeholder, dado vazio */
+
+
+    /* ------------------------------------------------------------------
+       4. BORDAS
+       ------------------------------------------------------------------ */
+    --color-border:        var(--palette-wheat);                                                  /* cards, divisores */
+    --color-border-soft:   color-mix(in srgb, var(--palette-wheat) 50%, var(--palette-ivory));    /* linhas bem discretas */
+    --color-border-strong: color-mix(in srgb, var(--palette-wheat) 60%, var(--palette-coffee));   /* inputs, botões neutros */
+
+
+    /* ------------------------------------------------------------------
+       5. PRIMÁRIA  (Golden Pollen)
+       Atenção: o dourado é CLARO. Como fundo ele leva texto escuro
+       (--color-on-primary). Como TEXTO ou LINK sobre fundo claro, use
+       --color-primary-text — dourado puro não tem contraste suficiente.
+       ------------------------------------------------------------------ */
+    --color-primary:       var(--palette-golden);                                               /* fundo de botão/destaque */
+    --color-primary-dark:  color-mix(in srgb, var(--palette-golden) 82%, var(--palette-coffee)); /* hover, borda de item selecionado */
+    --color-primary-soft:  color-mix(in srgb, var(--palette-golden) 28%, white);                 /* fundo de item selecionado/badge */
+    --color-primary-text:  color-mix(in srgb, var(--palette-golden) 50%, var(--palette-coffee)); /* texto/link/logo e borda de foco */
+    --color-on-primary:    var(--palette-coffee);                                               /* texto sobre --color-primary */
+    --color-primary-glow:  color-mix(in srgb, var(--palette-golden) 45%, transparent);           /* sombra de botão ativo */
+    --color-focus-ring:    color-mix(in srgb, var(--palette-golden) 40%, transparent);           /* anel de foco dos inputs */
+    --color-accent-soft:   color-mix(in srgb, var(--palette-wheat) 55%, white);                  /* manchas de fundo decorativas */
+
+
+    /* ------------------------------------------------------------------
+       6. STATUS  (fixos de propósito: aprovado/rejeitado/pendente precisam
+       continuar reconhecíveis mesmo se a paleta mudar)
+       ------------------------------------------------------------------ */
+    --color-on-status: #FFFFFF;                         /* texto sobre qualquer cor sólida de status */
+
+    --color-success:      #10B981;
+    --color-success-soft: #D1FAE5;
+    --color-success-text: #065F46;
+
+    --color-approve:          #28A745;                  /* ações de aprovar/reativar/reservar */
+    --color-approve-dark:     #218838;
+    --color-approve-disabled: color-mix(in srgb, var(--color-approve) 45%, white);
+    --color-approve-glow:     color-mix(in srgb, var(--color-approve) 30%, transparent);
+
+    --color-danger:           #DC3545;                  /* ações de rejeitar/cancelar/sair */
+    --color-danger-dark:      #C82333;
+    --color-danger-soft:      #FEE2E2;
+    --color-danger-soft-hover:#FECACA;
+    --color-danger-text:      #B91C1C;
+
+    --color-warning:       #F59E0B;                     /* estrelas, avisos (texto/ícone) */
+    --color-warning-solid: #FFC107;                     /* badge "pendente", faixa de aviso */
+    --color-warning-soft:  #FEF3C7;
+    --color-warning-text:  #92400E;
+
+    --color-info:            #17A2B8;
+    --color-info-soft:       #DBEAFE;
+    --color-info-soft-hover: #BAE6FD;
+    --color-info-text:       #0369A1;
+
+    --color-neutral-solid: var(--color-text-muted);     /* badge "inativo"/"cancelada" */
+
+    /* variações derivadas dos status (bordas de alerta, hover de célula, brilho) */
+    --color-success-border:    color-mix(in srgb, var(--color-success) 28%, white);
+    --color-danger-border:     color-mix(in srgb, var(--color-danger)  28%, white);
+    --color-warning-border:    color-mix(in srgb, var(--color-warning-solid) 40%, white);
+    --color-warning-soft-hover:color-mix(in srgb, var(--color-warning-solid) 30%, white);
+    --color-danger-glow:       color-mix(in srgb, var(--color-danger) 40%, transparent);
+    --color-danger-wash:       color-mix(in srgb, var(--color-danger) 14%, transparent);
+    --color-danger-on-dark:    color-mix(in srgb, var(--color-danger) 65%, white);   /* vermelho legível sobre fundo escuro */
+
+
+    /* ------------------------------------------------------------------
+       7. SOMBRAS
+       ------------------------------------------------------------------ */
+    --shadow-color-soft:   color-mix(in srgb, var(--palette-coffee)  6%, transparent);
+    --shadow-color:        color-mix(in srgb, var(--palette-coffee) 12%, transparent);
+    --shadow-color-strong: color-mix(in srgb, var(--palette-coffee) 22%, transparent);
+
+    --shadow-sm: 0 2px 5px  var(--shadow-color-soft);
+    --shadow-md: 0 4px 12px var(--shadow-color);
+
+
+    /* ------------------------------------------------------------------
+       8. RAIOS
+       ------------------------------------------------------------------ */
+    --radius-sm:   6px;
+    --radius-md:   10px;
+    --radius-lg:   14px;
+    --radius-pill: 999px;
+
+
+    /* ------------------------------------------------------------------
+       9. TIPOGRAFIA
+       ------------------------------------------------------------------ */
+    --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
