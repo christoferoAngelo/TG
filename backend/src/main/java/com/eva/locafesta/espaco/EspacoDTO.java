@@ -15,6 +15,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import java.math.BigDecimal;
+import java.time.LocalTime;
+
+// Dentro de EspacoDTO:
+
+
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,10 +35,21 @@ public class EspacoDTO {
     private BigDecimal valorDiaria;
     private Integer capacidadePessoas;
     private String restricoesHorario;
-    private String horarioFechamento;
     private String statusAprovacao;
     private String motivoRejeicao;
     private String respostaLocador;
+
+    
+    private LocalTime horarioAbertura;
+    private LocalTime horarioFechamento;
+
+    private Boolean permiteMeioPeriodo = true;
+    private Boolean permitePeriodoIntegral = true;
+    private Boolean permiteHorarioPersonalizado = false;
+
+    private BigDecimal duracaoMaxHoras;
+    private Integer intervaloLimpezaMin = 0;
+    
 
     // Lista de características
     private Set<CaracteristicaDTO> caracteristicas;
@@ -76,5 +93,16 @@ public class EspacoDTO {
                 .map(EspacoAmbienteDTO::new)
                 .collect(Collectors.toList());
         }
+
+        this.horarioAbertura = espaco.getHorarioAbertura();
+        this.horarioFechamento = espaco.getHorarioFechamento();
+
+        this.permiteMeioPeriodo = espaco.getPermiteMeioPeriodo();
+        this.permitePeriodoIntegral = espaco.getPermitePeriodoIntegral();
+        this.permiteHorarioPersonalizado =
+            espaco.getPermiteHorarioPersonalizado();
+
+        this.duracaoMaxHoras = espaco.getDuracaoMaxHoras();
+        this.intervaloLimpezaMin = espaco.getIntervaloLimpezaMin();
     }
 }

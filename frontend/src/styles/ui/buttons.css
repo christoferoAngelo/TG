@@ -1,0 +1,99 @@
+/* ==========================================================================
+   BOTÕES
+   Base: .btn  +  variante (.btn-acao, .btn-destaque, .btn-cancelar, .btn-aprovar...).
+   Sempre use as duas classes juntas:  <button className="btn btn-destaque">
+   ========================================================================== */
+.btn {
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-acao {
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-strong);
+}
+
+.btn-acao:hover:not(:disabled) {
+    background-color: var(--color-bg-muted);
+    border-color: var(--color-text-faint);
+}
+
+.btn-destaque {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    border: none;
+}
+
+.btn-destaque:hover:not(:disabled) {
+    background-color: var(--color-primary-dark);
+}
+
+.btn-cancelar {
+    background-color: var(--color-bg-muted);
+    color: var(--color-text-secondary);
+    border: none;
+}
+
+.btn-cancelar:hover:not(:disabled) {
+    background-color: var(--color-border);
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--color-primary-text);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-link:hover {
+    background-color: var(--color-primary-soft);
+}
+
+/* Aprovar / rejeitar — o locador usa os nomes em português, o admin os em inglês (mesmo visual) */
+.btn-aprovar,
+.btn-approve {
+    background-color: var(--color-approve);
+    color: var(--color-on-status);
+    border: none;
+}
+
+.btn-aprovar:hover,
+.btn-approve:hover {
+    background-color: var(--color-approve-dark);
+}
+
+.btn-rejeitar,
+.btn-reject {
+    background-color: var(--color-danger);
+    color: var(--color-on-status);
+    border: none;
+}
+
+.btn-rejeitar:hover,
+.btn-reject:hover {
+    background-color: var(--color-danger-dark);
+}
+
+/* Ativar / desativar espaço (classe montada dinamicamente) */
+.btn-status-desativar { background-color: var(--color-danger); color: var(--color-on-status); }
+.btn-status-desativar:hover { background-color: var(--color-danger-dark); }
+.btn-status-reativar { background-color: var(--color-approve); color: var(--color-on-status); }
+.btn-status-reativar:hover { background-color: var(--color-approve-dark); }

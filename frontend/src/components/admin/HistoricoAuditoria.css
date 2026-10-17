@@ -68,20 +68,6 @@
   font-weight: 500;
 }
 
-/* Badges de Ação */
-.badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.badge-success { background: var(--color-success-soft); color: var(--color-success-text); }
-.badge-warning { background: var(--color-warning-soft); color: var(--color-warning-text); }
-.badge-danger { background: var(--color-danger-soft); color: var(--color-danger-text); }
-.badge-default { background: var(--color-bg-subtle); color: var(--color-text-secondary); }
-
 /* Controles de Paginação */
 .paginacao-container {
   display: flex;
@@ -116,4 +102,12 @@
   text-align: center;
   padding: 40px;
   color: var(--color-text-muted);
+}
+
+/* Etiquetas da tabela: menores e em caixa-alta (a base .badge está em styles/ui/badges.css) */
+.tabela-auditoria .badge {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
 }

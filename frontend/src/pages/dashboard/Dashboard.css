@@ -9,45 +9,6 @@
     color: var(--color-text);
 }
 
-/* --- CABEÇALHO (HEADER) --- */
-.header {
-    background-color: var(--color-surface);
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px var(--shadow-color-soft);
-}
-
-.logo {
-    color: var(--color-primary-text);
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.user-menu {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    font-size: 14px;
-}
-
-.logout-btn {
-    background-color: var(--color-danger);
-    color: var(--color-on-status);
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-}
-
-.logout-btn:hover {
-    background-color: var(--color-danger-dark);
-}
-
 /* --- CONTEÚDO PRINCIPAL (MAIN) --- */
 .main {
     padding: 40px 30px 60px;
@@ -75,46 +36,6 @@
     .main {
         padding: 24px 16px 48px;
     }
-}
-
-/* --- CARDS --- */
-.card {
-    background-color: var(--color-surface);
-    padding: 26px 28px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    margin-top: 22px;
-    border: 1px solid var(--color-border-soft);
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.card-header-spaced {
-    margin-bottom: 16px;
-}
-
-.card-title {
-    margin: 0;
-    color: var(--color-text-secondary);
-    font-size: 17px;
-    font-weight: 700;
-}
-
-.card-title-spaced {
-    margin: 0 0 16px 0;
-}
-
-.section-subtitle {
-    display: inline-block;
-    color: var(--color-text-secondary);
-    font-size: 14px;
-    margin-bottom: 4px;
 }
 
 /* --- STATUS GRID --- */
@@ -182,194 +103,6 @@
     font-style: italic;
 }
 
-/* --- BADGES (ETIQUETAS) --- */
-.badge {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-}
-
-.badge-sucesso, .badge-ativo {
-    background-color: var(--color-success-soft);
-    color: var(--color-success-text);
-}
-
-.badge-aviso {
-    background-color: var(--color-warning-soft);
-    color: var(--color-warning-text);
-}
-
-.badge-locador {
-    background-color: var(--color-primary-soft);
-    color: var(--color-primary-text);
-}
-
-/* --- BOTÕES GERAIS --- */
-.btn {
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.btn-acao {
-    background-color: var(--color-bg-subtle);
-    color: var(--color-text-secondary);
-    border: 1px solid var(--color-border-strong);
-}
-
-.btn-acao:hover:not(:disabled) {
-    background-color: var(--color-bg-muted);
-    border-color: var(--color-text-faint);
-}
-
-.btn-destaque {
-    background-color: var(--color-primary);
-    color: var(--color-on-primary);
-    border: none;
-}
-
-.btn-destaque:hover:not(:disabled) {
-    background-color: var(--color-primary-dark);
-}
-
-.btn-cancelar {
-    background-color: var(--color-bg-muted);
-    color: var(--color-text-secondary);
-    border: none;
-}
-
-.btn-cancelar:hover:not(:disabled) {
-    background-color: var(--color-border);
-}
-
-.btn-link {
-    background: none;
-    border: none;
-    color: var(--color-primary-text);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-}
-
-.btn-link:hover {
-    background-color: var(--color-primary-soft);
-}
-
-/* ==========================================================================
-   MODAIS
-   ========================================================================== */
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--color-overlay);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(2px);
-    padding: 20px;
-}
-
-.modal-content {
-    background-color: var(--color-surface);
-    padding: 28px;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 520px;
-    box-shadow: 0 10px 25px var(--shadow-color);
-    animation: modalFadeIn 0.2s ease-out;
-}
-
-@keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modal-content h3 {
-    margin-top: 0;
-    margin-bottom: 6px;
-    color: var(--color-text);
-    font-size: 18px;
-}
-
-.modal-desc {
-    font-size: 14px;
-    color: var(--color-text-muted);
-    margin-bottom: 20px;
-}
-
-/* --- FORMULÁRIOS --- */
-.input-group {
-    margin-bottom: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.input-group label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-text-secondary);
-}
-
-.input {
-    padding: 10px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--color-border-strong);
-    font-size: 14px;
-    color: var(--color-text);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    outline: none;
-}
-
-.input:focus {
-    border-color: var(--color-primary-text);
-    box-shadow: 0 0 0 3px var(--color-focus-ring);
-}
-
-.form-row {
-    display: flex;
-    gap: 12px;
-}
-
-.flex-1 { flex: 1; }
-.flex-2 { flex: 2; }
-.flex-3 { flex: 3; }
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 24px;
-}
-
 /* ==========================================================================
    ESTILOS ESPECÍFICOS DA PÁGINA HOME (LISTAGEM)
    ========================================================================== */
@@ -382,15 +115,6 @@
     border-radius: 12px;
     box-shadow: 0 2px 5px var(--shadow-color-soft);
     border: 1px solid var(--color-border-soft);
-}
-
-.section-title {
-    font-size: 18px;
-    color: var(--color-text);
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--color-primary);
-    display: inline-block;
-    padding-bottom: 5px;
 }
 
 /* O Container que empilha os cards verticalmente */
@@ -555,28 +279,6 @@
     justify-content: flex-end;
 }
 
-/* Badges Dinâmicos (Status de Aprovação e Atividade) */
-.badge-rejeitado { background-color: var(--color-danger); color: var(--color-on-status); }
-.badge-pendente { background-color: var(--color-warning-solid); color: var(--color-text); }
-.badge-aprovado { background-color: var(--color-approve); color: var(--color-on-status); }
-.badge-inativo { background-color: var(--color-neutral-solid); color: var(--color-on-status); }
-.badge-info { background-color: var(--color-info); color: var(--color-on-status); }
-
-.badge-caracteristica {
-    font-size: 0.75rem;
-    background-color: var(--color-bg-muted);
-    color: var(--color-text-secondary);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
-/* Botões Dinâmicos */
-.btn-status-desativar { background-color: var(--color-danger); color: var(--color-on-status); }
-.btn-status-desativar:hover { background-color: var(--color-danger-dark); }
-.btn-status-reativar { background-color: var(--color-approve); color: var(--color-on-status); }
-.btn-status-reativar:hover { background-color: var(--color-approve-dark); }
-
 /* Bloco de Rejeição */
 .rejeicao-box {
     margin-top: 10px;
@@ -718,26 +420,6 @@
     padding: 9px 16px;
 }
 
-.btn-aprovar {
-    background-color: var(--color-approve);
-    color: var(--color-on-status);
-    border: none;
-}
-
-.btn-aprovar:hover {
-    background-color: var(--color-approve-dark);
-}
-
-.btn-rejeitar {
-    background-color: var(--color-danger);
-    color: var(--color-on-status);
-    border: none;
-}
-
-.btn-rejeitar:hover {
-    background-color: var(--color-danger-dark);
-}
-
 /* Estado de carregamento / vazio dentro dos cards do painel */
 .estado-info {
     margin: 20px 0 4px;
@@ -824,7 +506,3 @@
     background-color: var(--color-primary-dark);
 }
 
-.badge-cancelada {
-    background-color: var(--color-neutral-solid);
-    color: var(--color-on-status);
-}

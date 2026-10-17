@@ -240,7 +240,7 @@ export default function DetalhesEspaco() {
                                     </div>
 
                                     <div className="modal-acoes">
-                                        <button type="button" className="btn-cancelar" onClick={handleFecharModal}>
+                                        <button type="button" className="btn btn-cancelar" onClick={handleFecharModal}>
                                             Cancelar
                                         </button>
                                         <button type="submit" className="btn-confirmar" disabled={enviando}>

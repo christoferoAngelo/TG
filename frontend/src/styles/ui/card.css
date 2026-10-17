@@ -1,0 +1,41 @@
+/* ==========================================================================
+   CARD (superfície genérica do painel)
+   ========================================================================== */
+.card {
+    background-color: var(--color-surface);
+    padding: 26px 28px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-top: 22px;
+    border: 1px solid var(--color-border-soft);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.card-header-spaced {
+    margin-bottom: 16px;
+}
+
+.card-title {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.card-title-spaced {
+    margin: 0 0 16px 0;
+}
+
+.section-subtitle {
+    display: inline-block;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    margin-bottom: 4px;
+}

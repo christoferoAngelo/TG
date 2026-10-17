@@ -74,12 +74,12 @@ export default function GestaoReservas() {
                             {reserva.status === 'PENDENTE' && (
                                 <div className="reserva-acoes">
                                     <button 
-                                        className="btn-aprovar" 
+                                        className="btn btn-aprovar" 
                                         onClick={() => handleAcao(reserva.id, 'aprovar')}>
                                         ✓ Aceitar
                                     </button>
                                     <button 
-                                        className="btn-rejeitar" 
+                                        className="btn btn-rejeitar" 
                                         onClick={() => handleAcao(reserva.id, 'rejeitar')}>
                                         ✕ Recusar
                                     </button>

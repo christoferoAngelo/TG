@@ -1,0 +1,70 @@
+/* ==========================================================================
+   MODAIS
+   Estrutura: .modal-overlay > .modal-content > (título, .modal-desc, campos, .modal-actions)
+   Os títulos usam .modal-overlay .modal-content h2/h3 (especificidade maior) de propósito:
+   o modal é renderizado dentro de containers como .main e .content-box, cujas regras
+   "h3" têm especificidade igual à de ".modal-content h3" e, por ordem de carregamento,
+   venceriam o título do modal.
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-overlay);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+    padding: 20px;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    padding: 28px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 10px 25px var(--shadow-color);
+    animation: modalFadeIn 0.2s ease-out;
+}
+
+.modal-overlay .modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 6px;
+    color: var(--color-text);
+    font-size: 18px;
+}
+
+.modal-overlay .modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--color-text);
+}
+
+.modal-desc {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin-bottom: 20px;
+}
+
+.modal-actions,
+.modal-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+}

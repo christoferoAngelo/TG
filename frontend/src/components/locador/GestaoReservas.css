@@ -64,19 +64,7 @@
     gap: 10px;
 }
 
-.btn-aprovar, .btn-rejeitar {
+/* Botões de ação da reserva (base .btn + .btn-aprovar/.btn-rejeitar em styles/ui/buttons.css) */
+.reserva-acoes .btn {
     padding: 10px 16px;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    color: var(--color-on-status);
-    transition: opacity 0.2s;
-}
-
-.btn-aprovar { background-color: var(--color-approve); }
-.btn-rejeitar { background-color: var(--color-danger); }
-
-.btn-aprovar:hover, .btn-rejeitar:hover {
-    opacity: 0.85;
 }

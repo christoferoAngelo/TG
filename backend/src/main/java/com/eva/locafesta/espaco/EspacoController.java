@@ -18,13 +18,28 @@ public class EspacoController {
     private EspacoService espacoService;
 
     // CREATE - POST http://localhost:8080/api/locadores/{locadorId}/espacos
-    @PostMapping("/{locadorId}/espacos")
-    public ResponseEntity<?> criarEspaco(@PathVariable Long locadorId, @Valid @RequestBody EspacoDTO dto) {
+    @PostMapping("/{usuarioId}/espacos")
+    public ResponseEntity<?> criarEspaco(
+            @PathVariable Long usuarioId,
+            @Valid @RequestBody EspacoDTO dto) {
+
         try {
-            EspacoDTO novoEspaco = espacoService.criarEspaco(locadorId, dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(novoEspaco);
+            EspacoDTO novoEspaco =
+                espacoService.criarEspaco(usuarioId, dto);
+
+            return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(novoEspaco);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                .badRequest()
+                .body(e.getMessage());
+
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(e.getMessage());
         }
     }
     

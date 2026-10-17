@@ -1,0 +1,72 @@
+/* ==========================================================================
+   BADGES
+   Base: .badge  +  variante.  <span className="badge badge-aprovado">
+   ========================================================================== */
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Suaves (fundo claro) — nomes em português e inglês apontam para o mesmo visual */
+.badge-sucesso,
+.badge-ativo,
+.badge-success {
+    background-color: var(--color-success-soft);
+    color: var(--color-success-text);
+}
+
+.badge-aviso,
+.badge-warning {
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning-text);
+}
+
+.badge-danger {
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger-text);
+}
+
+.badge-default {
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-secondary);
+}
+
+/* Papéis de usuário (painel do usuário e tabela do admin) */
+.badge-locador {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary-text);
+}
+
+.badge-admin {
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger-text);
+}
+
+.badge-locatario {
+    background-color: var(--color-success-soft);
+    color: var(--color-success-text);
+}
+
+/* Sólidos (status de reserva / espaço) — classe montada dinamicamente a partir do status */
+.badge-rejeitado { background-color: var(--color-danger); color: var(--color-on-status); }
+.badge-pendente { background-color: var(--color-warning-solid); color: var(--color-text); }
+.badge-aprovado { background-color: var(--color-approve); color: var(--color-on-status); }
+.badge-inativo { background-color: var(--color-neutral-solid); color: var(--color-on-status); }
+.badge-info { background-color: var(--color-info); color: var(--color-on-status); }
+.badge-cancelada {
+    background-color: var(--color-neutral-solid);
+    color: var(--color-on-status);
+}
+
+.badge-caracteristica {
+    font-size: 0.75rem;
+    background-color: var(--color-bg-muted);
+    color: var(--color-text-secondary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}

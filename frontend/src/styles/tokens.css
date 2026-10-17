@@ -105,6 +105,7 @@
     --color-info-text:       #0369A1;
 
     --color-neutral-solid: var(--color-text-muted);     /* badge "inativo"/"cancelada" */
+    --color-violet:        #8B5CF6;                     /* destaque "ativos" no painel admin (fora da escala de status) */
 
     /* variações derivadas dos status (bordas de alerta, hover de célula, brilho) */
     --color-success-border:    color-mix(in srgb, var(--color-success) 28%, white);

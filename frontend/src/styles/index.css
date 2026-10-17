@@ -2,8 +2,17 @@
    no main.jsx:   import './styles/index.css';
 
    O @import remoto de fonte precisa vir antes de qualquer regra. Esta é a
-   única declaração de fontes do projeto (antes havia uma em cada CSS). */
+   única declaração de fontes do projeto. */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 @import './tokens.css';
 @import './base.css';
+
+/* Componentes compartilhados (usados por várias telas) */
+@import './ui/header.css';
+@import './ui/card.css';
+@import './ui/buttons.css';
+@import './ui/badges.css';
+@import './ui/forms.css';
+@import './ui/modal.css';
+@import './ui/alerts.css';

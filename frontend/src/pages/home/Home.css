@@ -28,15 +28,6 @@
     cursor: pointer;
 }
 
-.logo {
-    font-family: var(--font-heading);
-    color: var(--color-primary-text);
-    margin: 0;
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-}
-
 /* --- BARRA DE PESQUISA --- */
 .search-container {
     display: flex;

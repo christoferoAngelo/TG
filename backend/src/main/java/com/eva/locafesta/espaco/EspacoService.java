@@ -56,6 +56,37 @@ public class EspacoService {
                 .longitude(dto.getEndereco().getLongitude())
                 .build();
 
+        if (dto.getHorarioAbertura() == null
+        || dto.getHorarioFechamento() == null) {
+        throw new IllegalArgumentException(
+            "Informe o horário de abertura e fechamento do espaço."
+        );
+    }
+
+    if (!dto.getHorarioFechamento()
+            .isAfter(dto.getHorarioAbertura())) {
+        throw new IllegalArgumentException(
+            "O fechamento deve ocorrer depois da abertura. "
+            + "Espaços com funcionamento após a meia-noite "
+            + "precisam de uma regra específica."
+        );
+    }
+
+    if (dto.getIntervaloLimpezaMin() != null
+            && dto.getIntervaloLimpezaMin() < 0) {
+        throw new IllegalArgumentException(
+            "O intervalo de limpeza não pode ser negativo."
+        );
+    }
+
+    if (dto.getDuracaoMaxHoras() != null
+            && dto.getDuracaoMaxHoras().signum() <= 0) {
+        throw new IllegalArgumentException(
+            "A duração máxima deve ser maior que zero."
+        );
+    }
+
+
         Espaco espaco = Espaco.builder()
                 .locador(locador)
                 .titulo(dto.getTitulo())
@@ -66,6 +97,30 @@ public class EspacoService {
                 .horarioFechamento(dto.getHorarioFechamento())
                 .endereco(endereco)
                 .statusAprovacao("PENDENTE")
+                 // Novos campos de funcionamento
+        .horarioAbertura(dto.getHorarioAbertura())
+        .horarioFechamento(dto.getHorarioFechamento())
+
+        .permiteMeioPeriodo(
+            dto.getPermiteMeioPeriodo() != null
+                ? dto.getPermiteMeioPeriodo() : true
+        )
+        .permitePeriodoIntegral(
+            dto.getPermitePeriodoIntegral() != null
+                ? dto.getPermitePeriodoIntegral() : true
+        )
+        .permiteHorarioPersonalizado(
+            dto.getPermiteHorarioPersonalizado() != null
+                ? dto.getPermiteHorarioPersonalizado() : false
+        )
+        .duracaoMaxHoras(dto.getDuracaoMaxHoras())
+        .intervaloLimpezaMin(
+            dto.getIntervaloLimpezaMin() != null
+                ? dto.getIntervaloLimpezaMin() : 0
+        )
+
+        .endereco(endereco)
+        .statusAprovacao("PENDENTE")    
                 .build();
 
         // 1. Vincula as Características
@@ -118,7 +173,50 @@ public class EspacoService {
         espaco.setValorDiaria(dto.getValorDiaria());
         espaco.setCapacidadePessoas(dto.getCapacidadePessoas());
         espaco.setRestricoesHorario(dto.getRestricoesHorario());
-        espaco.setHorarioFechamento(dto.getHorarioFechamento());
+
+        // Funcionamento
+        if (dto.getHorarioAbertura() != null) {
+            espaco.setHorarioAbertura(dto.getHorarioAbertura());
+        }
+
+        if (dto.getHorarioFechamento() != null) {
+            espaco.setHorarioFechamento(dto.getHorarioFechamento());
+        }
+
+        // Modalidades de locação
+        if (dto.getPermiteMeioPeriodo() != null) {
+            espaco.setPermiteMeioPeriodo(
+                dto.getPermiteMeioPeriodo()
+            );
+        }
+
+        if (dto.getPermitePeriodoIntegral() != null) {
+            espaco.setPermitePeriodoIntegral(
+                dto.getPermitePeriodoIntegral()
+            );
+        }
+
+        if (dto.getPermiteHorarioPersonalizado() != null) {
+            espaco.setPermiteHorarioPersonalizado(
+                dto.getPermiteHorarioPersonalizado()
+            );
+        }
+
+        if (dto.getDuracaoMaxHoras() != null) {
+            espaco.setDuracaoMaxHoras(dto.getDuracaoMaxHoras());
+        }
+
+        if (dto.getIntervaloLimpezaMin() != null) {
+            if (dto.getIntervaloLimpezaMin() < 0) {
+                throw new IllegalArgumentException(
+                    "O intervalo de limpeza não pode ser negativo."
+                );
+            }
+
+            espaco.setIntervaloLimpezaMin(
+                dto.getIntervaloLimpezaMin()
+            );
+        }
 
         // Se o locador enviou uma mensagem de ajuste/réplica
         if (dto.getRespostaLocador() != null) {
@@ -286,12 +384,19 @@ public class EspacoService {
 
     @Transactional(readOnly = true)
     public List<EspacoDTO> buscarEspacosPorTermo(String termo) {
+
+        List<Espaco> espacos;
+
         if (termo == null || termo.trim().isEmpty()) {
-            return listarTodos();
+            espacos = espacoRepository
+                .findByAtivoTrueAndStatusAprovacao("APROVADO");
+        } else {
+            espacos = espacoRepository
+                .buscarPorTermoMultiplo(termo.trim());
         }
 
-        return espacoRepository.buscarPorTermoMultiplo(termo).stream()
-                .map(EspacoDTO::new)
-                .collect(Collectors.toList());
+        return espacos.stream()
+            .map(EspacoDTO::new)
+            .collect(Collectors.toList());
     }
 }

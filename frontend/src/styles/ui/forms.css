@@ -1,0 +1,44 @@
+/* ==========================================================================
+   FORMULÁRIOS
+   ========================================================================== */
+.input-group {
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.input {
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border-strong);
+    font-size: 14px;
+    color: var(--color-text);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+}
+
+.input:focus {
+    border-color: var(--color-primary-text);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.flex-1 { flex: 1; }
+.flex-2 { flex: 2; }
+.flex-3 { flex: 3; }
+
+/* Espaçamento entre campos soltos (admin, detalhes) */
+.form-group {
+    margin-bottom: 15px;
+}

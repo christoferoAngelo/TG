@@ -133,39 +133,39 @@ export default function OverviewTab() {
 
       {/* CARDS DE MÉTRICAS */}
       <div className="grid-cards">
-        <div className="card">
-          <span className="card-icon">👥</span>
+        <div className="stat-card">
+          <span className="stat-card-icon">👥</span>
           <div>
-            <h3 className="card-value">{loading ? '...' : metricas.totalUsuarios}</h3>
-            <p className="card-label">Total de Usuários</p>
+            <h3 className="stat-card-value">{loading ? '...' : metricas.totalUsuarios}</h3>
+            <p className="stat-card-label">Total de Usuários</p>
           </div>
         </div>
-        <div className="card card-blue">
-          <span className="card-icon">🏡</span>
+        <div className="stat-card stat-card-blue">
+          <span className="stat-card-icon">🏡</span>
           <div>
-            <h3 className="card-value">{loading ? '...' : metricas.locadoresCount}</h3>
-            <p className="card-label">Locadores</p>
+            <h3 className="stat-card-value">{loading ? '...' : metricas.locadoresCount}</h3>
+            <p className="stat-card-label">Locadores</p>
           </div>
         </div>
-        <div className="card card-green">
-          <span className="card-icon">🎉</span>
+        <div className="stat-card stat-card-green">
+          <span className="stat-card-icon">🎉</span>
           <div>
-            <h3 className="card-value">{loading ? '...' : metricas.locatariosCount}</h3>
-            <p className="card-label">Locatários</p>
+            <h3 className="stat-card-value">{loading ? '...' : metricas.locatariosCount}</h3>
+            <p className="stat-card-label">Locatários</p>
           </div>
         </div>
-        <div className="card card-yellow">
-          <span className="card-icon">🆕</span>
+        <div className="stat-card stat-card-yellow">
+          <span className="stat-card-icon">🆕</span>
           <div>
-            <h3 className="card-value">{loading ? '...' : metricas.novosNoPeriodo}</h3>
-            <p className="card-label">Novos no Período</p>
+            <h3 className="stat-card-value">{loading ? '...' : metricas.novosNoPeriodo}</h3>
+            <p className="stat-card-label">Novos no Período</p>
           </div>
         </div>
-        <div className="card card-purple">
-          <span className="card-icon">⚡</span>
+        <div className="stat-card stat-card-purple">
+          <span className="stat-card-icon">⚡</span>
           <div>
-            <h3 className="card-value">{loading ? '...' : metricas.ativosNoPeriodo}</h3>
-            <p className="card-label">Ativos no Período</p>
+            <h3 className="stat-card-value">{loading ? '...' : metricas.ativosNoPeriodo}</h3>
+            <p className="stat-card-label">Ativos no Período</p>
           </div>
         </div>
       </div>
