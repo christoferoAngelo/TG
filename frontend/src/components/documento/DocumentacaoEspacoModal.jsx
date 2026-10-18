@@ -1,165 +1,120 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import DocumentoUpload from "./DocumentoUpload";
 import DocumentoCard from "./DocumentoCard";
 
-import {
-    criarDocumentoEspaco
-} from "../../services/documentoService";
+import { criarDocumentoEspaco } from "../../services/documentoService";
 
+import "./DocumentacaoEspacoModal.css";
 
-export default function DocumentacaoEspacoModal({
-    espaco,
-    onClose,
-    onConcluir
-}) {
-
+export default function DocumentacaoEspacoModal({ espaco, onClose, onConcluir }) {
     const [documentos, setDocumentos] = useState([]);
     const [enviando, setEnviando] = useState(false);
+    const [aviso, setAviso] = useState("");
 
+    // Esc fecha o modal e a página de trás não rola enquanto ele está aberto
+    useEffect(() => {
+        const aoTeclar = (e) => {
+            if (e.key === "Escape" && !enviando) onClose?.();
+        };
+        window.addEventListener("keydown", aoTeclar);
+
+        const overflowAnterior = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            window.removeEventListener("keydown", aoTeclar);
+            document.body.style.overflow = overflowAnterior;
+        };
+    }, [enviando, onClose]);
 
     if (!espaco) {
         return null;
     }
 
-
     const handleEnviar = async (documento) => {
-
-        console.log("========================================");
-        console.log("📤 DocumentacaoEspacoModal - handleEnviar");
-        console.log("📤 Documento recebido:", documento);
-        console.log("📤 ID do espaço:", espaco.id);
-        console.log("========================================");
-
         try {
-
             setEnviando(true);
+            setAviso("");
 
-            const novoDocumento =
-                await criarDocumentoEspaco(
-                    espaco.id,
-                    documento
-                );
+            const novoDocumento = await criarDocumentoEspaco(espaco.id, documento);
 
-            console.log("✅ Documento cadastrado no backend:");
-            console.log(novoDocumento);
-
-            setDocumentos((prev) => [
-                ...prev,
-                novoDocumento
-            ]);
-
-            alert(
-                "Documento do espaço enviado para análise."
-            );
-
+            setDocumentos((prev) => [...prev, novoDocumento]);
+            setAviso("Documento enviado para análise.");
         } catch (error) {
-
-            console.error(
-                "❌ Erro ao cadastrar documento do espaço:",
-                error
-            );
-
-            alert(
-                error.message ||
-                "Erro ao enviar documento."
-            );
-
+            console.error("Erro ao cadastrar documento do espaço:", error);
+            alert(error.message || "Erro ao enviar documento.");
+            // O DocumentoUpload usa a rejeição para saber que o envio falhou
             throw error;
-
         } finally {
-
             setEnviando(false);
         }
     };
 
-
     const handleConcluir = () => {
-
         onConcluir?.(documentos);
-
         onClose?.();
     };
 
-
-    console.log("========================================");
-    console.log("📋 DocumentacaoEspacoModal");
-    console.log("📋 espaco:", espaco);
-    console.log("📋 espaco.id:", espaco?.id);
-    console.log("📋 handleEnviar:", handleEnviar);
-    console.log("📋 typeof handleEnviar:", typeof handleEnviar);
-    console.log("========================================");
-
-
     return (
-        <div className="modal-overlay">
+        <div className="docm-overlay">
+            <div
+                className="docm"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="docm-titulo"
+            >
+                <header className="docm-cab">
+                    <h2 id="docm-titulo">Documentação do espaço</h2>
+                    <p className="docm-espaco">{espaco.titulo}</p>
+                    <p className="docm-texto">
+                        Envie os documentos necessários para validar o anúncio. Você também
+                        pode fazer isso depois, pelo painel.
+                    </p>
+                </header>
 
-            <div className="modal-content">
+                <div className="docm-corpo">
+                    <DocumentoUpload
+                        categoria="ESPACO"
+                        espacoId={espaco.id}
+                        onDocumentoEnviado={handleEnviar}
+                    />
 
-                <h2>
-                    Documentação do espaço
-                </h2>
+                    {aviso && (
+                        <p className="docm-aviso" role="status">
+                            {aviso}
+                        </p>
+                    )}
 
-                <p>
-                    {espaco.titulo}
-                </p>
+                    {documentos.length > 0 && (
+                        <section className="docm-lista">
+                            <h3>Documentos adicionados ({documentos.length})</h3>
+                            {documentos.map((documento) => (
+                                <DocumentoCard key={documento.id} documento={documento} />
+                            ))}
+                        </section>
+                    )}
+                </div>
 
-                <p>
-                    Antes de disponibilizar o espaço,
-                    envie os documentos necessários
-                    para validação.
-                </p>
-
-
-                <DocumentoUpload
-                    categoria="ESPACO"
-                    espacoId={espaco.id}
-                    onDocumentoEnviado={handleEnviar}
-                />
-
-
-                {documentos.length > 0 && (
-
-                    <section>
-
-                        <h3>
-                            Documentos adicionados
-                        </h3>
-
-                        {documentos.map((documento) => (
-
-                            <DocumentoCard
-                                key={documento.id}
-                                documento={documento}
-                            />
-
-                        ))}
-
-                    </section>
-                )}
-
-
-                <div className="modal-actions">
-
+                <footer className="docm-rodape">
                     <button
                         type="button"
+                        className="docm-btn docm-btn--ghost"
                         onClick={onClose}
+                        disabled={enviando}
                     >
                         Fazer depois
                     </button>
-
                     <button
                         type="button"
+                        className="docm-btn docm-btn--primario"
                         onClick={handleConcluir}
                         disabled={enviando}
                     >
-                        Concluir documentação
+                        {enviando ? "Enviando…" : "Concluir documentação"}
                     </button>
-
-                </div>
-
+                </footer>
             </div>
-
         </div>
     );
 }

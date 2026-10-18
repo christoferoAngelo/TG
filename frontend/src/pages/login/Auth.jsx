@@ -203,6 +203,14 @@ export default function Auth() { // Retirada a prop onLoginSuccess
                         {isRegistering ? "Fazer Login" : "Cadastre-se"}
                     </span>
                 </p>
+                <div style={{ textAlign: "center", marginTop: "15px" }}>
+    <span 
+        onClick={() => navigate("/home")} 
+        style={{ ...styles.switchLink, fontSize: "14px" }}
+    >
+        ← Voltar para a Home como visitante
+    </span>
+</div>
             </div>
         </div>
     );

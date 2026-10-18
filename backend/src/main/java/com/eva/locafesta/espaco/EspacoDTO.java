@@ -50,6 +50,15 @@ public class EspacoDTO {
     private BigDecimal duracaoMaxHoras;
     private Integer intervaloLimpezaMin = 0;
     
+    private Boolean fechaNoDiaSeguinte = false;
+
+public Boolean getFechaNoDiaSeguinte() {
+    return fechaNoDiaSeguinte;
+}
+
+public void setFechaNoDiaSeguinte(Boolean fechaNoDiaSeguinte) {
+    this.fechaNoDiaSeguinte = fechaNoDiaSeguinte;
+}
 
     // Lista de características
     private Set<CaracteristicaDTO> caracteristicas;
@@ -105,4 +114,5 @@ public class EspacoDTO {
         this.duracaoMaxHoras = espaco.getDuracaoMaxHoras();
         this.intervaloLimpezaMin = espaco.getIntervaloLimpezaMin();
     }
+
 }

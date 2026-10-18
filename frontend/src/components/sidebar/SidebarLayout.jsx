@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import "./SidebarLayout.css";
-import HeaderHome from "../../pages/home/components/HeaderHome"
+import HeaderHome from "../../pages/home/components/HeaderHome";
 
 export default function SidebarLayout() {
     const navigate = useNavigate();
     const location = useLocation();
     const { logout } = useAuth();
     
-    // Estado para controlar se a sidebar está retraída ou expandida
     const [retraida, setRetraida] = useState(false);
 
     const menuItems = [
@@ -20,9 +19,18 @@ export default function SidebarLayout() {
         { label: "Documentos", path: "/documentos/usuario", icon: "📁" },
     ];
 
+    // NOVA FUNÇÃO DE LOGOUT COM REDIRECIONAMENTO EXPLÍCITO
+    const handleLogout = async () => {
+        try {
+            await logout();       // Limpa o Firebase e o estado global
+            navigate("/home");    // Leva explicitamente para a Home sem estar logado
+        } catch (error) {
+            console.error("Erro ao sair:", error);
+        }
+    };
+
     return (
         <div className={`app-layout ${retraida ? "sidebar-collapsed" : ""}`}>
-            {/* Sidebar Retraível */}
             <aside className={`sidebar ${retraida ? "collapsed" : ""}`}>
                 <div className="sidebar-header">
                     {!retraida && (
@@ -30,7 +38,6 @@ export default function SidebarLayout() {
                             LOCAFESTA
                         </h2>
                     )}
-                    {/* Botão para encolher / expandir */}
                     <button 
                         className="toggle-btn" 
                         onClick={() => setRetraida(!retraida)}
@@ -48,7 +55,7 @@ export default function SidebarLayout() {
                                 key={item.path}
                                 className={`sidebar-item ${ativo ? "active" : ""}`}
                                 onClick={() => navigate(item.path)}
-                                title={retraida ? item.label : ""} // Tooltip nativo quando retraída
+                                title={retraida ? item.label : ""}
                             >
                                 <span className="sidebar-icon">{item.icon}</span>
                                 {!retraida && <span className="sidebar-label">{item.label}</span>}
@@ -58,16 +65,16 @@ export default function SidebarLayout() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <button onClick={logout} className="sidebar-item logout" title={retraida ? "Sair" : ""}>
+                    {/* Alterado de onClick={logout} para onClick={handleLogout} */}
+                    <button onClick={handleLogout} className="sidebar-item logout" title={retraida ? "Sair" : ""}>
                         <span className="sidebar-icon">🚪</span>
                         {!retraida && <span className="sidebar-label">Sair</span>}
                     </button>
                 </div>
             </aside>
 
-            {/* Conteúdo dinâmico da página atual */}
             <main className="sidebar-content">
-                <HeaderHome /> {/* <-- Fica fixo no topo de todas as páginas da sidebar */}
+                <HeaderHome />
                 <Outlet />
             </main>
         </div>

@@ -216,6 +216,27 @@
     margin: 0 0 24px;
 }
 
+/* --- ESTADOS (erro / lista vazia) --- */
+.home-estado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 32px 0;
+    color: var(--color-text-muted);
+}
+
+.home-estado p {
+    margin: 0;
+    max-width: 52ch;
+    line-height: 1.5;
+}
+
+.chip-categoria:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}
+
 /* ==========================================================================
    RESPONSIVO
    ========================================================================== */

@@ -12,7 +12,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import MinhasReservas from "./pages/dashboard/components/MinhasReservas";
 import Home from "./pages/home/Home";
 import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco";
-import { PagamentoPage } from "./pages/pagamento/PagamentoPage"; // <--- NOVO IMPORT
+import { PagamentoPage } from "./pages/pagamento/PagamentoPage";
 
 // DOCUMENTOS
 import DocumentosUsuario from "./pages/documentos/DocumentosUsuario";
@@ -22,6 +22,8 @@ import GestaoReservas from "./components/locador/GestaoReservas";
 
 // IMPORT DO NOVO LAYOUT DA SIDEBAR
 import SidebarLayout from "./components/sidebar/SidebarLayout";
+import NovoEspaco from "./pages/novo espaco/NovoEspaco";
+
 
 // =====================================================
 // COMPONENTE PARA PROTEGER ROTAS
@@ -38,7 +40,7 @@ function RouteProtegida({ children }) {
     }
 
     if (!usuarioLogado) {
-        return <Navigate to="/home" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     return children;
@@ -47,7 +49,7 @@ function RouteProtegida({ children }) {
 function getRotaPorRole(usuario) {
     if (!usuario) return "/login";
     if (usuario.admin) return "/dashboard-admin";
-    if (usuario.locador) return "/dashboard-locador";
+    if (usuario.locador) return "/perfil_locador";
     return "/home";
 }
 
@@ -58,15 +60,20 @@ export default function AppRoutes() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Rotas Públicas / Sem Sidebar */}
+                {/* Rota inicial / padrão */}
+                <Route path="/" element={<Navigate to="/home" replace />} />
+
+                {/* Rotas Públicas (acessíveis com ou sem login) */}
+                <Route path="/home" element={<Home />} />
+                <Route path="/espaco/:id" element={<DetalhesEspaco />} />
+
+                {/* Tela de Login (Redireciona para o painel se já estiver logado) */}
                 <Route
                     path="/login"
                     element={usuarioLogado ? <Navigate to={rotaInicial} replace /> : <Auth />}
                 />
-                
-                <Route path="/espaco/:id" element={<DetalhesEspaco />} />
 
-                {/* Dashboard do Admin */}
+                {/* Dashboard do Admin (Protegida) */}
                 <Route
                     path="/dashboard-admin"
                     element={
@@ -84,7 +91,7 @@ export default function AppRoutes() {
                     }
                 />
 
-                {/* ROTAS COM A SIDEBAR (CLIENTE E LOCADOR) */}
+                {/* ROTAS PROTEGIDAS COM SIDEBAR (REQUEREM LOGIN) */}
                 <Route
                     element={
                         <RouteProtegida>
@@ -92,10 +99,10 @@ export default function AppRoutes() {
                         </RouteProtegida>
                     }
                 >
-                    <Route path="/home" element={<Home />} />
+                    <Route path="/locador/espacos/novo" element={<NovoEspaco />} />
                     <Route path="/perfil" element={<Dashboard />} />
                     <Route path="/minhas-reservas" element={<MinhasReservas />} />
-                    <Route path="/pagamento" element={<PagamentoPage />} /> {/* <--- NOVA ROTA DE PAGAMENTO */}
+                    <Route path="/pagamento" element={<PagamentoPage />} />
                     <Route path="/cadastro-locador" element={<CadastroLocador />} />
                     <Route path="/perfil_locador" element={<DashboardLocador />} />
                     <Route path="/admin-caracteristicas" element={<CaracteristicasPage />} />
@@ -104,10 +111,10 @@ export default function AppRoutes() {
                     <Route path="/locador/reservas" element={<GestaoReservas />} />
                 </Route>
 
-                {/* Rota não encontrada */}
+                {/* Rota genérica para caminhos não encontrados */}
                 <Route
                     path="*"
-                    element={<Navigate to={usuarioLogado ? rotaInicial : "/home"} replace />}
+                    element={<Navigate to="/home" replace />}
                 />
             </Routes>
         </BrowserRouter>

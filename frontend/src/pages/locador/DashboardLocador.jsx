@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import "../dashboard/Dashboard.css"; // Seu CSS unificado
 
@@ -6,13 +7,14 @@ import "../dashboard/Dashboard.css"; // Seu CSS unificado
 import Header from "../../components/locador/Header";
 import ResumoAnuncios from "../../components/locador/ResumoAnuncios";
 import EspacoItem from "../../components/locador/EspacoItem";
-import NovoEspacoModal from "../../components/locador/NovoEspacoModal";
-import DocumentacaoEspacoModal from "../../components/documento/DocumentacaoEspacoModal";
 import CalendarioSolicitacoes from "../../components/locador/CalendarioSolicitacoes";
 
 // As classes de badge já existentes no Dashboard.css usam sufixos em
 // português no masculino (aprovado/rejeitado), enquanto o status vem no
 // feminino (APROVADA/REJEITADA) — este mapa faz a ponte entre os dois.
+// ⚠️ Ajuste para a rota que você registrar para a página NovoEspaco
+const ROTA_NOVO_ESPACO = "/locador/espacos/novo";
+
 const BADGE_POR_STATUS = {
     PENDENTE: "badge-pendente",
     APROVADA: "badge-aprovado",
@@ -21,20 +23,16 @@ const BADGE_POR_STATUS = {
 
 export default function DashboardLocador() {
     const { usuarioLogado, logout } = useAuth();
+    const navigate = useNavigate();
 
     // Estados
     const [espacos, setEspacos] = useState([]);
-    const [caracteristicasDisponiveis, setCaracteristicasDisponiveis] = useState([]);
     const [carregando, setCarregando] = useState(false);
-    const [modalAberto, setModalAberto] = useState(false);
-    const [espacoCriado, setEspacoCriado] = useState(null);
-    const [modalDocumentacaoAberto, setModalDocumentacaoAberto] = useState(false);
     // Armazena os pedidos de locação
     const [solicitacoes, setSolicitacoes] = useState([]);
     // Controla se os pedidos aparecem como lista ou como calendário
     const [visualizacaoPedidos, setVisualizacaoPedidos] = useState("lista"); // "lista" | "calendario"
 
-    // Carregar espaços
     // Carregar espaços E solicitações
     useEffect(() => {
         if (usuarioLogado?.id) {
@@ -56,14 +54,6 @@ export default function DashboardLocador() {
                 .finally(() => setCarregando(false));
         }
     }, [usuarioLogado]);
-
-    // Carregar características
-    useEffect(() => {
-        fetch("http://localhost:8080/api/caracteristicas")
-            .then((res) => (res.ok ? res.json() : []))
-            .then((data) => setCaracteristicasDisponiveis(Array.isArray(data) ? data : []))
-            .catch(() => setCaracteristicasDisponiveis([]));
-    }, []);
 
     // Função de Alternar Status
     const handleAlternarStatus = async (espacoId) => {
@@ -91,58 +81,6 @@ export default function DashboardLocador() {
         } catch (err) {
             console.error(err);
             alert("Erro: " + err.message);
-        }
-    };
-
-    // Função que recebe os dados prontos do Modal e manda para a API
-    const handleSalvarEspaco = async (dadosFormulario) => {
-        setCarregando(true);
-
-        try {
-            const response = await fetch(
-                `http://localhost:8080/api/locadores/${usuarioLogado.id}/espacos`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        ...dadosFormulario,
-                        locadorId: usuarioLogado.id
-                    })
-                }
-            );
-
-            if (!response.ok) {
-                const erro = await response.text();
-                throw new Error(
-                    erro || "Falha ao cadastrar o espaço."
-                );
-            }
-
-            const novoEspaco = await response.json();
-
-            setEspacos((prev) => [
-                ...prev,
-                novoEspaco
-            ]);
-
-            setModalAberto(false);
-
-            setEspacoCriado(novoEspaco);
-            setModalDocumentacaoAberto(true);
-
-            alert(
-                "Espaço criado! Agora vamos adicionar a documentação."
-            );
-
-        } catch (err) {
-
-            alert("Erro: " + err.message);
-
-        } finally {
-
-            setCarregando(false);
         }
     };
 
@@ -190,7 +128,7 @@ export default function DashboardLocador() {
                         <h3>Painel do Locador</h3>
                         <p>Gerencie seus espaços, salões e acompanhe seus anúncios.</p>
                     </div>
-                    <button onClick={() => setModalAberto(true)} className="btn btn-destaque">
+                    <button onClick={() => navigate(ROTA_NOVO_ESPACO)} className="btn btn-destaque">
                         + Novo Anúncio
                     </button>
                 </div>
@@ -283,29 +221,6 @@ export default function DashboardLocador() {
                     )}
                 </div>
             </main>
-
-            {modalAberto && (
-                <NovoEspacoModal 
-                    onClose={() => setModalAberto(false)}
-                    onSalvar={handleSalvarEspaco}
-                    carregando={carregando}
-                    caracteristicasDisponiveis={caracteristicasDisponiveis}
-                />
-            )}
-
-            {modalDocumentacaoAberto && espacoCriado && (
-    <DocumentacaoEspacoModal
-        espaco={espacoCriado}
-        onClose={() => {
-            setModalDocumentacaoAberto(false);
-            setEspacoCriado(null);
-        }}
-        onConcluir={() => {
-            setModalDocumentacaoAberto(false);
-            setEspacoCriado(null);
-        }}
-    />
-)}
         </div>
     );
 }

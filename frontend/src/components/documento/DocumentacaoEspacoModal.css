@@ -1,0 +1,219 @@
+/* ==========================================================================
+   MODAL DE DOCUMENTAÇÃO DO ESPAÇO
+   Cabeçalho e rodapé fixos; só o miolo rola, então os botões
+   nunca somem, mesmo com formulário longo ou tela pequena.
+   ========================================================================== */
+.docm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(19, 5, 1, 0.55);
+}
+
+.docm {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 640px;
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    border-radius: var(--radius-lg, 16px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.docm-cab {
+    flex: 0 0 auto;
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.docm-cab h2 {
+    margin: 0 0 4px;
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.docm-espaco {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--color-text-secondary);
+}
+
+.docm-texto {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
+.docm-corpo {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 20px 28px;
+}
+
+/* Normaliza o conteúdo de DocumentoUpload e DocumentoCard, que herdavam
+   tamanhos de fonte grandes de estilos globais (p, strong, etc.).
+   !important só no font-size, para vencer seletores que não controlamos. */
+.docm .docm-corpo {
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-x: hidden;
+    overflow-wrap: anywhere;
+}
+
+.docm .docm-corpo p,
+.docm .docm-corpo span,
+.docm .docm-corpo strong,
+.docm .docm-corpo small,
+.docm .docm-corpo li,
+.docm .docm-corpo label,
+.docm .docm-corpo dt,
+.docm .docm-corpo dd,
+.docm .docm-corpo div,
+.docm .docm-corpo input,
+.docm .docm-corpo select,
+.docm .docm-corpo textarea,
+.docm .docm-corpo button {
+    font-size: 14px !important;
+    line-height: 1.5;
+}
+
+.docm .docm-corpo h1,
+.docm .docm-corpo h2,
+.docm .docm-corpo h3,
+.docm .docm-corpo h4 {
+    font-size: 1rem !important;
+    line-height: 1.3;
+    margin: 0 0 8px;
+}
+
+.docm .docm-corpo p {
+    margin: 0 0 4px;
+}
+
+.docm .docm-corpo input,
+.docm .docm-corpo select,
+.docm .docm-corpo textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.docm .docm-corpo img,
+.docm .docm-corpo video,
+.docm .docm-corpo iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+.docm-aviso {
+    margin: 16px 0 0;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    background: var(--color-primary-soft);
+    border-radius: var(--radius-md, 12px);
+}
+
+.docm-lista {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.docm-lista h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.docm-rodape {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 28px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.docm-btn {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 20px;
+    border-radius: var(--radius-pill);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.docm-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.docm-btn--primario {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.docm-btn--primario:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+}
+
+.docm-btn--ghost {
+    background: transparent;
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+.docm-btn--ghost:hover:not(:disabled) {
+    border-color: var(--color-text);
+}
+
+.docm-btn:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+    .docm-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .docm {
+        max-width: none;
+        max-height: 92vh;
+        max-height: 92dvh;
+        border-radius: var(--radius-lg, 16px) var(--radius-lg, 16px) 0 0;
+    }
+
+    .docm-cab,
+    .docm-corpo,
+    .docm-rodape {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .docm-rodape .docm-btn {
+        flex: 1;
+    }
+}
