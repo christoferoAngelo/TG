@@ -49,6 +49,9 @@ public class SecurityConfig {
                     "/api/espacos", "/api/espacos/**", 
                     "/api/reservas", "/api/reservas/**",
                     "/api/admin", "/api/admin/**",
+                    "/api/pagamento", "/api/pagamento/**",
+                    "/api/v1/pagamentos", "/api/v1/pagamentos/**",
+                    "/api/v1/**", "/api/v1/pagamentos/criar-preferencia",
                     "/api/logs-auditoria", "/api/logs-auditoria/**"
                 ).permitAll()
                 

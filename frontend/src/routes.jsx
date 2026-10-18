@@ -12,6 +12,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import MinhasReservas from "./pages/dashboard/components/MinhasReservas";
 import Home from "./pages/home/Home";
 import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco";
+import { PagamentoPage } from "./pages/pagamento/PagamentoPage"; // <--- NOVO IMPORT
 
 // DOCUMENTOS
 import DocumentosUsuario from "./pages/documentos/DocumentosUsuario";
@@ -20,7 +21,7 @@ import DocumentosAdmin from "./pages/documentos/DocumentosAdmin";
 import GestaoReservas from "./components/locador/GestaoReservas";
 
 // IMPORT DO NOVO LAYOUT DA SIDEBAR
-import SidebarLayout from "./components/sidebar/SidebarLayout"; // Ajuste o caminho da pasta onde salvou
+import SidebarLayout from "./components/sidebar/SidebarLayout";
 
 // =====================================================
 // COMPONENTE PARA PROTEGER ROTAS
@@ -65,7 +66,7 @@ export default function AppRoutes() {
                 
                 <Route path="/espaco/:id" element={<DetalhesEspaco />} />
 
-                {/* Dashboard do Admin (Mantém o layout próprio dele, sem esta sidebar) */}
+                {/* Dashboard do Admin */}
                 <Route
                     path="/dashboard-admin"
                     element={
@@ -83,10 +84,7 @@ export default function AppRoutes() {
                     }
                 />
 
-                {/* =====================================================
-                    ROTAS COM A SIDEBAR (CLIENTE E LOCADOR)
-                    O SidebarLayout abraça todas estas páginas abaixo!
-                ===================================================== */}
+                {/* ROTAS COM A SIDEBAR (CLIENTE E LOCADOR) */}
                 <Route
                     element={
                         <RouteProtegida>
@@ -97,6 +95,7 @@ export default function AppRoutes() {
                     <Route path="/home" element={<Home />} />
                     <Route path="/perfil" element={<Dashboard />} />
                     <Route path="/minhas-reservas" element={<MinhasReservas />} />
+                    <Route path="/pagamento" element={<PagamentoPage />} /> {/* <--- NOVA ROTA DE PAGAMENTO */}
                     <Route path="/cadastro-locador" element={<CadastroLocador />} />
                     <Route path="/perfil_locador" element={<DashboardLocador />} />
                     <Route path="/admin-caracteristicas" element={<CaracteristicasPage />} />

@@ -24,6 +24,13 @@ public class FirebaseFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+        // 🚀 EXCEÇÃO PARA O PAGAMENTO: Deixa passar direto sem validar token
+        if (path != null && path.startsWith("/api/v1/pagamentos")) {
+                filterChain.doFilter(request, response);
+                return;
+        }
+
         System.out.println("========================================");
         System.out.println("FIREBASE FILTER");
         System.out.println("URI: " + request.getRequestURI());

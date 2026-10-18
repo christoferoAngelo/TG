@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@mercadopago/sdk-react": "^1.0.7",
     "axios": "^1.18.1"
   }
 }
