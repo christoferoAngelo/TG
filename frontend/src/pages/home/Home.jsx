@@ -56,7 +56,6 @@ export default function Home() {
 
     return (
         <div className="home-container">
-            <HeaderHome onSearch={handlePesquisar} />
 
             <main className="home-main">
                 <section className="hero-section">

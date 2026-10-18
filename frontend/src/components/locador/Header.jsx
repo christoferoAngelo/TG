@@ -12,10 +12,12 @@ export default function Header({ usuarioLogado, logout }) {
             <div className="user-menu header-actions">
                 <span>Olá, <strong>{usuarioLogado?.nome}</strong>!</span>
                 
-                <button onClick={() => navigate("/dashboard")} className="btn btn-cancelar">
-                    Voltar ao Painel
+                <button onClick={() => navigate("/home")} className="btn btn-cancelar">
+                    Home
                 </button>
-                <button onClick={logout} className="logout-btn">Sair</button>
+                <button onClick={() => { console.log("Clicou em sair", logout); logout && logout(); }} className="logout-btn">
+                    Sair
+                </button>
             </div>
         </header>
     );

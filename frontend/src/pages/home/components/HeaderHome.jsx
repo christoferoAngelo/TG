@@ -15,9 +15,9 @@ export default function HeaderHome({ onSearch }) { // Recebendo a função onSea
         if (!usuarioLogado) {
             navigate("/login");
         } else if (isLocador) {
-            navigate("/dashboard-locador");
+            navigate("/perfil_locador");
         } else {
-            navigate("/dashboard");
+            navigate("/perfil");
         }
     };
 
@@ -65,13 +65,9 @@ export default function HeaderHome({ onSearch }) { // Recebendo a função onSea
                 <button onClick={handleAnunciarClick} className="btn-nav btn-highlight">
                     {textoBotaoAnunciar}
                 </button>
-                {usuarioLogado && (
-                    <button onClick={() => navigate("/minhas-reservas")} className="btn-nav">
-                        📅 Minhas Reservas
-                    </button>
-                )}
+                
                 <button 
-                    onClick={() => navigate(usuarioLogado ? "/dashboard" : "/login")} 
+                    onClick={() => navigate(usuarioLogado ? "/perfil" : "/login")} 
                     className="btn-nav"
                 >
                     👤 {usuarioLogado ? "Meu Perfil" : "Entrar"}

@@ -4,7 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import "./Dashboard.css"; // Seu arquivo CSS intacto pode ser importado aqui
 
 // Importando nossos novos componentes
-import Header from "../../components/locador/Header"; // Ajuste o caminho se necessário
+import Header from "./components/Header"; // Ajuste o caminho se necessário
 import StatusCadastro from "./components/StatusCadastro";
 import MeusPerfis from "./components/MeusPerfis";
 import DadosCadastrais from "./components/DadosCadastrais";
@@ -49,7 +49,6 @@ export default function Dashboard() {
 
     return (
         <div className="dashboard">
-            <Header />
 
             <main className="main">
                 <div className="main-header">

@@ -112,7 +112,6 @@ export default function MinhasReservas() {
 
     return (
         <div className="dashboard">
-            <Header />
 
             <main className="main">
                 <h3>Minhas Reservas</h3>

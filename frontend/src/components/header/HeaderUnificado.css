@@ -1,0 +1,55 @@
+/* ==========================================================================
+   HEADER UNIFICADO (Áreas Internas / Painéis)
+   ========================================================================== */
+.header-unificado {
+    background-color: var(--color-surface, #ffffff);
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-border, #eaeaea);
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Saudação ao usuário */
+.header-saudacao span {
+    font-size: 15px;
+    color: #333333;
+}
+
+.header-saudacao strong {
+    color: #e53935; /* Mantém a identidade visual do LocaFesta */
+}
+
+/* Ações à direita */
+.header-acoes-direita {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Botão de Perfil do Topo */
+.btn-perfil-topo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #f8f9fa;
+    color: #333333;
+    border: 1px solid #d1d5db;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-perfil-topo:hover {
+    background-color: #fff1f2;
+    border-color: #e53935;
+    color: #e53935;
+}

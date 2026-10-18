@@ -2,54 +2,35 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 
-// =====================================================
 // IMPORTS DAS PÁGINAS
-// =====================================================
-
 import Auth from "./pages/login/Auth";
 import CadastroLocador from "./pages/login/CadastroLocador";
-
 import DashboardLocador from "./pages/locador/DashboardLocador";
 import CaracteristicasPage from "./pages/locador/CaracteristicasPage";
-
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Dashboard from "./pages/dashboard/Dashboard";
 import MinhasReservas from "./pages/dashboard/components/MinhasReservas";
-
 import Home from "./pages/home/Home";
-
 import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco";
 
-// =====================================================
 // DOCUMENTOS
-// =====================================================
-
 import DocumentosUsuario from "./pages/documentos/DocumentosUsuario";
 import DocumentosEspaco from "./pages/documentos/DocumentosEspaco";
 import DocumentosAdmin from "./pages/documentos/DocumentosAdmin";
 import GestaoReservas from "./components/locador/GestaoReservas";
 
-
+// IMPORT DO NOVO LAYOUT DA SIDEBAR
+import SidebarLayout from "./components/sidebar/SidebarLayout"; // Ajuste o caminho da pasta onde salvou
 
 // =====================================================
 // COMPONENTE PARA PROTEGER ROTAS
 // =====================================================
-
 function RouteProtegida({ children }) {
-
     const { usuarioLogado, carregando } = useAuth();
 
     if (carregando) {
         return (
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100vh",
-                    fontFamily: "sans-serif"
-                }}
-            >
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "sans-serif" }}>
                 <p>Verificando credenciais...</p>
             </div>
         );
@@ -62,147 +43,29 @@ function RouteProtegida({ children }) {
     return children;
 }
 
-
-// =====================================================
-// DEFINIR ROTA INICIAL DE ACORDO COM O PERFIL
-// =====================================================
-
 function getRotaPorRole(usuario) {
-
-    if (!usuario) {
-        return "/login";
-    }
-
-    // Administrador
-    if (usuario.admin) {
-        return "/dashboard-admin";
-    }
-
-    // Locador
-    if (usuario.locador) {
-        return "/dashboard-locador";
-    }
-
-    // Cliente / Locatário
+    if (!usuario) return "/login";
+    if (usuario.admin) return "/dashboard-admin";
+    if (usuario.locador) return "/dashboard-locador";
     return "/home";
 }
 
-
-// =====================================================
-// ROTAS DA APLICAÇÃO
-// =====================================================
-
 export default function AppRoutes() {
-
     const { usuarioLogado } = useAuth();
-
-    console.log("=== USUÁRIO LOGADO ===", usuarioLogado);
-
     const rotaInicial = getRotaPorRole(usuarioLogado);
 
     return (
         <BrowserRouter>
-
             <Routes>
-
-                {/* =====================================================
-                    LOGIN
-                ===================================================== */}
-
+                {/* Rotas Públicas / Sem Sidebar */}
                 <Route
                     path="/login"
-                    element={
-                        usuarioLogado
-                            ? <Navigate to={rotaInicial} replace />
-                            : <Auth />
-                    }
+                    element={usuarioLogado ? <Navigate to={rotaInicial} replace /> : <Auth />}
                 />
+                
+                <Route path="/espaco/:id" element={<DetalhesEspaco />} />
 
-
-                {/* =====================================================
-                    HOME
-                ===================================================== */}
-
-                <Route
-                    path="/home"
-                    element={<Home />}
-                />
-
-
-                {/* =====================================================
-                    DASHBOARD DO CLIENTE / LOCATÁRIO
-                ===================================================== */}
-
-                <Route
-                    path="/dashboard"
-                    element={
-                        <RouteProtegida>
-                            <Dashboard />
-                        </RouteProtegida>
-                    }
-                />
-
-
-                {/* =====================================================
-                    MINHAS RESERVAS (LOCATÁRIO)
-                ===================================================== */}
-
-                <Route
-                    path="/minhas-reservas"
-                    element={
-                        <RouteProtegida>
-                            <MinhasReservas />
-                        </RouteProtegida>
-                    }
-                />
-
-
-                {/* =====================================================
-                    CADASTRO DE LOCADOR
-                ===================================================== */}
-
-                <Route
-                    path="/cadastro-locador"
-                    element={
-                        <RouteProtegida>
-                            <CadastroLocador />
-                        </RouteProtegida>
-                    }
-                />
-
-
-                {/* =====================================================
-                    DASHBOARD DO LOCADOR
-                ===================================================== */}
-
-                <Route
-                    path="/dashboard-locador"
-                    element={
-                        <RouteProtegida>
-                            <DashboardLocador />
-                        </RouteProtegida>
-                    }
-                />
-
-
-                {/* =====================================================
-                    CARACTERÍSTICAS
-                ===================================================== */}
-
-                <Route
-                    path="/admin-caracteristicas"
-                    element={
-                        <RouteProtegida>
-                            <CaracteristicasPage />
-                        </RouteProtegida>
-                    }
-                />
-
-
-                {/* =====================================================
-                    DASHBOARD DO ADMINISTRADOR
-                ===================================================== */}
-
+                {/* Dashboard do Admin (Mantém o layout próprio dele, sem esta sidebar) */}
                 <Route
                     path="/dashboard-admin"
                     element={
@@ -211,50 +74,6 @@ export default function AppRoutes() {
                         </RouteProtegida>
                     }
                 />
-
-
-                {/* =====================================================
-                    DETALHES DO ESPAÇO
-                ===================================================== */}
-
-                <Route
-                    path="/espaco/:id"
-                    element={<DetalhesEspaco />}
-                />
-
-
-                {/* =====================================================
-                    DOCUMENTOS DO USUÁRIO
-                ===================================================== */}
-
-                <Route
-                    path="/documentos/usuario"
-                    element={
-                        <RouteProtegida>
-                            <DocumentosUsuario />
-                        </RouteProtegida>
-                    }
-                />
-
-
-                {/* =====================================================
-                    DOCUMENTOS DO ESPAÇO
-                ===================================================== */}
-
-                <Route
-                    path="/documentos/espaco/:id"
-                    element={
-                        <RouteProtegida>
-                            <DocumentosEspaco />
-                        </RouteProtegida>
-                    }
-                />
-
-
-                {/* =====================================================
-                    DOCUMENTOS DO ADMIN
-                ===================================================== */}
-
                 <Route
                     path="/documentos-admin"
                     element={
@@ -265,38 +84,33 @@ export default function AppRoutes() {
                 />
 
                 {/* =====================================================
-                    GESTÃO DE RESERVAS DO LOCADOR
+                    ROTAS COM A SIDEBAR (CLIENTE E LOCADOR)
+                    O SidebarLayout abraça todas estas páginas abaixo!
                 ===================================================== */}
-                <Route 
-                    path="/locador/reservas" 
+                <Route
                     element={
                         <RouteProtegida>
-                            <GestaoReservas />
+                            <SidebarLayout />
                         </RouteProtegida>
-                    } 
-                />
+                    }
+                >
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/perfil" element={<Dashboard />} />
+                    <Route path="/minhas-reservas" element={<MinhasReservas />} />
+                    <Route path="/cadastro-locador" element={<CadastroLocador />} />
+                    <Route path="/perfil_locador" element={<DashboardLocador />} />
+                    <Route path="/admin-caracteristicas" element={<CaracteristicasPage />} />
+                    <Route path="/documentos/usuario" element={<DocumentosUsuario />} />
+                    <Route path="/documentos/espaco/:id" element={<DocumentosEspaco />} />
+                    <Route path="/locador/reservas" element={<GestaoReservas />} />
+                </Route>
 
-
-
-
-                {/* =====================================================
-                    ROTA NÃO ENCONTRADA
-                    DEVE FICAR SEMPRE POR ÚLTIMO
-                ===================================================== */}
-
+                {/* Rota não encontrada */}
                 <Route
                     path="*"
-                    element={
-                        <Navigate
-                            to={usuarioLogado ? rotaInicial : "/home"}
-                            replace
-                        />
-                    }
+                    element={<Navigate to={usuarioLogado ? rotaInicial : "/home"} replace />}
                 />
-
-                
             </Routes>
-
         </BrowserRouter>
     );
 }

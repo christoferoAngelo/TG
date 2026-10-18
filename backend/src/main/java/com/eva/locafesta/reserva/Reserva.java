@@ -1,4 +1,3 @@
-// Reserva.java
 package com.eva.locafesta.reserva;
 
 import com.eva.locafesta.espaco.Espaco;
@@ -10,6 +9,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,8 +34,18 @@ public class Reserva {
     private Usuario locatario;
 
     private LocalDate dataEvento;
+
+    // Intervalo efetivamente reservado no dia. Nulos = reservas antigas
+    // (anteriores ao controle por horário), tratadas como dia inteiro.
+    @Column(name = "hora_inicio")
+    private LocalTime horaInicio;
+
+    @Column(name = "hora_fim")
+    private LocalTime horaFim;
+
     private BigDecimal valorTotal;
     // Status: PENDENTE, APROVADA, REJEITADA, CANCELADA
+    @Builder.Default
     private String status = "PENDENTE"; 
 
     @Column(length = 500) // Opcional: aumenta o limite de caracteres no banco

@@ -4,11 +4,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     
     boolean existsByEspacoIdAndDataEventoAndStatusNot(Long espacoId, LocalDate dataEvento, String status);
+
+    // Reservas de um espaço numa data, nos status informados (usado para achar os horários ocupados)
+    List<Reserva> findByEspacoIdAndDataEventoAndStatusIn(Long espacoId, LocalDate dataEvento, Collection<String> status);
 
     // Mágica do Spring Data: Busca reservas onde o ID do Locador do Espaço seja igual ao passado
     List<Reserva> findByEspacoLocadorUsuarioId(Long usuarioId);

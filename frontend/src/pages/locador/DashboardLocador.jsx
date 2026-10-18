@@ -183,7 +183,6 @@ export default function DashboardLocador() {
 
     return (
         <div className="dashboard">
-            <Header usuarioLogado={usuarioLogado} logout={logout} />
 
             <main className="main">
                 <div className="main-header">

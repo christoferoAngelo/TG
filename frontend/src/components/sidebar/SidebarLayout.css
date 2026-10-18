@@ -1,0 +1,133 @@
+.app-layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 50px;
+    overflow: hidden;
+}
+
+/* Sidebar padrão (expandida) */
+.sidebar {
+    width: 210px;
+    background-color: #ffffff;
+    border-right: 1px solid #eaeaea;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px;
+    transition: width 0.3s ease, padding 0.3s ease;
+    z-index: 10;
+}
+
+/* Sidebar quando retraída */
+.sidebar.collapsed {
+    width: 80px;
+    padding: 20px 10px;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-left: 4px;
+}
+
+.sidebar-logo {
+    font-size: 18px;
+    font-weight: bold;
+    color: #e53935;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Botão de abrir/fechar */
+.toggle-btn {
+    background: #f1f3f5;
+    border: none;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+    background: #e2e8f0;
+}
+
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    border: none;
+    background: transparent;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.sidebar.collapsed .sidebar-item {
+    justify-content: center;
+    padding: 12px 0;
+}
+
+.sidebar-item:hover {
+    background-color: #fff1f2;
+    color: #e53935;
+}
+
+.sidebar-item.active {
+    background-color: #ffe4e6;
+    color: #e53935;
+    font-weight: 600;
+}
+
+.sidebar-icon {
+    font-size: 18px;
+    min-width: 24px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    border-top: 1px solid #eaeaea;
+    padding-top: 16px;
+}
+
+.sidebar-item.logout:hover {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+/* Área de conteúdo preenchendo o restante da tela sem restrições de largura */
+.sidebar-content {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;    background-color: #f8f9fa;
+}

@@ -1,7 +1,11 @@
 package com.eva.locafesta.reserva;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -14,7 +18,12 @@ public class ReservaController {
         this.reservaService = reservaService;
     }
 
-    // Substitua o comentário // ... (Mantenha o método de solicitarReserva aqui) ... por este código:
+    // Devolve a mensagem de erro (400/404/409...) no corpo da resposta, como o EspacoController faz
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> tratarErroDeNegocio(ResponseStatusException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+    }
+
     @PostMapping
     public ResponseEntity<Reserva> solicitarReserva(
             @RequestBody ReservaDTO dto, 
@@ -23,8 +32,17 @@ public class ReservaController {
         Reserva novaReserva = reservaService.criarReserva(dto, usuarioId);
         return ResponseEntity.ok(novaReserva);
     }
-    // Rota para listar todas as solicitações recebidas pelo locador
 
+    // Rota pública: períodos e horários livres/ocupados de um espaço numa data
+    // GET /api/reservas/espaco/{espacoId}/disponibilidade?data=2026-11-20
+    @GetMapping("/espaco/{espacoId}/disponibilidade")
+    public ResponseEntity<DisponibilidadeDTO> disponibilidade(
+            @PathVariable Long espacoId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        return ResponseEntity.ok(reservaService.consultarDisponibilidade(espacoId, data));
+    }
+
+    // Rota para listar todas as solicitações recebidas pelo locador
     @GetMapping("/minhas-solicitacoes")
     public ResponseEntity<List<ReservaResponseDTO>> listarMinhasSolicitacoes(@RequestHeader("Usuario-Id") Long usuarioId) {
         List<ReservaResponseDTO> solicitacoes = reservaService.listarSolicitacoesDoLocador(usuarioId);
