@@ -4,6 +4,7 @@ import com.eva.locafesta.caracteristica.Caracteristica;
 import com.eva.locafesta.caracteristica.CaracteristicaRepository;
 import com.eva.locafesta.caracteristica.CaracteristicaDTO;
 import com.eva.locafesta.endereco.Endereco;
+import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.endereco.GeocodingService;
 import com.eva.locafesta.locador.PerfilLocador;
 import com.eva.locafesta.locador.PerfilLocadorRepository;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +33,128 @@ public class EspacoService {
 
     @Autowired
     private GeocodingService geocodingService;
+
+    // ------------------------------------------------------------------
+    // Validações e helpers compartilhados entre criar e atualizar
+    // ------------------------------------------------------------------
+
+    // Validação de horário com suporte a madrugada.
+    // Se NÃO fecha no dia seguinte, o fechamento precisa ser depois da abertura.
+    private void validarHorario(EspacoDTO dto) {
+        if (dto.getHorarioAbertura() == null || dto.getHorarioFechamento() == null) {
+            throw new IllegalArgumentException(
+                "Informe o horário de abertura e fechamento do espaço."
+            );
+        }
+
+        boolean fechaNoDiaSeguinte = Boolean.TRUE.equals(dto.getFechaNoDiaSeguinte());
+
+        if (!fechaNoDiaSeguinte && !dto.getHorarioFechamento().isAfter(dto.getHorarioAbertura())) {
+            throw new IllegalArgumentException(
+                "O fechamento deve ocorrer depois da abertura. "
+                + "Espaços que funcionam após a meia-noite "
+                + "precisam marcar a opção de fechamento no dia seguinte."
+            );
+        }
+    }
+
+    private void validarLimites(EspacoDTO dto) {
+        if (dto.getIntervaloLimpezaMin() != null && dto.getIntervaloLimpezaMin() < 0) {
+            throw new IllegalArgumentException(
+                "O intervalo de limpeza não pode ser negativo."
+            );
+        }
+
+        if (dto.getDuracaoMaxHoras() != null && dto.getDuracaoMaxHoras().signum() <= 0) {
+            throw new IllegalArgumentException(
+                "A duração máxima deve ser maior que zero."
+            );
+        }
+    }
+
+    private Set<Caracteristica> resolverCaracteristicas(Set<CaracteristicaDTO> dtos) {
+        Set<Caracteristica> caracteristicas = new HashSet<>();
+        if (dtos == null) {
+            return caracteristicas;
+        }
+        for (CaracteristicaDTO caracDTO : dtos) {
+            if (caracDTO.getId() != null) {
+                Caracteristica carac = caracteristicaRepository.findById(caracDTO.getId())
+                        .orElseThrow(() -> new RuntimeException("Característica não encontrada para o ID: " + caracDTO.getId()));
+                caracteristicas.add(carac);
+            }
+        }
+        return caracteristicas;
+    }
+
+    private List<EspacoAmbiente> montarAmbientes(Espaco espaco, List<EspacoAmbienteDTO> dtos) {
+        return dtos.stream().map(ambDTO ->
+            EspacoAmbiente.builder()
+                    .espaco(espaco)
+                    .titulo(ambDTO.getTitulo())
+                    .descricao(ambDTO.getDescricao())
+                    .imagensUrls(ambDTO.getImagensUrls() != null
+                            ? new ArrayList<>(ambDTO.getImagensUrls())
+                            : new ArrayList<>())
+                    .build()
+        ).collect(Collectors.toList());
+    }
+
+    // ------------------------------------------------------------------
+    // Detecção de mudanças "sensíveis" (as que exigem nova análise do admin)
+    // ------------------------------------------------------------------
+
+    private String norm(String s) {
+        return s == null ? "" : s.trim();
+    }
+
+    private String normCep(String s) {
+        return s == null ? "" : s.replaceAll("\\D", "");
+    }
+
+    private boolean valorMudou(BigDecimal atual, BigDecimal novo) {
+        if (atual == null || novo == null) {
+            return atual != novo;
+        }
+        return atual.compareTo(novo) != 0;
+    }
+
+    private boolean enderecoMudou(Endereco atual, EnderecoDTO novo) {
+        if (novo == null) {
+            return false;
+        }
+        if (atual == null) {
+            return true;
+        }
+        return !normCep(atual.getCep()).equals(normCep(novo.getCep()))
+            || !norm(atual.getLogradouro()).equals(norm(novo.getLogradouro()))
+            || !norm(atual.getNumero()).equals(norm(novo.getNumero()))
+            || !norm(atual.getComplemento()).equals(norm(novo.getComplemento()))
+            || !norm(atual.getBairro()).equals(norm(novo.getBairro()))
+            || !norm(atual.getCidade()).equals(norm(novo.getCidade()))
+            || !norm(atual.getEstado()).equalsIgnoreCase(norm(novo.getEstado()));
+    }
+
+    private String assinaturaAmbiente(String titulo, String descricao, List<String> urls) {
+        return norm(titulo) + "|" + norm(descricao) + "|"
+            + (urls == null ? "" : String.join(",", urls));
+    }
+
+    private boolean ambientesMudaram(List<EspacoAmbiente> atuais, List<EspacoAmbienteDTO> novos) {
+        if (novos == null) {
+            return false;
+        }
+
+        List<String> assinaturasAtuais = atuais.stream()
+            .map(a -> assinaturaAmbiente(a.getTitulo(), a.getDescricao(), a.getImagensUrls()))
+            .collect(Collectors.toList());
+
+        List<String> assinaturasNovas = novos.stream()
+            .map(a -> assinaturaAmbiente(a.getTitulo(), a.getDescricao(), a.getImagensUrls()))
+            .collect(Collectors.toList());
+
+        return !assinaturasAtuais.equals(assinaturasNovas);
+    }
 
     // CREATE - Cadastrar um novo espaço
     @Transactional
@@ -56,35 +180,8 @@ public class EspacoService {
                 .longitude(dto.getEndereco().getLongitude())
                 .build();
 
-        if (dto.getHorarioAbertura() == null || dto.getHorarioFechamento() == null) {
-            throw new IllegalArgumentException(
-                "Informe o horário de abertura e fechamento do espaço."
-            );
-        }
-
-        // --- VALIDAÇÃO DE HORÁRIO COM SUPORTE A MADRUGADA ---
-        // Se NÃO for no dia seguinte (tratando nulo como false), bloqueia se a abertura for maior que o fechamento
-        boolean fechaNoDiaSeguinte = dto.getFechaNoDiaSeguinte() != null && dto.getFechaNoDiaSeguinte();
-
-        if (!fechaNoDiaSeguinte && !dto.getHorarioFechamento().isAfter(dto.getHorarioAbertura())) {
-            throw new IllegalArgumentException(
-                "O fechamento deve ocorrer depois da abertura. "
-                + "Espaços com funcionamento após a meia-noite "
-                + "precisam de uma regra específica."
-            );
-        }
-
-        if (dto.getIntervaloLimpezaMin() != null && dto.getIntervaloLimpezaMin() < 0) {
-            throw new IllegalArgumentException(
-                "O intervalo de limpeza não pode ser negativo."
-            );
-        }
-
-        if (dto.getDuracaoMaxHoras() != null && dto.getDuracaoMaxHoras().signum() <= 0) {
-            throw new IllegalArgumentException(
-                "A duração máxima deve ser maior que zero."
-            );
-        }
+        validarHorario(dto);
+        validarLimites(dto);
 
         Espaco espaco = Espaco.builder()
                 .locador(locador)
@@ -114,34 +211,24 @@ public class EspacoService {
 
         // 1. Vincula as Características
         if (dto.getCaracteristicas() != null && !dto.getCaracteristicas().isEmpty()) {
-            Set<Caracteristica> caracteristicas = new HashSet<>();
-            for (CaracteristicaDTO caracDTO : dto.getCaracteristicas()) {
-                if (caracDTO.getId() != null) {
-                    Caracteristica carac = caracteristicaRepository.findById(caracDTO.getId())
-                            .orElseThrow(() -> new RuntimeException("Característica não encontrada para o ID: " + caracDTO.getId()));
-                    caracteristicas.add(carac);
-                }
-            }
-            espaco.setCaracteristicas(caracteristicas);
+            espaco.setCaracteristicas(resolverCaracteristicas(dto.getCaracteristicas()));
         }
 
         // 2. Vincula os Ambientes e as Imagens
         if (dto.getAmbientes() != null && !dto.getAmbientes().isEmpty()) {
-            List<EspacoAmbiente> ambientes = dto.getAmbientes().stream().map(ambDTO -> {
-                return EspacoAmbiente.builder()
-                        .espaco(espaco)
-                        .titulo(ambDTO.getTitulo())
-                        .descricao(ambDTO.getDescricao())
-                        .imagensUrls(ambDTO.getImagensUrls() != null ? ambDTO.getImagensUrls() : new ArrayList<>())
-                        .build();
-            }).collect(Collectors.toList());
-            espaco.setAmbientes(ambientes);
+            espaco.setAmbientes(montarAmbientes(espaco, dto.getAmbientes()));
         }
 
         Espaco espacoSalvo = espacoRepository.save(espaco);
         return new EspacoDTO(espacoSalvo);
     }
-    // UPDATE / REENVIO - Atualizar espaço e reenviar para aprovação
+
+    // UPDATE / REENVIO - Atualiza o espaço.
+    // O status só volta para PENDENTE quando:
+    //   - o anúncio estava REJEITADO (é um reenvio para análise), ou
+    //   - algo sensível mudou: título, descrição, valor, capacidade, endereço, cômodos/fotos.
+    // Horários, formas de locação, duração, limpeza, restrições e características
+    // são atualizados sem perder a aprovação.
     @Transactional
     public EspacoDTO atualizarEspaco(Long espacoId, Long usuarioId, EspacoDTO dto) {
         Espaco espaco = espacoRepository.findById(espacoId)
@@ -155,67 +242,58 @@ public class EspacoService {
             throw new RuntimeException("Acesso negado: você não tem permissão para alterar este espaço.");
         }
 
-        // Atualiza campos cadastrais
+        validarHorario(dto);
+        validarLimites(dto);
+
+        // ---- 1. Descobre se houve mudança sensível (ANTES de alterar a entidade) ----
+        boolean mudancaSensivel =
+               !norm(espaco.getTitulo()).equals(norm(dto.getTitulo()))
+            || !norm(espaco.getDescricao()).equals(norm(dto.getDescricao()))
+            || valorMudou(espaco.getValorDiaria(), dto.getValorDiaria())
+            || !java.util.Objects.equals(espaco.getCapacidadePessoas(), dto.getCapacidadePessoas())
+            || enderecoMudou(espaco.getEndereco(), dto.getEndereco())
+            || ambientesMudaram(espaco.getAmbientes(), dto.getAmbientes());
+
+        boolean eraRejeitado = "REJEITADO".equalsIgnoreCase(espaco.getStatusAprovacao());
+
+        // ---- 2. Campos cadastrais ----
         espaco.setTitulo(dto.getTitulo());
         espaco.setDescricao(dto.getDescricao());
         espaco.setValorDiaria(dto.getValorDiaria());
         espaco.setCapacidadePessoas(dto.getCapacidadePessoas());
         espaco.setRestricoesHorario(dto.getRestricoesHorario());
 
-        // Funcionamento
-        if (dto.getHorarioAbertura() != null) {
-            espaco.setHorarioAbertura(dto.getHorarioAbertura());
-        }
+        // ---- 3. Funcionamento ----
+        espaco.setHorarioAbertura(dto.getHorarioAbertura());
+        espaco.setHorarioFechamento(dto.getHorarioFechamento());
 
-        if (dto.getHorarioFechamento() != null) {
-            espaco.setHorarioFechamento(dto.getHorarioFechamento());
-        }
-
-        // Modalidades de locação
+        // ---- 4. Modalidades de locação ----
         if (dto.getPermiteMeioPeriodo() != null) {
-            espaco.setPermiteMeioPeriodo(
-                dto.getPermiteMeioPeriodo()
-            );
+            espaco.setPermiteMeioPeriodo(dto.getPermiteMeioPeriodo());
         }
 
         if (dto.getPermitePeriodoIntegral() != null) {
-            espaco.setPermitePeriodoIntegral(
-                dto.getPermitePeriodoIntegral()
-            );
+            espaco.setPermitePeriodoIntegral(dto.getPermitePeriodoIntegral());
         }
 
         if (dto.getPermiteHorarioPersonalizado() != null) {
-            espaco.setPermiteHorarioPersonalizado(
-                dto.getPermiteHorarioPersonalizado()
-            );
+            espaco.setPermiteHorarioPersonalizado(dto.getPermiteHorarioPersonalizado());
         }
 
-        if (dto.getDuracaoMaxHoras() != null) {
-            espaco.setDuracaoMaxHoras(dto.getDuracaoMaxHoras());
-        }
+        // Duração máxima é opcional: null significa "sem limite", então precisa poder limpar
+        espaco.setDuracaoMaxHoras(dto.getDuracaoMaxHoras());
 
         if (dto.getIntervaloLimpezaMin() != null) {
-            if (dto.getIntervaloLimpezaMin() < 0) {
-                throw new IllegalArgumentException(
-                    "O intervalo de limpeza não pode ser negativo."
-                );
-            }
-
-            espaco.setIntervaloLimpezaMin(
-                dto.getIntervaloLimpezaMin()
-            );
+            espaco.setIntervaloLimpezaMin(dto.getIntervaloLimpezaMin());
         }
 
-        // Se o locador enviou uma mensagem de ajuste/réplica
+        // ---- 5. Mensagem de ajuste/réplica ao admin ----
         if (dto.getRespostaLocador() != null) {
             espaco.setRespostaLocador(dto.getRespostaLocador());
         }
 
-        // Ao reenviar/editar, o status volta para PENDENTE para análise do Admin
-        espaco.setStatusAprovacao("PENDENTE");
-
-        // Atualiza Endereço se informado
-        if (dto.getEndereco() != null) {
+        // ---- 6. Endereço (só geocodifica quando mudou, para não perder lat/long) ----
+        if (dto.getEndereco() != null && enderecoMudou(espaco.getEndereco(), dto.getEndereco())) {
             geocodingService.preencherCoordenadas(dto.getEndereco());
             Endereco end = espaco.getEndereco() != null ? espaco.getEndereco() : new Endereco();
             end.setCep(dto.getEndereco().getCep());
@@ -230,34 +308,21 @@ public class EspacoService {
             espaco.setEndereco(end);
         }
 
-        // Atualiza Características
+        // ---- 7. Características ----
         if (dto.getCaracteristicas() != null) {
-            Set<Caracteristica> caracteristicas = new HashSet<>();
-            for (CaracteristicaDTO caracDTO : dto.getCaracteristicas()) {
-                if (caracDTO.getId() != null) {
-                    Caracteristica carac = caracteristicaRepository.findById(caracDTO.getId())
-                            .orElseThrow(() -> new RuntimeException("Característica não encontrada para o ID: " + caracDTO.getId()));
-                    caracteristicas.add(carac);
-                }
-            }
-            espaco.setCaracteristicas(caracteristicas);
+            espaco.setCaracteristicas(resolverCaracteristicas(dto.getCaracteristicas()));
         }
 
-        // Atualiza os Ambientes e Imagens
-        if (dto.getAmbientes() != null) {
-            // Remove os antigos e insere os novos (aproveitando o orphanRemoval=true no Espaco.java)
+        // ---- 8. Ambientes e imagens ----
+        if (dto.getAmbientes() != null && ambientesMudaram(espaco.getAmbientes(), dto.getAmbientes())) {
+            // Remove os antigos e insere os novos (orphanRemoval=true no Espaco.java)
             espaco.getAmbientes().clear();
+            espaco.getAmbientes().addAll(montarAmbientes(espaco, dto.getAmbientes()));
+        }
 
-            List<EspacoAmbiente> novosAmbientes = dto.getAmbientes().stream().map(ambDTO -> {
-                return EspacoAmbiente.builder()
-                        .espaco(espaco)
-                        .titulo(ambDTO.getTitulo())
-                        .descricao(ambDTO.getDescricao())
-                        .imagensUrls(ambDTO.getImagensUrls() != null ? ambDTO.getImagensUrls() : new ArrayList<>())
-                        .build();
-            }).collect(Collectors.toList());
-
-            espaco.getAmbientes().addAll(novosAmbientes);
+        // ---- 9. Status de aprovação ----
+        if (eraRejeitado || mudancaSensivel) {
+            espaco.setStatusAprovacao("PENDENTE");
         }
 
         Espaco espacoSalvo = espacoRepository.save(espaco);
@@ -332,16 +397,18 @@ public class EspacoService {
         Espaco espacoSalvo = espacoRepository.save(espaco);
         return new EspacoDTO(espacoSalvo);
     }
-    
+
+    // ambientes é lazy: precisa de transação aberta para montar o DTO
+    @Transactional(readOnly = true)
     public EspacoDTO buscarPorId(Long espacoId) {
         Espaco espaco = espacoRepository.findById(espacoId)
             .orElseThrow(() -> new RuntimeException("Espaço não encontrado!"));
-            
-        return converterParaDTO(espaco); // Use o seu método de conversão aqui
+
+        return converterParaDTO(espaco);
     }
 
     @Transactional
-    public EspacoDTO alternarStatusAtivo(Long usuarioId, Long espacoId) { 
+    public EspacoDTO alternarStatusAtivo(Long usuarioId, Long espacoId) {
         // 1. Busca o espaço no banco de dados
         Espaco espaco = espacoRepository.findById(espacoId)
                 .orElseThrow(() -> new RuntimeException("Espaço não encontrado"));

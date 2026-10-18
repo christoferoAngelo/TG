@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ListaEspacos } from "../../components/locatario/ListaEspacos.jsx";
-import HeaderHome from "./components/HeaderHome.jsx";
 import "./Home.css";
 
 const API_BUSCA = "http://localhost:8080/api/locadores/espacos/busca";
@@ -22,13 +21,11 @@ export default function Home() {
     const [erro, setErro] = useState(false);
     const [categoriaAtiva, setCategoriaAtiva] = useState("Todos");
     const [termoAtivo, setTermoAtivo] = useState("");
+    const [termoDigitado, setTermoDigitado] = useState("");
     const [params] = useSearchParams();
 
-    // Evita que uma resposta antiga sobrescreva uma busca mais recente
     const ultimaBusca = useRef(0);
 
-    // Sempre usa a rota de busca: ela só devolve espaços APROVADOS e ATIVOS.
-    // (A rota /espacos/todos devolve tudo, inclusive pendentes e desativados.)
     const buscarEspacosNaApi = (termo = "") => {
         const idBusca = ++ultimaBusca.current;
         setCarregando(true);
@@ -55,20 +52,21 @@ export default function Home() {
             });
     };
 
-    // Ao abrir a tela busca tudo, ou o termo vindo da busca de outra página (/home?q=...)
     useEffect(() => {
-        buscarEspacosNaApi((params.get("q") || "").trim());
+        const termoUrl = (params.get("q") || "").trim();
+        setTermoDigitado(termoUrl);
+        buscarEspacosNaApi(termoUrl);
     }, [params]);
 
-    // Função passada para a barra de pesquisa no Header
-    const handlePesquisar = (termo) => {
+    const handlePesquisar = (e) => {
+        e?.preventDefault();
         setCategoriaAtiva("Todos");
-        buscarEspacosNaApi(termo.trim());
+        buscarEspacosNaApi(termoDigitado.trim());
     };
 
-    // Filtro rápido por categoria, reaproveitando a mesma rota de busca
     const handleCategoria = (categoria) => {
         setCategoriaAtiva(categoria);
+        setTermoDigitado(""); // Limpa o input de texto ao filtrar por categoria chip
         buscarEspacosNaApi(categoria === "Todos" ? "" : categoria);
     };
 
@@ -77,13 +75,25 @@ export default function Home() {
 
     return (
         <div className="home-container">
-            <HeaderHome onSearch={handlePesquisar} />
-
             <main className="home-main">
                 <section className="hero-section">
                     <div className="hero-inner">
                         <h1>Encontre o espaço perfeito para o seu próximo evento</h1>
                         <p>Explore salões, chácaras e rooftops disponíveis para locação.</p>
+                        
+                        {/* 👇 Barra de pesquisa centralizada no Hero */}
+                        <form onSubmit={handlePesquisar} className="hero-search-container">
+                            <input
+                                type="text"
+                                placeholder="Buscar por cidade, salão, chácara..."
+                                className="search-input"
+                                value={termoDigitado}
+                                onChange={(e) => setTermoDigitado(e.target.value)}
+                            />
+                            <button type="submit" className="search-btn" title="Pesquisar">
+                                🔍
+                            </button>
+                        </form>
                     </div>
                 </section>
 

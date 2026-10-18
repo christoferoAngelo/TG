@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 // O DocumentacaoEspacoModal depende das classes de modal do Dashboard.css
 import "../dashboard/Dashboard.css";
@@ -19,7 +19,7 @@ const ESTADO_INICIAL = {
     valorDiaria: "",
     horarioAbertura: "",
     horarioFechamento: "",
-    fechaNoDiaSeguinte: false, 
+    fechaNoDiaSeguinte: false,
     permiteMeioPeriodo: true,
     permitePeriodoIntegral: true,
     permiteHorarioPersonalizado: false,
@@ -41,6 +41,33 @@ const mascararCep = (valor) => {
     const d = valor.replace(/\D/g, "").slice(0, 8);
     return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
 };
+
+// O LocalTime pode chegar como "18:00:00" ou como [18, 0], dependendo da config do Jackson
+const formatarHora = (v) => {
+    if (!v) return "";
+    if (Array.isArray(v)) {
+        return `${String(v[0]).padStart(2, "0")}:${String(v[1] ?? 0).padStart(2, "0")}`;
+    }
+    return String(v).slice(0, 5);
+};
+
+// Foto nova = tem o arquivo local. Foto já salva = só tem a URL do Cloudinary.
+const ehFotoNova = (f) => Boolean(f.file);
+const liberarPreview = (f) => {
+    if (f.file) URL.revokeObjectURL(f.preview);
+};
+
+// Usada para saber se o usuário mexeu em algo na edição
+const gerarAssinatura = (form, ambientes, resposta) =>
+    JSON.stringify({
+        form,
+        amb: ambientes.map((a) => ({
+            t: a.titulo,
+            d: a.descricao,
+            f: a.fotos.map((f) => f.url || `novo-${f.id}`),
+        })),
+        r: resposta,
+    });
 
 async function enviarParaCloudinary(arquivo) {
     const body = new FormData();
@@ -69,15 +96,13 @@ function validar(form, ambientesPreenchidos) {
     if (!(Number(form.valorDiaria) > 0)) e.valorDiaria = "Informe um valor de diária maior que zero.";
 
     if (!form.horarioAbertura) e.horarioAbertura = "Informe o horário de abertura.";
-    
-    // --- CORREÇÃO DA VALIDAÇÃO DE HORÁRIO ---
+
     if (!form.horarioFechamento) {
         e.horarioFechamento = "Informe o horário de fechamento.";
     } else if (!form.fechaNoDiaSeguinte && form.horarioAbertura && form.horarioFechamento <= form.horarioAbertura) {
         // Só gera erro se NÃO marcou a opção do dia seguinte E o fechamento for menor/igual à abertura
         e.horarioFechamento = "O fechamento precisa ser depois da abertura (ou marque a opção de fechar no dia seguinte).";
     }
-    // ----------------------------------------
 
     if (!form.permiteMeioPeriodo && !form.permitePeriodoIntegral && !form.permiteHorarioPersonalizado) {
         e.modalidades = "Escolha pelo menos uma forma de locação.";
@@ -134,6 +159,10 @@ export default function NovoEspaco() {
     const navigate = useNavigate();
     const { usuarioLogado } = useAuth();
 
+    // Se a rota tiver :id, a página funciona em modo edição
+    const { id } = useParams();
+    const editando = Boolean(id);
+
     const [form, setForm] = useState(ESTADO_INICIAL);
     const [ambientes, setAmbientes] = useState(() => [novoAmbiente()]);
     const [caracteristicasDisponiveis, setCaracteristicasDisponiveis] = useState([]);
@@ -146,8 +175,15 @@ export default function NovoEspaco() {
     const [erroEnvio, setErroEnvio] = useState("");
     const [espacoCriado, setEspacoCriado] = useState(null);
 
+    // --- estado exclusivo da edição ---
+    const [carregando, setCarregando] = useState(editando);
+    const [erroCarregar, setErroCarregar] = useState("");
+    const [espacoOriginal, setEspacoOriginal] = useState(null);
+    const [respostaLocador, setRespostaLocador] = useState("");
+    const snapshotRef = useRef("");
+
     const numeroRef = useRef(null);
-    // Guarda as URLs já enviadas ao Cloudinary: se o POST falhar, o reenvio não refaz os uploads
+    // Guarda as URLs já enviadas ao Cloudinary: se o POST/PUT falhar, o reenvio não refaz os uploads
     const uploadsFeitos = useRef(new Map());
     // Referência atualizada para revogar as prévias ao sair da página
     const ambientesRef = useRef(ambientes);
@@ -161,8 +197,88 @@ export default function NovoEspaco() {
     }, []);
 
     useEffect(() => () => {
-        ambientesRef.current.forEach((a) => a.fotos.forEach((f) => URL.revokeObjectURL(f.preview)));
+        ambientesRef.current.forEach((a) => a.fotos.forEach(liberarPreview));
     }, []);
+
+    /* ---------- carregar espaço (modo edição) ---------- */
+
+    useEffect(() => {
+        if (!editando || !usuarioLogado?.id) return;
+
+        let cancelado = false;
+        setCarregando(true);
+        setErroCarregar("");
+
+        // Busca na lista do próprio locador: assim só carrega espaços que são dele
+        fetch(`${API}/locadores/${usuarioLogado.id}/espacos`)
+            .then((res) =>
+                res.ok ? res.json() : Promise.reject(new Error("Não foi possível carregar seus espaços."))
+            )
+            .then((lista) => {
+                const e = (Array.isArray(lista) ? lista : []).find((x) => String(x.id) === String(id));
+                if (!e) throw new Error("Espaço não encontrado ou não pertence à sua conta.");
+                if (cancelado) return;
+
+                const abre = formatarHora(e.horarioAbertura);
+                const fecha = formatarHora(e.horarioFechamento);
+
+                const formCarregado = {
+                    titulo: e.titulo ?? "",
+                    descricao: e.descricao ?? "",
+                    capacidadePessoas: e.capacidadePessoas == null ? "" : String(e.capacidadePessoas),
+                    valorDiaria: e.valorDiaria == null ? "" : String(e.valorDiaria),
+                    horarioAbertura: abre,
+                    horarioFechamento: fecha,
+                    // O backend não guarda esse campo: se fecha <= abre, o espaço vira a noite
+                    fechaNoDiaSeguinte: Boolean(abre && fecha && fecha <= abre),
+                    permiteMeioPeriodo: e.permiteMeioPeriodo ?? true,
+                    permitePeriodoIntegral: e.permitePeriodoIntegral ?? true,
+                    permiteHorarioPersonalizado: e.permiteHorarioPersonalizado ?? false,
+                    duracaoMaxHoras: e.duracaoMaxHoras == null ? "" : String(e.duracaoMaxHoras),
+                    intervaloLimpezaMin: String(e.intervaloLimpezaMin ?? 0),
+                    restricoesHorario: e.restricoesHorario ?? "",
+                    caracteristicas: Array.isArray(e.caracteristicas) ? e.caracteristicas : [],
+                    endereco: {
+                        cep: e.endereco?.cep ?? "",
+                        logradouro: e.endereco?.logradouro ?? "",
+                        numero: e.endereco?.numero ?? "",
+                        complemento: e.endereco?.complemento ?? "",
+                        bairro: e.endereco?.bairro ?? "",
+                        cidade: e.endereco?.cidade ?? "",
+                        estado: e.endereco?.estado ?? "",
+                    },
+                };
+
+                const ambientesCarregados =
+                    Array.isArray(e.ambientes) && e.ambientes.length > 0
+                        ? e.ambientes.map((a) => ({
+                              id: novoId(),
+                              titulo: a.titulo ?? "",
+                              descricao: a.descricao ?? "",
+                              // fotos já salvas: têm url e não têm file
+                              fotos: (a.imagensUrls ?? []).map((url) => ({ id: novoId(), url, preview: url })),
+                          }))
+                        : [novoAmbiente()];
+
+                const resposta = e.respostaLocador ?? "";
+
+                setEspacoOriginal(e);
+                setForm(formCarregado);
+                setAmbientes(ambientesCarregados);
+                setRespostaLocador(resposta);
+                snapshotRef.current = gerarAssinatura(formCarregado, ambientesCarregados, resposta);
+            })
+            .catch((err) => {
+                if (!cancelado) setErroCarregar(err.message || "Não foi possível carregar o espaço.");
+            })
+            .finally(() => {
+                if (!cancelado) setCarregando(false);
+            });
+
+        return () => {
+            cancelado = true;
+        };
+    }, [editando, id, usuarioLogado?.id]);
 
     /* ---------- helpers de estado ---------- */
 
@@ -253,14 +369,14 @@ export default function NovoEspaco() {
 
     /* ---------- cômodos e fotos ---------- */
 
-    const atualizarAmbiente = (id, campo, valor) => {
-        setAmbientes((prev) => prev.map((a) => (a.id === id ? { ...a, [campo]: valor } : a)));
+    const atualizarAmbiente = (ambId, campo, valor) => {
+        setAmbientes((prev) => prev.map((a) => (a.id === ambId ? { ...a, [campo]: valor } : a)));
         setErros((prev) => {
-            if (!prev.amb?.[id]?.[campo] && !prev.ambientes) return prev;
+            if (!prev.amb?.[ambId]?.[campo] && !prev.ambientes) return prev;
             const amb = { ...(prev.amb || {}) };
-            if (amb[id]) {
-                const { [campo]: _r, ...resto } = amb[id];
-                if (Object.keys(resto).length) amb[id] = resto; else delete amb[id];
+            if (amb[ambId]) {
+                const { [campo]: _r, ...resto } = amb[ambId];
+                if (Object.keys(resto).length) amb[ambId] = resto; else delete amb[ambId];
             }
             const { ambientes: _a, ...semGeral } = prev;
             return { ...semGeral, amb };
@@ -269,10 +385,10 @@ export default function NovoEspaco() {
 
     const adicionarAmbiente = () => setAmbientes((prev) => [...prev, novoAmbiente()]);
 
-    const removerAmbiente = (id) => {
-        const alvo = ambientes.find((a) => a.id === id);
-        alvo?.fotos.forEach((f) => URL.revokeObjectURL(f.preview));
-        setAmbientes((prev) => (prev.length === 1 ? [novoAmbiente()] : prev.filter((a) => a.id !== id)));
+    const removerAmbiente = (ambId) => {
+        const alvo = ambientes.find((a) => a.id === ambId);
+        alvo?.fotos.forEach(liberarPreview);
+        setAmbientes((prev) => (prev.length === 1 ? [novoAmbiente()] : prev.filter((a) => a.id !== ambId)));
     };
 
     const adicionarFotos = (ambId, lista) => {
@@ -309,7 +425,7 @@ export default function NovoEspaco() {
 
     const removerFoto = (ambId, fotoId) => {
         const foto = ambientes.find((a) => a.id === ambId)?.fotos.find((f) => f.id === fotoId);
-        if (foto) URL.revokeObjectURL(foto.preview);
+        if (foto) liberarPreview(foto);
         uploadsFeitos.current.delete(fotoId);
         setAmbientes((prev) =>
             prev.map((a) => (a.id === ambId ? { ...a, fotos: a.fotos.filter((f) => f.id !== fotoId) } : a))
@@ -318,11 +434,16 @@ export default function NovoEspaco() {
 
     /* ---------- navegação ---------- */
 
-    const formularioSujo =
-        form.titulo || form.descricao || ambientes.some((a) => a.titulo || a.fotos.length > 0);
+    const formularioSujo = editando
+        ? snapshotRef.current !== "" &&
+          snapshotRef.current !== gerarAssinatura(form, ambientes, respostaLocador)
+        : Boolean(form.titulo || form.descricao || ambientes.some((a) => a.titulo || a.fotos.length > 0));
 
     const cancelar = () => {
-        if (formularioSujo && !window.confirm("Descartar este anúncio? As informações preenchidas serão perdidas.")) {
+        const aviso = editando
+            ? "Descartar as alterações? O que você mudou não será salvo."
+            : "Descartar este anúncio? As informações preenchidas serão perdidas.";
+        if (formularioSujo && !window.confirm(aviso)) {
             return;
         }
         navigate(ROTA_PAINEL);
@@ -342,7 +463,7 @@ export default function NovoEspaco() {
         if (enviando || espacoCriado) return;
 
         if (!usuarioLogado?.id) {
-            setErroEnvio("Sua sessão expirou. Entre novamente para anunciar o espaço.");
+            setErroEnvio("Sua sessão expirou. Entre novamente para salvar o espaço.");
             return;
         }
 
@@ -358,17 +479,20 @@ export default function NovoEspaco() {
 
         setEnviando(true);
         try {
-            const totalFotos = preenchidos.reduce((soma, a) => soma + a.fotos.length, 0);
+            // Só as fotos novas passam pelo Cloudinary; as já salvas reaproveitam a URL
+            const fotosNovas = (a) => a.fotos.filter(ehFotoNova);
+            const totalFotos = preenchidos.reduce((soma, a) => soma + fotosNovas(a).length, 0);
             let enviadas = preenchidos.reduce(
-                (soma, a) => soma + a.fotos.filter((f) => uploadsFeitos.current.has(f.id)).length, 0
+                (soma, a) => soma + fotosNovas(a).filter((f) => uploadsFeitos.current.has(f.id)).length, 0
             );
-            setProgresso({ enviadas, total: totalFotos });
+            if (totalFotos > 0) setProgresso({ enviadas, total: totalFotos });
 
             const ambientesProcessados = [];
             for (const amb of preenchidos) {
                 // Promise.all preserva a ordem das fotos
                 const imagensUrls = await Promise.all(
                     amb.fotos.map(async (foto) => {
+                        if (foto.url) return foto.url; // já está no Cloudinary
                         if (uploadsFeitos.current.has(foto.id)) return uploadsFeitos.current.get(foto.id);
                         const url = await enviarParaCloudinary(foto.file);
                         uploadsFeitos.current.set(foto.id, url);
@@ -413,18 +537,38 @@ export default function NovoEspaco() {
                 ambientes: ambientesProcessados,
             };
 
-            const response = await fetch(`${API}/locadores/${usuarioLogado.id}/espacos`, {
-                method: "POST",
+            if (editando) {
+                payload.respostaLocador = respostaLocador.trim() || null;
+            }
+
+            const url = editando
+                ? `${API}/locadores/${usuarioLogado.id}/espacos/${id}`
+                : `${API}/locadores/${usuarioLogado.id}/espacos`;
+
+            const response = await fetch(url, {
+                method: editando ? "PUT" : "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
                 const msg = await response.text();
-                throw new Error(msg || "Falha ao cadastrar o espaço.");
+                throw new Error(msg || (editando ? "Falha ao salvar as alterações." : "Falha ao cadastrar o espaço."));
             }
 
-            setEspacoCriado(await response.json());
+            const salvo = await response.json();
+
+            if (editando) {
+                const estavaPendente = (espacoOriginal?.statusAprovacao || "").toUpperCase() === "PENDENTE";
+                if (!estavaPendente && (salvo.statusAprovacao || "").toUpperCase() === "PENDENTE") {
+                    window.alert(
+                        "Alterações salvas! Como houve mudanças que precisam de análise, o anúncio voltou para \"Pendente\"."
+                    );
+                }
+                finalizar();
+            } else {
+                setEspacoCriado(salvo);
+            }
         } catch (err) {
             console.error(err);
             setErroEnvio(err.message || "Não foi possível salvar o anúncio. Tente novamente.");
@@ -436,10 +580,46 @@ export default function NovoEspaco() {
 
     const temErros = Object.keys(erros).length > 0;
     const textoBotao = enviando
-        ? progresso
+        ? progresso && progresso.total > 0
             ? `Enviando fotos ${progresso.enviadas}/${progresso.total}…`
-            : "Salvando anúncio…"
-        : "Publicar anúncio";
+            : "Salvando…"
+        : editando
+            ? "Salvar alterações"
+            : "Publicar anúncio";
+
+    const rejeitado = (espacoOriginal?.statusAprovacao || "").toUpperCase() === "REJEITADO";
+
+    const mensagemBarra = editando
+        ? rejeitado
+            ? "Ao salvar, o anúncio será reenviado para análise."
+            : "Mudar título, descrição, endereço, capacidade, valor ou fotos envia o anúncio para nova análise."
+        : "Seu anúncio será analisado antes de aparecer na busca.";
+
+    /* ---------- render: carregando / erro (edição) ---------- */
+
+    if (editando && carregando) {
+        return (
+            <div className="ne-page">
+                <div className="ne-conteudo ne-topo">
+                    <p className="ne-vazio" role="status">Carregando espaço…</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (editando && erroCarregar) {
+        return (
+            <div className="ne-page">
+                <div className="ne-conteudo ne-topo">
+                    <button type="button" className="ne-voltar" onClick={() => navigate(ROTA_PAINEL)}>
+                        ‹ Voltar ao painel
+                    </button>
+                    <h1>Não foi possível abrir o espaço</h1>
+                    <p className="ne-erro">{erroCarregar}</p>
+                </div>
+            </div>
+        );
+    }
 
     /* ---------- render ---------- */
 
@@ -449,11 +629,18 @@ export default function NovoEspaco() {
                 <button type="button" className="ne-voltar" onClick={cancelar}>
                     ‹ Voltar ao painel
                 </button>
-                <h1>Anunciar novo espaço</h1>
+                <h1>{editando ? "Editar espaço" : "Anunciar novo espaço"}</h1>
                 <p>
-                    Preencha os dados do espaço e mostre cada cômodo com fotos. Depois de salvar,
-                    você envia a documentação e o anúncio segue para aprovação.
+                    {editando
+                        ? "Atualize os dados, cômodos e fotos do seu espaço. Mudanças simples, como horários e características, são publicadas na hora."
+                        : "Preencha os dados do espaço e mostre cada cômodo com fotos. Depois de salvar, você envia a documentação e o anúncio segue para aprovação."}
                 </p>
+
+                {editando && rejeitado && espacoOriginal?.motivoRejeicao && (
+                    <div className="rejeicao-box" style={{ marginTop: 16 }}>
+                        <strong>Motivo da rejeição:</strong> {espacoOriginal.motivoRejeicao}
+                    </div>
+                )}
             </header>
 
             <form className="ne-form" onSubmit={handleSubmit} noValidate>
@@ -585,7 +772,10 @@ export default function NovoEspaco() {
                                     <input
                                         type="checkbox"
                                         checked={form.fechaNoDiaSeguinte}
-                                        onChange={(e) => setForm(prev => ({ ...prev, fechaNoDiaSeguinte: e.target.checked }))}
+                                        onChange={(e) => {
+                                            setForm((prev) => ({ ...prev, fechaNoDiaSeguinte: e.target.checked }));
+                                            limparErro("horarioFechamento");
+                                        }}
                                     />
                                     <span className="ne-opcao-titulo">O horário de fechamento é no dia seguinte (ex: festa que invade a madrugada)</span>
                                 </label>
@@ -761,7 +951,7 @@ export default function NovoEspaco() {
                                                     <button
                                                         type="button"
                                                         className="ne-foto-remover"
-                                                        aria-label={`Remover foto ${foto.file.name}`}
+                                                        aria-label={`Remover foto ${foto.file?.name ?? ""}`}
                                                         onClick={() => removerFoto(amb.id, foto.id)}
                                                     >
                                                         ×
@@ -793,6 +983,28 @@ export default function NovoEspaco() {
                             </button>
                         </div>
                     </section>
+
+                    {/* ---------- Resposta à análise (só edição de anúncio rejeitado) ---------- */}
+                    {editando && rejeitado && (
+                        <section className="ne-secao">
+                            <div className="ne-secao-cab">
+                                <h2>Mensagem para a análise</h2>
+                                <p>Conte o que você ajustou a partir do motivo da rejeição.</p>
+                            </div>
+                            <div className="ne-grid">
+                                <Campo id="ne-respostaLocador" label="Sua resposta" opcional>
+                                    <textarea
+                                        id="ne-respostaLocador"
+                                        className="ne-textarea"
+                                        rows={3}
+                                        placeholder="Ex: Troquei as fotos da área externa e corrigi o endereço."
+                                        value={respostaLocador}
+                                        onChange={(e) => setRespostaLocador(e.target.value)}
+                                    />
+                                </Campo>
+                            </div>
+                        </section>
+                    )}
                 </div>
 
                 {/* ---------- Barra de ações fixa ---------- */}
@@ -803,7 +1015,7 @@ export default function NovoEspaco() {
                                 ? <span className="ne-erro">{erroEnvio}</span>
                                 : temErros
                                     ? <span className="ne-erro">Revise os campos destacados.</span>
-                                    : "Seu anúncio será analisado antes de aparecer na busca."}
+                                    : mensagemBarra}
                         </p>
                         <div className="ne-barra-acoes">
                             <button
@@ -826,7 +1038,7 @@ export default function NovoEspaco() {
                 </div>
             </form>
 
-            {espacoCriado && (
+            {!editando && espacoCriado && (
                 <DocumentacaoEspacoModal
                     espaco={espacoCriado}
                     onClose={finalizar}

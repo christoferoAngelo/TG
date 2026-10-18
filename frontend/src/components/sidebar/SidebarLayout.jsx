@@ -15,7 +15,7 @@ export default function SidebarLayout() {
         { label: "Início", path: "/home", icon: "🏠" },
         { label: "Minhas Reservas", path: "/minhas-reservas", icon: "📅" },
         { label: "Painel do Locador", path: "/perfil_locador", icon: "🔑" },
-        { label: "Gestão de Reservas", path: "/locador/reservas", icon: "📋" },
+        { label: "Reservas", path: "/locador/reservas", icon: "📋" },
         { label: "Documentos", path: "/documentos/usuario", icon: "📁" },
     ];
 

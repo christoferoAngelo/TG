@@ -1,14 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 
-export default function HeaderHome({ onSearch }) { // Recebendo a função onSearch
+export default function HeaderHome() {
     const navigate = useNavigate();
     const { usuarioLogado } = useAuth();
     
-    // 👇 Estado para a barra de pesquisa
-    const [termoPesquisa, setTermoPesquisa] = useState("");
-
     const isLocador = usuarioLogado?.locador;
 
     const handleAnunciarClick = () => {
@@ -18,19 +15,6 @@ export default function HeaderHome({ onSearch }) { // Recebendo a função onSea
             navigate("/perfil_locador");
         } else {
             navigate("/perfil");
-        }
-    };
-
-    // 👇 Função que dispara a busca ao clicar na lupa ou apertar Enter
-    const handleBuscar = () => {
-        if (onSearch) {
-            onSearch(termoPesquisa);
-        }
-    };
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            handleBuscar();
         }
     };
 
@@ -44,21 +28,6 @@ export default function HeaderHome({ onSearch }) { // Recebendo a função onSea
         <header className="header-home">
             <div className="logo-container" onClick={() => navigate("/home")}>
                 <h2 className="logo">LocaFesta</h2>
-            </div>
-
-            {/* Barra de Pesquisa */}
-            <div className="search-container">
-                <input
-                    type="text"
-                    placeholder="Buscar por cidade, salão, chácara..."
-                    className="search-input"
-                    value={termoPesquisa}
-                    onChange={(e) => setTermoPesquisa(e.target.value)}
-                    onKeyDown={handleKeyDown} // Busca ao dar Enter
-                />
-                <button onClick={handleBuscar} className="search-btn" title="Pesquisar">
-                    🔍
-                </button>
             </div>
 
             <div className="nav-buttons">

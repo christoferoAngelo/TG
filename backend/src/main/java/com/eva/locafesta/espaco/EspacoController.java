@@ -42,13 +42,43 @@ public class EspacoController {
                 .body(e.getMessage());
         }
     }
-    
+
+    // UPDATE - PUT http://localhost:8080/api/locadores/{usuarioId}/espacos/{espacoId}
+    @PutMapping("/{usuarioId}/espacos/{espacoId}")
+    public ResponseEntity<?> atualizarEspaco(
+            @PathVariable Long usuarioId,
+            @PathVariable Long espacoId,
+            @Valid @RequestBody EspacoDTO dto) {
+
+        try {
+            EspacoDTO atualizado =
+                espacoService.atualizarEspaco(espacoId, usuarioId, dto);
+
+            return ResponseEntity.ok(atualizado);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                .badRequest()
+                .body(e.getMessage());
+
+        } catch (RuntimeException e) {
+            // "Acesso negado" (espaço de outro locador) cai aqui também
+            HttpStatus status = e.getMessage() != null && e.getMessage().startsWith("Acesso negado")
+                ? HttpStatus.FORBIDDEN
+                : HttpStatus.BAD_REQUEST;
+
+            return ResponseEntity
+                .status(status)
+                .body(e.getMessage());
+        }
+    }
+
     // READ - GET http://localhost:8080/api/locadores/espacos/{espacoId}
     @GetMapping("/espacos/{espacoId}")
     public ResponseEntity<?> buscarEspacoPorId(@PathVariable Long espacoId) {
         try {
             // Esse método precisará existir no seu EspacoService
-            EspacoDTO espaco = espacoService.buscarPorId(espacoId); 
+            EspacoDTO espaco = espacoService.buscarPorId(espacoId);
             return ResponseEntity.ok(espaco);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -65,7 +95,7 @@ public class EspacoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-    
+
 	// GET http://localhost:8080/api/locadores/espacos/todos
 	@GetMapping("/espacos/todos")
 	public ResponseEntity<?> listarTodosEspacos() {
@@ -76,7 +106,7 @@ public class EspacoController {
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
 	    }
 	}
-	
+
 	// UPDATE - PATCH http://localhost:8080/api/locadores/{locadorId}/espacos/{espacoId}/status
     @PatchMapping("/{locadorId}/espacos/{espacoId}/status")
     public ResponseEntity<?> alternarStatusAtivo(@PathVariable Long locadorId, @PathVariable Long espacoId) {
@@ -88,7 +118,7 @@ public class EspacoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-    
+
     @GetMapping("/espacos/busca")
     public ResponseEntity<?> buscarEspacos(@RequestParam(name = "q", defaultValue = "") String termo) {
         try {

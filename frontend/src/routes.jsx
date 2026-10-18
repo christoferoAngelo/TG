@@ -63,9 +63,13 @@ export default function AppRoutes() {
                 {/* Rota inicial / padrão */}
                 <Route path="/" element={<Navigate to="/home" replace />} />
 
-                {/* Rotas Públicas (acessíveis com ou sem login) */}
-                <Route path="/home" element={<Home />} />
-                <Route path="/espaco/:id" element={<DetalhesEspaco />} />
+                {/* ===================================================== */}
+                {/* ROTAS PÚBLICAS COM SIDEBAR (ACESSÍVEIS SEM LOGIN)       */}
+                {/* ===================================================== */}
+                <Route element={<SidebarLayout />}>
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/espaco/:id" element={<DetalhesEspaco />} />
+                </Route>
 
                 {/* Tela de Login (Redireciona para o painel se já estiver logado) */}
                 <Route
@@ -91,7 +95,9 @@ export default function AppRoutes() {
                     }
                 />
 
-                {/* ROTAS PROTEGIDAS COM SIDEBAR (REQUEREM LOGIN) */}
+                {/* ===================================================== */}
+                {/* ROTAS PROTEGIDAS COM SIDEBAR (EXIGEM LOGIN)           */}
+                {/* ===================================================== */}
                 <Route
                     element={
                         <RouteProtegida>
@@ -100,6 +106,7 @@ export default function AppRoutes() {
                     }
                 >
                     <Route path="/locador/espacos/novo" element={<NovoEspaco />} />
+                    <Route path="/locador/espacos/:id/editar" element={<NovoEspaco />} />
                     <Route path="/perfil" element={<Dashboard />} />
                     <Route path="/minhas-reservas" element={<MinhasReservas />} />
                     <Route path="/pagamento" element={<PagamentoPage />} />

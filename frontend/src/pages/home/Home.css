@@ -273,3 +273,265 @@
         padding: 10px 12px;
     }
 }
+
+
+/* ==========================================================================
+   HEADER DA HOME (Sem barra de pesquisa)
+   ========================================================================== */
+.header-home {
+    background-color: var(--color-surface);
+    padding: 14px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo-container {
+    cursor: pointer;
+}
+
+/* --- BOTÕES DE NAVEGAÇÃO --- */
+.nav-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-nav {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--color-text);
+    padding: 10px 16px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-nav:hover {
+    background: var(--color-bg);
+    border-color: var(--color-border);
+}
+
+.btn-highlight {
+    background: var(--color-text);
+    color: var(--color-bg);
+}
+
+.btn-highlight:hover {
+    background: var(--color-text-secondary);
+}
+
+/* ==========================================================================
+   CONTEÚDO DA HOME (MAIN)
+   ========================================================================== */
+.home-main {
+    padding: 0;
+}
+
+/* --- BANNER PRINCIPAL (HERO) COM A BARRA DE PESQUISA --- */
+.hero-section {
+    position: relative;
+    overflow: hidden;
+    padding: 64px 24px 48px;
+    text-align: center;
+    background:
+        radial-gradient(600px circle at 12% 20%, var(--color-primary-soft), transparent 60%),
+        radial-gradient(520px circle at 88% 25%, var(--color-accent-soft), transparent 55%);
+}
+
+.hero-inner {
+    max-width: 680px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.hero-section h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+    margin: 0 0 12px;
+}
+
+.hero-section p {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    margin: 0 0 24px;
+}
+
+/* --- BARRA DE PESQUISA NO HERO --- */
+.hero-search-container {
+    display: flex;
+    position: relative;
+    max-width: 540px;
+    margin: 0 auto;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 56px 14px 24px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border);
+    font-family: var(--font-body);
+    font-size: 15px;
+    background: var(--color-surface);
+    outline: none;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.search-input:focus {
+    border-color: var(--color-text);
+    box-shadow: var(--shadow-sm), 0 0 0 1px var(--color-text);
+}
+
+.search-btn {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: background-color 0.18s ease, transform 0.12s ease;
+}
+
+.search-btn:hover {
+    background: var(--color-primary-dark);
+}
+
+.search-btn:active {
+    transform: translateY(-50%) scale(0.94);
+}
+
+/* --- BARRA DE CATEGORIAS --- */
+.categorias-bar {
+    display: flex;
+    gap: 10px;
+    padding: 20px 48px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.categorias-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.chip-categoria {
+    flex: 0 0 auto;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    padding: 9px 18px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.chip-categoria:hover {
+    border-color: var(--color-text);
+    color: var(--color-text);
+}
+
+.chip-categoria--ativo {
+    background: var(--color-text);
+    border-color: var(--color-text);
+    color: var(--color-bg);
+}
+
+/* --- LISTA DE ESPAÇOS --- */
+.home-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 48px 72px;
+}
+
+.section-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+    margin: 0 0 24px;
+}
+
+/* --- ESTADOS (erro / lista vazia) --- */
+.home-estado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 32px 0;
+    color: var(--color-text-muted);
+}
+
+.home-estado p {
+    margin: 0;
+    max-width: 52ch;
+    line-height: 1.5;
+}
+
+.chip-categoria:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   RESPONSIVO
+   ========================================================================== */
+@media (max-width: 900px) {
+    .header-home {
+        padding: 12px 20px;
+    }
+
+    .hero-section {
+        padding: 48px 20px 32px;
+    }
+
+    .categorias-bar {
+        padding: 16px 20px;
+    }
+
+    .home-content {
+        padding: 32px 20px 56px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section h1 {
+        font-size: 1.6rem;
+    }
+
+    .btn-nav {
+        padding: 10px 12px;
+    }
+}
