@@ -1,0 +1,307 @@
+/* ==========================================================================
+   MODAL PADRÃO (casca + campos de formulário)
+   Prefixo .mdl-  ·  usa os tokens globais do projeto
+   ========================================================================== */
+.mdl-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(19, 5, 1, 0.55);
+}
+
+.mdl {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    border-radius: var(--radius-lg, 16px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    outline: none;
+}
+
+.mdl--sm { max-width: 440px; }
+.mdl--md { max-width: 600px; }
+.mdl--lg { max-width: 760px; }
+
+.mdl-cab {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 22px 28px 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.mdl-cab h2 {
+    margin: 0 0 4px;
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.mdl-cab p {
+    margin: 0;
+    max-width: 52ch;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
+.mdl-fechar {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.mdl-fechar:hover:not(:disabled) {
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+.mdl-fechar:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.mdl-corpo {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 20px 28px 24px;
+}
+
+.mdl-rodape {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 28px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+/* --- Seções do formulário --- */
+.mdl-secao {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 0 0 24px;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.mdl-secao:last-child {
+    margin-bottom: 0;
+}
+
+.mdl-secao legend {
+    padding: 0;
+    margin-bottom: 2px;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.mdl-secao-dica {
+    margin: -8px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--color-text-muted);
+}
+
+.mdl-secao--destaque {
+    padding: 14px 16px 16px;
+    margin-left: -16px;
+    margin-right: -16px;
+    background: var(--color-primary-soft);
+    border-radius: var(--radius-md, 12px);
+}
+
+/* --- Campos --- */
+.mdl-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px 12px;
+}
+
+.mdl-span-1 { grid-column: span 1; }
+.mdl-span-2 { grid-column: span 2; }
+.mdl-span-3 { grid-column: span 3; }
+.mdl-span-4 { grid-column: span 4; }
+.mdl-span-6 { grid-column: span 6; }
+
+.mdl-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.mdl-campo > label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.mdl-opcional {
+    font-weight: 400;
+    color: var(--color-text-muted);
+}
+
+.mdl-input {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-body);
+    font-size: 15px;
+    padding: 12px 14px;
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mdl-input:focus {
+    border-color: var(--color-text);
+    box-shadow: 0 0 0 1px var(--color-text);
+}
+
+.mdl-input:disabled,
+.mdl-input[readonly] {
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+}
+
+.mdl-input::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.7;
+}
+
+.mdl-campo--erro .mdl-input {
+    border-color: var(--color-danger, #b3261e);
+}
+
+.mdl-dica {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.mdl-erro {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-danger, #b3261e);
+}
+
+.mdl-alerta {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-danger-text, var(--color-danger, #b3261e));
+    background: var(--color-danger-soft, rgba(179, 38, 30, 0.1));
+    border-left: 3px solid var(--color-danger, #b3261e);
+    border-radius: 8px;
+}
+
+/* --- Botões --- */
+.mdl-btn {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 22px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.mdl-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.mdl-btn--primario {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.mdl-btn--primario:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+}
+
+.mdl-btn--ghost {
+    background: transparent;
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+.mdl-btn--ghost:hover:not(:disabled) {
+    border-color: var(--color-text);
+}
+
+.mdl-btn:focus-visible,
+.mdl-fechar:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+    .mdl-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .mdl {
+        max-width: none;
+        max-height: 94vh;
+        max-height: 94dvh;
+        border-radius: var(--radius-lg, 16px) var(--radius-lg, 16px) 0 0;
+    }
+
+    .mdl-cab,
+    .mdl-corpo,
+    .mdl-rodape {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .mdl-secao--destaque {
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+
+    .mdl-grid > .mdl-span-1,
+    .mdl-grid > .mdl-span-2,
+    .mdl-grid > .mdl-span-3,
+    .mdl-grid > .mdl-span-4 {
+        grid-column: span 6;
+    }
+
+    .mdl-rodape .mdl-btn {
+        flex: 1;
+    }
+}

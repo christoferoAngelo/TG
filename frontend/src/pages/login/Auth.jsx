@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 // 1. Firebase Config (subindo 2 níveis para src/config)
 import { auth, googleProvider } from "../../config/firebaseConfig"; 
+import { useNavigate, Navigate } from "react-router-dom";
 
 import { 
     createUserWithEmailAndPassword, 

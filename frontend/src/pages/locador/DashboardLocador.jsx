@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import "../dashboard/Dashboard.css"; // tokens e controle segmentado (Lista / Calendário)
 import "./DashboardLocador.css";
 
 import EspacoItem from "../../components/locador/EspacoItem";
 import CalendarioSolicitacoes from "../../components/locador/CalendarioSolicitacoes";
+import ModalCriarLocador from "../../components/locador/ModalCriarLocador";
 
 // ⚠️ Ajuste para as rotas que você registrou para a página NovoEspaco
 const ROTA_NOVO_ESPACO = "/locador/espacos/novo";
 const rotaEditarEspaco = (espacoId) => `/locador/espacos/${espacoId}/editar`;
+const ROTA_PERFIL = "/perfil"; // onde ficam os cadastros de locatário e de locador
+const ROTA_HOME = "/home";
 
 const API = "http://localhost:8080/api";
 
@@ -48,20 +51,27 @@ function Stat({ label, valor, dica, alerta }) {
 }
 
 export default function DashboardLocador() {
-    const { usuarioLogado } = useAuth();
+    const { usuarioLogado, carregando: carregandoAuth, atualizarUsuario } = useAuth();
     const navigate = useNavigate();
+
+    // Só quem tem conta de locador usa este painel
+    const ehLocador = Boolean(usuarioLogado?.isLocador || usuarioLogado?.locador);
+    // Pré-requisito para virar locador
+    const ehLocatario = Boolean(usuarioLogado?.isLocatario || usuarioLogado?.locatario);
 
     // Estados
     const [espacos, setEspacos] = useState([]);
     const [solicitacoes, setSolicitacoes] = useState([]);
     const [carregandoEspacos, setCarregandoEspacos] = useState(false);
     const [carregandoPedidos, setCarregandoPedidos] = useState(false);
+    // Modal de criação da conta de locador (só para quem já é locatário)
+    const [modalLocadorAberto, setModalLocadorAberto] = useState(false);
     // Controla se os pedidos aparecem como lista ou como calendário
     const [visualizacaoPedidos, setVisualizacaoPedidos] = useState("lista"); // "lista" | "calendario"
 
     // Carregar espaços E solicitações
     useEffect(() => {
-        if (!usuarioLogado?.id) return;
+        if (!usuarioLogado?.id || !ehLocador) return;
 
         setCarregandoEspacos(true);
         setCarregandoPedidos(true);
@@ -79,7 +89,7 @@ export default function DashboardLocador() {
             .then((data) => setSolicitacoes(Array.isArray(data) ? data : []))
             .catch((err) => console.error("Erro ao buscar solicitações:", err))
             .finally(() => setCarregandoPedidos(false));
-    }, [usuarioLogado]);
+    }, [usuarioLogado, ehLocador]);
 
     // Abre a tela de edição do espaço
     const handleEditarEspaco = (espacoId) => navigate(rotaEditarEspaco(espacoId));
@@ -146,6 +156,88 @@ export default function DashboardLocador() {
             alert("Erro: " + err.message);
         }
     };
+
+    // ---------- Proteção do painel ----------
+    if (carregandoAuth) {
+        return (
+            <div className="dashboard lc-page">
+                <main className="lc-container">
+                    <p className="lc-vazio">Verificando sua conta…</p>
+                </main>
+            </div>
+        );
+    }
+
+    // Não está logado: vai para o login
+    if (!usuarioLogado) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // Está logado, mas ainda não é locador
+    if (!ehLocador) {
+        return (
+            <div className="dashboard lc-page">
+                <main className="lc-container">
+                    <section className="lc-aviso" role="status">
+                        {ehLocatario ? (
+                            <>
+                                <h1 className="lc-aviso-titulo">Crie sua conta de locador</h1>
+                                <p className="lc-aviso-texto">
+                                    Para anunciar espaços e receber pedidos de locação, você precisa de uma
+                                    conta de locador. Leva só um formulário e você já pode começar a anunciar.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <h1 className="lc-aviso-titulo">Complete seu cadastro primeiro</h1>
+                                <p className="lc-aviso-texto">
+                                    Para virar locador, você precisa antes ter uma conta de locatário, que é
+                                    criada ao cadastrar seu CPF no perfil. Complete o cadastro e volte aqui.
+                                </p>
+                            </>
+                        )}
+                        <div className="lc-aviso-acoes">
+                            {ehLocatario ? (
+                                <button
+                                    type="button"
+                                    className="lc-btn lc-btn--primary lc-btn--lg"
+                                    onClick={() => setModalLocadorAberto(true)}
+                                >
+                                    Criar conta de locador
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="lc-btn lc-btn--primary lc-btn--lg"
+                                    onClick={() => navigate(ROTA_PERFIL)}
+                                >
+                                    Completar cadastro
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                className="lc-btn lc-btn--ghost lc-btn--lg"
+                                onClick={() => navigate(ROTA_HOME)}
+                            >
+                                Voltar para a Home
+                            </button>
+                        </div>
+                    </section>
+                </main>
+
+                {/* Depois de criar, atualizar o usuário faz o painel aparecer no lugar do aviso */}
+                {modalLocadorAberto && ehLocatario && (
+                    <ModalCriarLocador
+                        usuarioLogado={usuarioLogado}
+                        onCriado={async () => {
+                            if (atualizarUsuario) await atualizarUsuario();
+                        }}
+                        onClose={() => setModalLocadorAberto(false)}
+                    />
+                )}
+            </div>
+        );
+    }
 
     // Números do resumo
     const totalAtivos = espacos.filter((e) => e.ativo === true || e.ativo === 1).length;

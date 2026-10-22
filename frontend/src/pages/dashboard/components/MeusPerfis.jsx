@@ -1,8 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function MeusPerfis({ usuarioLogado, setModalAberto }) {
+export default function MeusPerfis({ usuarioLogado, setModalAberto, ehLocatario }) {
     const navigate = useNavigate();
+    const locatarioAtivo = ehLocatario ?? Boolean(usuarioLogado?.isLocatario);
 
     return (
         <div className="card">
@@ -13,11 +14,11 @@ export default function MeusPerfis({ usuarioLogado, setModalAberto }) {
                 <div>
                     <strong className="perfil-title">Perfil de Locatário (Alugar Espaços)</strong>
                     <span className="perfil-desc">
-                        {usuarioLogado?.isLocatario ? "Você já pode alugar salões para suas festas." : "Necessário para poder alugar salões."}
+                        {locatarioAtivo ? "Você já pode alugar salões para suas festas." : "Necessário para poder alugar salões e para anunciar espaços."}
                     </span>
                 </div>
                 <div>
-                    {usuarioLogado?.isLocatario ? (
+                    {locatarioAtivo ? (
                         <span className="badge badge-ativo">Ativo</span>
                     ) : (
                         <button onClick={() => setModalAberto('locatario')} className="btn btn-acao">
@@ -34,7 +35,11 @@ export default function MeusPerfis({ usuarioLogado, setModalAberto }) {
                 <div>
                     <strong className="perfil-title">Perfil de Locador (Anunciar Festas)</strong>
                     <span className="perfil-desc">
-                        {usuarioLogado?.isLocador ? "Você é um anunciante parceiro do LocaFesta!" : "Ganhe dinheiro alugando seu espaço ou salão."}
+                        {usuarioLogado?.isLocador
+                            ? "Você é um anunciante parceiro do LocaFesta!"
+                            : locatarioAtivo
+                                ? "Ganhe dinheiro alugando seu espaço ou salão."
+                                : "Antes de anunciar, você precisa completar o cadastro de locatário. Ao clicar, levamos você até ele."}
                     </span>
                 </div>
                 <div>
