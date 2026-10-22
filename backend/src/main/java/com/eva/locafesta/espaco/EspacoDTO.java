@@ -33,6 +33,8 @@ public class EspacoDTO {
     private String titulo;
     private String descricao;
     private BigDecimal valorDiaria;
+    private BigDecimal valorMeioPeriodo;
+    private BigDecimal valorHora;
     private Integer capacidadePessoas;
     private String restricoesHorario;
     private String statusAprovacao;
@@ -80,6 +82,8 @@ public void setFechaNoDiaSeguinte(Boolean fechaNoDiaSeguinte) {
         this.titulo = espaco.getTitulo();
         this.descricao = espaco.getDescricao();
         this.valorDiaria = espaco.getValorDiaria();
+        this.valorMeioPeriodo = espaco.getValorMeioPeriodo();
+        this.valorHora = espaco.getValorHora();
         this.capacidadePessoas = espaco.getCapacidadePessoas();
         this.restricoesHorario = espaco.getRestricoesHorario();
         this.horarioFechamento = espaco.getHorarioFechamento();

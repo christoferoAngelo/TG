@@ -52,8 +52,14 @@ public class Espaco {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String descricao;
 
-    @Column(name = "valor_diaria", nullable = false, precision = 12, scale = 2)
+    @Column(name = "valor_diaria", precision = 12, scale = 2)
     private BigDecimal valorDiaria;
+    
+    @Column(name = "valor_meio_periodo", precision = 12, scale = 2)
+    private BigDecimal valorMeioPeriodo;
+
+    @Column(name = "valor_hora", precision = 12, scale = 2)
+    private BigDecimal valorHora;
 
     @Column(name = "capacidade_pessoas", nullable = false)
     private Integer capacidadePessoas;

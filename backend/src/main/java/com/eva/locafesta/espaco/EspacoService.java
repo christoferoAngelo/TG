@@ -9,8 +9,10 @@ import com.eva.locafesta.endereco.GeocodingService;
 import com.eva.locafesta.locador.PerfilLocador;
 import com.eva.locafesta.locador.PerfilLocadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -182,12 +184,26 @@ public class EspacoService {
 
         validarHorario(dto);
         validarLimites(dto);
+        
+        boolean temDiaria = dto.getValorDiaria() != null && dto.getValorDiaria().compareTo(BigDecimal.ZERO) > 0;
+        boolean temMeioPeriodo = dto.getValorMeioPeriodo() != null && dto.getValorMeioPeriodo().compareTo(BigDecimal.ZERO) > 0;
+        boolean temHora = dto.getValorHora() != null && dto.getValorHora().compareTo(BigDecimal.ZERO) > 0;
 
+        if (!temDiaria && !temMeioPeriodo && !temHora) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe pelo menos um valor de locação (diária, meio período ou por hora).");
+        }
+        
+        validarPrecos(dto);
+        
+        
+        
         Espaco espaco = Espaco.builder()
                 .locador(locador)
                 .titulo(dto.getTitulo())
                 .descricao(dto.getDescricao())
                 .valorDiaria(dto.getValorDiaria())
+                .valorMeioPeriodo(dto.getValorMeioPeriodo())
+                .valorHora(dto.getValorHora())
                 .capacidadePessoas(dto.getCapacidadePessoas())
                 .restricoesHorario(dto.getRestricoesHorario())
                 .horarioAbertura(dto.getHorarioAbertura())
@@ -244,6 +260,16 @@ public class EspacoService {
 
         validarHorario(dto);
         validarLimites(dto);
+        validarPrecos(dto);
+        
+        boolean temDiaria = dto.getValorDiaria() != null && dto.getValorDiaria().compareTo(BigDecimal.ZERO) > 0;
+        boolean temMeioPeriodo = dto.getValorMeioPeriodo() != null && dto.getValorMeioPeriodo().compareTo(BigDecimal.ZERO) > 0;
+        boolean temHora = dto.getValorHora() != null && dto.getValorHora().compareTo(BigDecimal.ZERO) > 0;
+
+        if (!temDiaria && !temMeioPeriodo && !temHora) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe pelo menos um valor de locação (diária, meio período ou por hora).");
+        }
+        
 
         // ---- 1. Descobre se houve mudança sensível (ANTES de alterar a entidade) ----
         boolean mudancaSensivel =
@@ -252,7 +278,9 @@ public class EspacoService {
             || valorMudou(espaco.getValorDiaria(), dto.getValorDiaria())
             || !java.util.Objects.equals(espaco.getCapacidadePessoas(), dto.getCapacidadePessoas())
             || enderecoMudou(espaco.getEndereco(), dto.getEndereco())
-            || ambientesMudaram(espaco.getAmbientes(), dto.getAmbientes());
+            || ambientesMudaram(espaco.getAmbientes(), dto.getAmbientes())
+	        || valorMudou(espaco.getValorMeioPeriodo(), dto.getValorMeioPeriodo())
+	        || valorMudou(espaco.getValorHora(), dto.getValorHora());
 
         boolean eraRejeitado = "REJEITADO".equalsIgnoreCase(espaco.getStatusAprovacao());
 
@@ -260,6 +288,8 @@ public class EspacoService {
         espaco.setTitulo(dto.getTitulo());
         espaco.setDescricao(dto.getDescricao());
         espaco.setValorDiaria(dto.getValorDiaria());
+        espaco.setValorMeioPeriodo(dto.getValorMeioPeriodo()); 
+        espaco.setValorHora(dto.getValorHora());
         espaco.setCapacidadePessoas(dto.getCapacidadePessoas());
         espaco.setRestricoesHorario(dto.getRestricoesHorario());
 
@@ -453,5 +483,25 @@ public class EspacoService {
         return espacos.stream()
             .map(EspacoDTO::new)
             .collect(Collectors.toList());
+    }
+    
+    private void validarPrecos(EspacoDTO dto) {
+        if (Boolean.TRUE.equals(dto.getPermitePeriodoIntegral())) {
+            if (dto.getValorDiaria() == null || dto.getValorDiaria().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Informe um valor válido para o período integral (diária).");
+            }
+        }
+
+        if (Boolean.TRUE.equals(dto.getPermiteMeioPeriodo())) {
+            if (dto.getValorMeioPeriodo() == null || dto.getValorMeioPeriodo().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Informe um valor válido para o meio período.");
+            }
+        }
+
+        if (Boolean.TRUE.equals(dto.getPermiteHorarioPersonalizado())) {
+            if (dto.getValorHora() == null || dto.getValorHora().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Informe um valor válido por hora.");
+            }
+        }
     }
 }

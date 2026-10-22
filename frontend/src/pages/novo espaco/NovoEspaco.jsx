@@ -6,7 +6,6 @@ import "../dashboard/Dashboard.css";
 import DocumentacaoEspacoModal from "../../components/documento/DocumentacaoEspacoModal";
 import "./NovoEspaco.css";
 
-// ⚠️ Ajuste para a rota real do DashboardLocador no seu router
 const ROTA_PAINEL = "/perfil_locador";
 
 const API = "http://localhost:8080/api";
@@ -17,6 +16,8 @@ const ESTADO_INICIAL = {
     descricao: "",
     capacidadePessoas: "",
     valorDiaria: "",
+    valorMeioPeriodo: "",
+    valorHora: "",
     horarioAbertura: "",
     horarioFechamento: "",
     fechaNoDiaSeguinte: false,
@@ -42,7 +43,6 @@ const mascararCep = (valor) => {
     return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
 };
 
-// O LocalTime pode chegar como "18:00:00" ou como [18, 0], dependendo da config do Jackson
 const formatarHora = (v) => {
     if (!v) return "";
     if (Array.isArray(v)) {
@@ -51,13 +51,11 @@ const formatarHora = (v) => {
     return String(v).slice(0, 5);
 };
 
-// Foto nova = tem o arquivo local. Foto já salva = só tem a URL do Cloudinary.
 const ehFotoNova = (f) => Boolean(f.file);
 const liberarPreview = (f) => {
     if (f.file) URL.revokeObjectURL(f.preview);
 };
 
-// Usada para saber se o usuário mexeu em algo na edição
 const gerarAssinatura = (form, ambientes, resposta) =>
     JSON.stringify({
         form,
@@ -93,14 +91,23 @@ function validar(form, ambientesPreenchidos) {
     if (!form.titulo.trim()) e.titulo = "Dê um título ao anúncio.";
     if (!form.descricao.trim()) e.descricao = "Descreva o espaço para quem vai alugar.";
     if (!(parseInt(form.capacidadePessoas, 10) > 0)) e.capacidadePessoas = "Informe a capacidade (mínimo 1).";
-    if (!(Number(form.valorDiaria) > 0)) e.valorDiaria = "Informe um valor de diária maior que zero.";
+
+    // Validação condicional dos preços com base nas modalidades ativas
+    if (form.permitePeriodoIntegral && !(Number(form.valorDiaria) > 0)) {
+        e.valorDiaria = "Informe o valor para o período integral.";
+    }
+    if (form.permiteMeioPeriodo && !(Number(form.valorMeioPeriodo) > 0)) {
+        e.valorMeioPeriodo = "Informe o valor para o meio período.";
+    }
+    if (form.permiteHorarioPersonalizado && !(Number(form.valorHora) > 0)) {
+        e.valorHora = "Informe o valor por hora.";
+    }
 
     if (!form.horarioAbertura) e.horarioAbertura = "Informe o horário de abertura.";
 
     if (!form.horarioFechamento) {
         e.horarioFechamento = "Informe o horário de fechamento.";
     } else if (!form.fechaNoDiaSeguinte && form.horarioAbertura && form.horarioFechamento <= form.horarioAbertura) {
-        // Só gera erro se NÃO marcou a opção do dia seguinte E o fechamento for menor/igual à abertura
         e.horarioFechamento = "O fechamento precisa ser depois da abertura (ou marque a opção de fechar no dia seguinte).";
     }
 
@@ -159,7 +166,6 @@ export default function NovoEspaco() {
     const navigate = useNavigate();
     const { usuarioLogado } = useAuth();
 
-    // Se a rota tiver :id, a página funciona em modo edição
     const { id } = useParams();
     const editando = Boolean(id);
 
@@ -171,11 +177,10 @@ export default function NovoEspaco() {
     const [buscandoCep, setBuscandoCep] = useState(false);
     const [cepNaoEncontrado, setCepNaoEncontrado] = useState(false);
     const [enviando, setEnviando] = useState(false);
-    const [progresso, setProgresso] = useState(null); // { enviadas, total } | null
+    const [progresso, setProgresso] = useState(null);
     const [erroEnvio, setErroEnvio] = useState("");
     const [espacoCriado, setEspacoCriado] = useState(null);
 
-    // --- estado exclusivo da edição ---
     const [carregando, setCarregando] = useState(editando);
     const [erroCarregar, setErroCarregar] = useState("");
     const [espacoOriginal, setEspacoOriginal] = useState(null);
@@ -183,9 +188,7 @@ export default function NovoEspaco() {
     const snapshotRef = useRef("");
 
     const numeroRef = useRef(null);
-    // Guarda as URLs já enviadas ao Cloudinary: se o POST/PUT falhar, o reenvio não refaz os uploads
     const uploadsFeitos = useRef(new Map());
-    // Referência atualizada para revogar as prévias ao sair da página
     const ambientesRef = useRef(ambientes);
     ambientesRef.current = ambientes;
 
@@ -200,8 +203,6 @@ export default function NovoEspaco() {
         ambientesRef.current.forEach((a) => a.fotos.forEach(liberarPreview));
     }, []);
 
-    /* ---------- carregar espaço (modo edição) ---------- */
-
     useEffect(() => {
         if (!editando || !usuarioLogado?.id) return;
 
@@ -209,7 +210,6 @@ export default function NovoEspaco() {
         setCarregando(true);
         setErroCarregar("");
 
-        // Busca na lista do próprio locador: assim só carrega espaços que são dele
         fetch(`${API}/locadores/${usuarioLogado.id}/espacos`)
             .then((res) =>
                 res.ok ? res.json() : Promise.reject(new Error("Não foi possível carregar seus espaços."))
@@ -227,9 +227,10 @@ export default function NovoEspaco() {
                     descricao: e.descricao ?? "",
                     capacidadePessoas: e.capacidadePessoas == null ? "" : String(e.capacidadePessoas),
                     valorDiaria: e.valorDiaria == null ? "" : String(e.valorDiaria),
+                    valorMeioPeriodo: e.valorMeioPeriodo == null ? "" : String(e.valorMeioPeriodo),
+                    valorHora: e.valorHora == null ? "" : String(e.valorHora),
                     horarioAbertura: abre,
                     horarioFechamento: fecha,
-                    // O backend não guarda esse campo: se fecha <= abre, o espaço vira a noite
                     fechaNoDiaSeguinte: Boolean(abre && fecha && fecha <= abre),
                     permiteMeioPeriodo: e.permiteMeioPeriodo ?? true,
                     permitePeriodoIntegral: e.permitePeriodoIntegral ?? true,
@@ -255,7 +256,6 @@ export default function NovoEspaco() {
                               id: novoId(),
                               titulo: a.titulo ?? "",
                               descricao: a.descricao ?? "",
-                              // fotos já salvas: têm url e não têm file
                               fotos: (a.imagensUrls ?? []).map((url) => ({ id: novoId(), url, preview: url })),
                           }))
                         : [novoAmbiente()];
@@ -279,8 +279,6 @@ export default function NovoEspaco() {
             cancelado = true;
         };
     }, [editando, id, usuarioLogado?.id]);
-
-    /* ---------- helpers de estado ---------- */
 
     const limparErro = (chave) =>
         setErros((prev) => {
@@ -326,8 +324,6 @@ export default function NovoEspaco() {
             };
         });
 
-    /* ---------- CEP ---------- */
-
     const handleCep = async (valor) => {
         const cep = mascararCep(valor);
         setEndereco("cep", cep);
@@ -366,8 +362,6 @@ export default function NovoEspaco() {
             setBuscandoCep(false);
         }
     };
-
-    /* ---------- cômodos e fotos ---------- */
 
     const atualizarAmbiente = (ambId, campo, valor) => {
         setAmbientes((prev) => prev.map((a) => (a.id === ambId ? { ...a, [campo]: valor } : a)));
@@ -432,8 +426,6 @@ export default function NovoEspaco() {
         );
     };
 
-    /* ---------- navegação ---------- */
-
     const formularioSujo = editando
         ? snapshotRef.current !== "" &&
           snapshotRef.current !== gerarAssinatura(form, ambientes, respostaLocador)
@@ -450,8 +442,6 @@ export default function NovoEspaco() {
     };
 
     const finalizar = () => navigate(ROTA_PAINEL, { replace: true });
-
-    /* ---------- envio ---------- */
 
     const rolarParaPrimeiroErro = () =>
         requestAnimationFrame(() =>
@@ -479,7 +469,6 @@ export default function NovoEspaco() {
 
         setEnviando(true);
         try {
-            // Só as fotos novas passam pelo Cloudinary; as já salvas reaproveitam a URL
             const fotosNovas = (a) => a.fotos.filter(ehFotoNova);
             const totalFotos = preenchidos.reduce((soma, a) => soma + fotosNovas(a).length, 0);
             let enviadas = preenchidos.reduce(
@@ -489,10 +478,9 @@ export default function NovoEspaco() {
 
             const ambientesProcessados = [];
             for (const amb of preenchidos) {
-                // Promise.all preserva a ordem das fotos
                 const imagensUrls = await Promise.all(
                     amb.fotos.map(async (foto) => {
-                        if (foto.url) return foto.url; // já está no Cloudinary
+                        if (foto.url) return foto.url;
                         if (uploadsFeitos.current.has(foto.id)) return uploadsFeitos.current.get(foto.id);
                         const url = await enviarParaCloudinary(foto.file);
                         uploadsFeitos.current.set(foto.id, url);
@@ -515,8 +503,10 @@ export default function NovoEspaco() {
                 titulo: form.titulo.trim(),
                 descricao: form.descricao.trim(),
                 capacidadePessoas: parseInt(form.capacidadePessoas, 10),
-                valorDiaria: Number(form.valorDiaria),
-                horarioAbertura: form.horarioAbertura,       // "HH:mm" → LocalTime
+                valorDiaria: form.permitePeriodoIntegral && form.valorDiaria !== "" ? Number(form.valorDiaria) : null,
+                valorMeioPeriodo: form.permiteMeioPeriodo && form.valorMeioPeriodo !== "" ? Number(form.valorMeioPeriodo) : null,
+                valorHora: form.permiteHorarioPersonalizado && form.valorHora !== "" ? Number(form.valorHora) : null,
+                horarioAbertura: form.horarioAbertura,
                 horarioFechamento: form.horarioFechamento,
                 fechaNoDiaSeguinte: form.fechaNoDiaSeguinte,
                 permiteMeioPeriodo: form.permiteMeioPeriodo,
@@ -592,10 +582,8 @@ export default function NovoEspaco() {
     const mensagemBarra = editando
         ? rejeitado
             ? "Ao salvar, o anúncio será reenviado para análise."
-            : "Mudar título, descrição, endereço, capacidade, valor ou fotos envia o anúncio para nova análise."
+            : "Mudar título, descrição, endereço, capacidade, valores ou fotos envia o anúncio para nova análise."
         : "Seu anúncio será analisado antes de aparecer na busca.";
-
-    /* ---------- render: carregando / erro (edição) ---------- */
 
     if (editando && carregando) {
         return (
@@ -620,8 +608,6 @@ export default function NovoEspaco() {
             </div>
         );
     }
-
-    /* ---------- render ---------- */
 
     return (
         <div className="ne-page">
@@ -670,7 +656,7 @@ export default function NovoEspaco() {
                                     {...bind("descricao")}
                                 />
                             </Campo>
-                            <Campo id="ne-capacidadePessoas" label="Capacidade (pessoas)" span={3} erro={erros.capacidadePessoas}>
+                            <Campo id="ne-capacidadePessoas" label="Capacidade (pessoas)" span={6} erro={erros.capacidadePessoas}>
                                 <input
                                     type="number"
                                     min="1"
@@ -678,17 +664,6 @@ export default function NovoEspaco() {
                                     className="ne-input"
                                     placeholder="100"
                                     {...bind("capacidadePessoas")}
-                                />
-                            </Campo>
-                            <Campo id="ne-valorDiaria" label="Valor da diária (R$)" span={3} erro={erros.valorDiaria}>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    inputMode="decimal"
-                                    className="ne-input"
-                                    placeholder="800,00"
-                                    {...bind("valorDiaria")}
                                 />
                             </Campo>
                         </div>
@@ -756,7 +731,7 @@ export default function NovoEspaco() {
                     <section className="ne-secao">
                         <div className="ne-secao-cab">
                             <h2>Funcionamento e locação</h2>
-                            <p>Quando o espaço abre e de que formas ele pode ser reservado.</p>
+                            <p>Quando o espaço abre, valores por modalidade e regras de reserva.</p>
                         </div>
                         <div className="ne-grid">
                             <Campo id="ne-horarioAbertura" label="Abre às" span={3} erro={erros.horarioAbertura}>
@@ -766,7 +741,6 @@ export default function NovoEspaco() {
                                 <input type="time" className="ne-input" {...bind("horarioFechamento")} />
                             </Campo>
 
-                            {/* --- CHECKBOX PARA DIAS DIFERENTES --- */}
                             <div className="ne-campo ne-span-6">
                                 <label className="ne-opcao" style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
                                     <input
@@ -780,7 +754,6 @@ export default function NovoEspaco() {
                                     <span className="ne-opcao-titulo">O horário de fechamento é no dia seguinte (ex: festa que invade a madrugada)</span>
                                 </label>
                             </div>
-                            {/* ------------------------------------- */}
 
                             <div
                                 className={`ne-campo ne-span-6${erros.modalidades ? " ne-campo--erro" : ""}`}
@@ -809,6 +782,49 @@ export default function NovoEspaco() {
                                 </div>
                                 {erros.modalidades && <small className="ne-erro">{erros.modalidades}</small>}
                             </div>
+
+                            {/* ---------- Valores Dinâmicos por Modalidade ---------- */}
+                            {form.permitePeriodoIntegral && (
+                                <Campo id="ne-valorDiaria" label="Valor do período integral (R$)" span={4} erro={erros.valorDiaria}>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        inputMode="decimal"
+                                        className="ne-input"
+                                        placeholder="800,00"
+                                        {...bind("valorDiaria")}
+                                    />
+                                </Campo>
+                            )}
+
+                            {form.permiteMeioPeriodo && (
+                                <Campo id="ne-valorMeioPeriodo" label="Valor do meio período (R$)" span={4} erro={erros.valorMeioPeriodo}>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        inputMode="decimal"
+                                        className="ne-input"
+                                        placeholder="450,00"
+                                        {...bind("valorMeioPeriodo")}
+                                    />
+                                </Campo>
+                            )}
+
+                            {form.permiteHorarioPersonalizado && (
+                                <Campo id="ne-valorHora" label="Valor por hora (R$)" span={4} erro={erros.valorHora}>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        inputMode="decimal"
+                                        className="ne-input"
+                                        placeholder="100,00"
+                                        {...bind("valorHora")}
+                                    />
+                                </Campo>
+                            )}
 
                             <Campo
                                 id="ne-duracaoMaxHoras"
@@ -844,7 +860,7 @@ export default function NovoEspaco() {
                                     {...bind("intervaloLimpezaMin")}
                                 />
                             </Campo>
-                            <Campo id="ne-restricoesHorario" label="Restrições de horário" opcional>
+                            <Campo id="ne-restricoesHorario" label="Restrições de horário" opcional span={6}>
                                 <input
                                     type="text"
                                     className="ne-input"

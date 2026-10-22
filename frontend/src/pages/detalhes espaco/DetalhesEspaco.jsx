@@ -5,13 +5,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import "./DetalhesEspaco.css";
 
 const API = "http://localhost:8080/api";
-
-// ⚠️ Ajuste para a rota de login do seu router
 const ROTA_LOGIN = "/login";
 
-/* ---------- helpers ---------- */
-
-// LocalTime pode chegar como "08:00:00" ou [8, 0]
 const hhmm = (t) => {
     if (!t) return "";
     if (Array.isArray(t)) return `${String(t[0]).padStart(2, "0")}:${String(t[1] ?? 0).padStart(2, "0")}`;
@@ -43,7 +38,7 @@ export default function DetalhesEspaco() {
     const [avaliacoes, setAvaliacoes] = useState([]);
     const [carregandoAvaliacoes, setCarregandoAvaliacoes] = useState(true);
 
-    const [lightbox, setLightbox] = useState(null); // índice da foto aberta | null
+    const [lightbox, setLightbox] = useState(null);
 
     // Reserva
     const [data, setData] = useState("");
@@ -91,7 +86,6 @@ export default function DetalhesEspaco() {
             .finally(() => setCarregandoAvaliacoes(false));
     }, [id]);
 
-    // Disponibilidade do dia escolhido
     useEffect(() => {
         if (!data) {
             setDisp(null);
@@ -154,6 +148,34 @@ export default function DetalhesEspaco() {
         };
     }, [lightboxAberto, totalFotos]);
 
+    /* ---------- derivados calculados com Hooks (no topo) ---------- */
+
+    const periodoAtual = disp?.periodos?.find((p) => chavePeriodo(p) === escolha);
+
+    const precoAtual = useMemo(() => {
+        if (!espaco) return { valor: 0, rotulo: "por diária" };
+
+        if (escolha === "PERSONALIZADO") {
+            const valorHora = Number(espaco.valorHora || espaco.valorDiaria || 0);
+            if (horaInicio && horaFim) {
+                const [hIni, mIni] = horaInicio.split(":").map(Number);
+                const [hFim, mFim] = horaFim.split(":").map(Number);
+                const diffMinutos = (hFim * 60 + mFim) - (hIni * 60 + mIni);
+                const horasTotais = diffMinutos > 0 ? diffMinutos / 60 : 0;
+                return {
+                    valor: horasTotais * valorHora,
+                    rotulo: `para ${horasTotais.toFixed(1).replace(".", ",")}h (${moeda(valorHora)}/h)`
+                };
+            }
+            return { valor: valorHora, rotulo: "por hora" };
+        }
+
+        if (periodoAtual?.modalidade === "MEIO_PERIODO") {
+            return { valor: espaco.valorMeioPeriodo ?? espaco.valorDiaria, rotulo: "por meio período" };
+        }
+        return { valor: espaco.valorDiaria, rotulo: "por diária" };
+    }, [escolha, periodoAtual, espaco, horaInicio, horaFim]);
+
     /* ---------- reserva ---------- */
 
     const handleReservar = async (e) => {
@@ -173,16 +195,33 @@ export default function DetalhesEspaco() {
             observacao: observacao.trim() || null,
         };
 
+        let valorTotalCalculado = Number(espaco.valorDiaria);
+
         if (escolha === "PERSONALIZADO") {
             if (!horaInicio || !horaFim) return setErroReserva("Informe o horário de início e de fim.");
             corpo.modalidade = "PERSONALIZADO";
             corpo.horaInicio = horaInicio;
             corpo.horaFim = horaFim;
+
+            const [hIni, mIni] = horaInicio.split(":").map(Number);
+            const [hFim, mFim] = horaFim.split(":").map(Number);
+            const diffMinutos = (hFim * 60 + mFim) - (hIni * 60 + mIni);
+            const horasTotais = diffMinutos > 0 ? diffMinutos / 60 : 0;
+            const valorHora = Number(espaco.valorHora || espaco.valorDiaria || 0);
+            valorTotalCalculado = horasTotais * valorHora;
         } else {
             const periodo = disp.periodos.find((p) => chavePeriodo(p) === escolha);
             corpo.modalidade = periodo.modalidade;
             if (periodo.periodo) corpo.periodo = periodo.periodo;
+
+            if (periodo.modalidade === "MEIO_PERIODO") {
+                valorTotalCalculado = Number(espaco.valorMeioPeriodo ?? espaco.valorDiaria);
+            } else {
+                valorTotalCalculado = Number(espaco.valorDiaria);
+            }
         }
+
+        corpo.valorTotal = valorTotalCalculado;
 
         setEnviando(true);
         try {
@@ -238,8 +277,6 @@ export default function DetalhesEspaco() {
         );
     }
 
-    /* ---------- derivados ---------- */
-
     const aceitaMeio = espaco.permiteMeioPeriodo !== false;
     const aceitaIntegral = espaco.permitePeriodoIntegral !== false;
     const aceitaPersonalizado = espaco.permiteHorarioPersonalizado === true;
@@ -256,12 +293,8 @@ export default function DetalhesEspaco() {
     const qtdAvaliacoes = espaco.quantidadeAvaliacoes || 0;
     const textoAvaliacoes = `${qtdAvaliacoes} avaliaç${qtdAvaliacoes === 1 ? "ão" : "ões"}`;
 
-    const periodoAtual = disp?.periodos?.find((p) => chavePeriodo(p) === escolha);
-
     return (
         <div className="dt-page">
-            <HeaderHome onSearch={handlePesquisar} />
-
             <main className="dt-container">
                 <button type="button" className="dt-voltar" onClick={() => navigate(-1)}>
                     ‹ Voltar
@@ -440,7 +473,7 @@ export default function DetalhesEspaco() {
                     <aside className="dt-lateral">
                         <form className="dt-reserva" id="reserva" onSubmit={handleReservar} noValidate>
                             <p className="dt-preco">
-                                <strong>{moeda(espaco.valorDiaria)}</strong> <span>por diária</span>
+                                <strong>{moeda(precoAtual.valor)}</strong> <span>{precoAtual.rotulo}</span>
                             </p>
 
                             {sucesso && (
@@ -596,7 +629,7 @@ export default function DetalhesEspaco() {
             {/* Barra de reserva no celular */}
             <div className="dt-barra-mobile">
                 <p>
-                    <strong>{moeda(espaco.valorDiaria)}</strong> <span>por diária</span>
+                    <strong>{moeda(precoAtual.valor)}</strong> <span>{precoAtual.rotulo}</span>
                 </p>
                 <a href="#reserva" className="dt-btn dt-btn--primario">
                     Reservar
