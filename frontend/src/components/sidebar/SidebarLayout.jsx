@@ -4,29 +4,63 @@ import { useAuth } from "../../contexts/AuthContext";
 import "./SidebarLayout.css";
 import HeaderHome from "../../pages/home/components/HeaderHome";
 
+import iconCalendario from "../../assets/calendario_icon.png";
+import iconChave from "../../assets/chave_icon.png";
+import iconDocumentos from "../../assets/documentos_icons.png";
+import iconSair from "../../assets/sair_icon.png";
+import iconMenu from "../../assets/tres_barras_icon.png";
+
+function IconeInicio() {
+    return (
+        <svg
+            className="sidebar-icon-svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+        >
+            <path
+                d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19v-8.5Z"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}
+
+function IconeMenu({ src, alt = "" }) {
+    return <img src={src} alt={alt} className="sidebar-icon-img" />;
+}
+
 export default function SidebarLayout() {
     const navigate = useNavigate();
     const location = useLocation();
     const { logout } = useAuth();
-    
+
     const [retraida, setRetraida] = useState(false);
 
     const menuItems = [
-        { label: "Início", path: "/home", icon: "🏠" },
-        { label: "Minhas Reservas", path: "/minhas-reservas", icon: "📅" },
-        { label: "Painel do Locador", path: "/perfil_locador", icon: "🔑" },
-        { label: "Reservas", path: "/locador/reservas", icon: "📋" },
-        { label: "Documentos", path: "/documentos/usuario", icon: "📁" },
+        { label: "Início", path: "/home", icon: "inicio" },
+        { label: "Minhas Reservas", path: "/minhas-reservas", iconSrc: iconCalendario },
+        { label: "Painel do Locador", path: "/perfil_locador", iconSrc: iconChave },
+        { label: "Documentos", path: "/documentos/usuario", iconSrc: iconDocumentos },
     ];
 
-    // NOVA FUNÇÃO DE LOGOUT COM REDIRECIONAMENTO EXPLÍCITO
     const handleLogout = async () => {
         try {
-            await logout();       // Limpa o Firebase e o estado global
-            navigate("/home");    // Leva explicitamente para a Home sem estar logado
+            await logout();
+            navigate("/home");
         } catch (error) {
             console.error("Erro ao sair:", error);
         }
+    };
+
+    const renderIcone = (item) => {
+        if (item.icon === "inicio") {
+            return <IconeInicio />;
+        }
+        return <IconeMenu src={item.iconSrc} />;
     };
 
     return (
@@ -34,30 +68,38 @@ export default function SidebarLayout() {
             <aside className={`sidebar ${retraida ? "collapsed" : ""}`}>
                 <div className="sidebar-header">
                     {!retraida && (
-                        <h2 className="sidebar-logo" onClick={() => navigate("/home")}>
-                            LOCAFESTA
-                        </h2>
+                        <button
+                            type="button"
+                            className="sidebar-marca"
+                            onClick={() => navigate("/home")}
+                        >
+                            LocaFesta
+                        </button>
                     )}
-                    <button 
-                        className="toggle-btn" 
+                    <button
+                        type="button"
+                        className="toggle-btn"
                         onClick={() => setRetraida(!retraida)}
-                        title={retraida ? "Expandir Menu" : "Recolher Menu"}
+                        title={retraida ? "Expandir menu" : "Recolher menu"}
+                        aria-expanded={!retraida}
+                        aria-label={retraida ? "Expandir menu" : "Recolher menu"}
                     >
-                        {retraida ? "➡️" : "⬅️"}
+                        <IconeMenu src={iconMenu} alt="" />
                     </button>
                 </div>
 
-                <nav className="sidebar-nav">
+                <nav className="sidebar-nav" aria-label="Menu principal">
                     {menuItems.map((item) => {
                         const ativo = location.pathname === item.path;
                         return (
                             <button
                                 key={item.path}
+                                type="button"
                                 className={`sidebar-item ${ativo ? "active" : ""}`}
                                 onClick={() => navigate(item.path)}
-                                title={retraida ? item.label : ""}
+                                title={retraida ? item.label : undefined}
                             >
-                                <span className="sidebar-icon">{item.icon}</span>
+                                <span className="sidebar-icon">{renderIcone(item)}</span>
                                 {!retraida && <span className="sidebar-label">{item.label}</span>}
                             </button>
                         );
@@ -65,9 +107,15 @@ export default function SidebarLayout() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    {/* Alterado de onClick={logout} para onClick={handleLogout} */}
-                    <button onClick={handleLogout} className="sidebar-item logout" title={retraida ? "Sair" : ""}>
-                        <span className="sidebar-icon">🚪</span>
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="sidebar-item logout"
+                        title={retraida ? "Sair" : undefined}
+                    >
+                        <span className="sidebar-icon">
+                            <IconeMenu src={iconSair} />
+                        </span>
                         {!retraida && <span className="sidebar-label">Sair</span>}
                     </button>
                 </div>

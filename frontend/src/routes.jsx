@@ -18,7 +18,6 @@ import { PagamentoPage } from "./pages/pagamento/PagamentoPage";
 import DocumentosUsuario from "./pages/documentos/DocumentosUsuario";
 import DocumentosEspaco from "./pages/documentos/DocumentosEspaco";
 import DocumentosAdmin from "./pages/documentos/DocumentosAdmin";
-import GestaoReservas from "./components/locador/GestaoReservas";
 
 // IMPORT DO NOVO LAYOUT DA SIDEBAR
 import SidebarLayout from "./components/sidebar/SidebarLayout";
@@ -115,7 +114,6 @@ export default function AppRoutes() {
                     <Route path="/admin-caracteristicas" element={<CaracteristicasPage />} />
                     <Route path="/documentos/usuario" element={<DocumentosUsuario />} />
                     <Route path="/documentos/espaco/:id" element={<DocumentosEspaco />} />
-                    <Route path="/locador/reservas" element={<GestaoReservas />} />
                 </Route>
 
                 {/* Rota genérica para caminhos não encontrados */}
