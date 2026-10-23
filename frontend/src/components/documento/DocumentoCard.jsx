@@ -1,5 +1,6 @@
 import React from "react";
 import StatusDocumento from "./StatusDocumento";
+import { rotuloDocumento } from "./rotulosDocumento";
 
 export default function DocumentoCard({
     documento,
@@ -34,11 +35,11 @@ export default function DocumentoCard({
 
                 <div>
                     <h3>
-                        {documento.tipoDocumento}
+                        {rotuloDocumento(documento.tipoDocumento)}
                     </h3>
 
-                    <span>
-                        {documento.categoria}
+                    <span className="documento-card-categoria">
+                        {rotuloDocumento(documento.categoria)}
                     </span>
                 </div>
 

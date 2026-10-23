@@ -9,8 +9,13 @@ import com.eva.locafesta.usuario.UsuarioService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +41,101 @@ public class DocumentoService {
 
 
     // =========================================================
+    // VALIDAÇÕES
+    // =========================================================
+
+    private static final int TIPO_MAX = 50;
+    private static final int NOME_ARQUIVO_MAX = 255;
+
+    private static ResponseStatusException erro(HttpStatus status, String mensagem) {
+        return new ResponseStatusException(status, mensagem);
+    }
+
+    // Garante que o documento chegou completo antes de salvar (evita 500 por coluna nula ou grande demais)
+    private void validarDocumento(DocumentoCreateDTO dto) {
+        if (dto == null) {
+            throw erro(HttpStatus.BAD_REQUEST, "Dados do documento não informados.");
+        }
+
+        String tipo = dto.getTipoDocumento();
+        if (tipo == null || tipo.isBlank()) {
+            throw erro(HttpStatus.BAD_REQUEST, "Informe o tipo do documento.");
+        }
+        if (tipo.trim().length() > TIPO_MAX) {
+            throw erro(HttpStatus.BAD_REQUEST,
+                    "O tipo do documento deve ter no máximo " + TIPO_MAX + " caracteres.");
+        }
+
+        String url = dto.getArquivoUrl();
+        if (url == null || url.isBlank()) {
+            throw erro(HttpStatus.BAD_REQUEST, "Envie o arquivo do documento.");
+        }
+        String urlLimpa = url.trim().toLowerCase();
+        if (!urlLimpa.startsWith("https://") && !urlLimpa.startsWith("http://")) {
+            throw erro(HttpStatus.BAD_REQUEST, "O endereço do arquivo é inválido.");
+        }
+
+        String nome = dto.getNomeArquivo();
+        if (nome != null && nome.length() > NOME_ARQUIVO_MAX) {
+            throw erro(HttpStatus.BAD_REQUEST,
+                    "O nome do arquivo deve ter no máximo " + NOME_ARQUIVO_MAX + " caracteres.");
+        }
+    }
+
+    // ---------------------------------------------------------
+    // QUEM ESTÁ LOGADO / QUEM PODE VER OU ENVIAR O QUÊ
+    // O filtro do Firebase coloca o firebaseUid como nome da autenticação
+    // (é o mesmo que o UsuarioService.obterAdminLogado() usa).
+    // ---------------------------------------------------------
+
+    private Usuario usuarioAutenticado() {
+        Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
+
+        if (autenticacao == null
+                || !autenticacao.isAuthenticated()
+                || autenticacao instanceof AnonymousAuthenticationToken) {
+            throw erro(HttpStatus.UNAUTHORIZED, "Faça login para continuar.");
+        }
+
+        return usuarioRepository.findByFirebaseUid(autenticacao.getName())
+                .orElseThrow(() -> erro(HttpStatus.UNAUTHORIZED, "Usuário autenticado não encontrado."));
+    }
+
+    // Só administrador passa
+    private void exigirAdmin() {
+        if (!usuarioAutenticado().isAdmin()) {
+            throw erro(HttpStatus.FORBIDDEN, "Apenas administradores podem fazer isso.");
+        }
+    }
+
+    // Só o dono (ou um administrador) passa
+    private void exigirDonoOuAdmin(Long donoId) {
+        Usuario logado = usuarioAutenticado();
+
+        if (logado.isAdmin()) {
+            return;
+        }
+        if (donoId == null || !donoId.equals(logado.getId())) {
+            throw erro(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar estes documentos.");
+        }
+    }
+
+    // Dono de um espaço = o usuário por trás do locador que o cadastrou
+    private Long donoDoEspaco(Espaco espaco) {
+        if (espaco.getLocador() == null || espaco.getLocador().getUsuario() == null) {
+            return null;
+        }
+        return espaco.getLocador().getUsuario().getId();
+    }
+
+    private void validarMotivo(String motivo) {
+        if (motivo == null || motivo.isBlank()) {
+            throw erro(HttpStatus.BAD_REQUEST, "Informe o motivo.");
+        }
+    }
+
+
+    // =========================================================
     // DOCUMENTO DE USUÁRIO
     // =========================================================
 
@@ -45,15 +145,16 @@ public class DocumentoService {
             DocumentoCreateDTO dto
     ) {
 
+        exigirDonoOuAdmin(usuarioId);
+        validarDocumento(dto);
+
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Usuário não encontrado com o ID: " + usuarioId
-                        )
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado com o ID: " + usuarioId)
                 );
 
         DocumentoEntity documento = DocumentoEntity.builder()
-                .tipoDocumento(dto.getTipoDocumento())
+                .tipoDocumento(dto.getTipoDocumento().trim())
                 .categoria("PESSOA")
                 .usuario(usuario)
                 .nomeArquivo(dto.getNomeArquivo())
@@ -81,13 +182,14 @@ public class DocumentoService {
 
         Espaco espaco = espacoRepository.findById(espacoId)
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Espaço não encontrado com o ID: " + espacoId
-                        )
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Espaço não encontrado com o ID: " + espacoId)
                 );
 
+        exigirDonoOuAdmin(donoDoEspaco(espaco));
+        validarDocumento(dto);
+
         DocumentoEntity documento = DocumentoEntity.builder()
-                .tipoDocumento(dto.getTipoDocumento())
+                .tipoDocumento(dto.getTipoDocumento().trim())
                 .categoria("ESPACO")
                 .espaco(espaco)
                 .nomeArquivo(dto.getNomeArquivo())
@@ -110,6 +212,8 @@ public class DocumentoService {
     @Transactional(readOnly = true)
     public List<DocumentoDTO> listarPorUsuario(Long usuarioId) {
 
+        exigirDonoOuAdmin(usuarioId);
+
         return documentoRepository.findByUsuarioId(usuarioId)
                 .stream()
                 .map(DocumentoDTO::new)
@@ -123,6 +227,13 @@ public class DocumentoService {
 
     @Transactional(readOnly = true)
     public List<DocumentoDTO> listarPorEspaco(Long espacoId) {
+
+        Espaco espaco = espacoRepository.findById(espacoId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Espaço não encontrado com o ID: " + espacoId)
+                );
+
+        exigirDonoOuAdmin(donoDoEspaco(espaco));
 
         return documentoRepository.findByEspacoId(espacoId)
                 .stream()
@@ -138,6 +249,8 @@ public class DocumentoService {
     @Transactional(readOnly = true)
     public List<DocumentoDTO> listarPendentes() {
 
+        exigirAdmin();
+
         return documentoRepository.findByStatus("PENDENTE")
                 .stream()
                 .map(DocumentoDTO::new)
@@ -152,13 +265,12 @@ public class DocumentoService {
     @Transactional
     public DocumentoDTO aprovarDocumento(Long documentoId) {
 
+        exigirAdmin();
+
         DocumentoEntity documento =
                 documentoRepository.findById(documentoId)
                         .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Documento não encontrado com o ID: "
-                                                + documentoId
-                                )
+                                new ResponseStatusException(HttpStatus.NOT_FOUND, "Documento não encontrado com o ID: " + documentoId)
                         );
 
         String statusAnterior = documento.getStatus();
@@ -207,13 +319,13 @@ public class DocumentoService {
             String motivo
     ) {
 
+        exigirAdmin();
+        validarMotivo(motivo);
+
         DocumentoEntity documento =
                 documentoRepository.findById(documentoId)
                         .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Documento não encontrado com o ID: "
-                                                + documentoId
-                                )
+                                new ResponseStatusException(HttpStatus.NOT_FOUND, "Documento não encontrado com o ID: " + documentoId)
                         );
 
         String statusAnterior = documento.getStatus();
@@ -264,13 +376,13 @@ public class DocumentoService {
             String motivo
     ) {
 
+        exigirAdmin();
+        validarMotivo(motivo);
+
         DocumentoEntity documento =
                 documentoRepository.findById(documentoId)
                         .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Documento não encontrado com o ID: "
-                                                + documentoId
-                                )
+                                new ResponseStatusException(HttpStatus.NOT_FOUND, "Documento não encontrado com o ID: " + documentoId)
                         );
 
         String statusAnterior = documento.getStatus();
@@ -321,10 +433,14 @@ public class DocumentoService {
         DocumentoEntity documento =
                 documentoRepository.findById(id)
                         .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Documento não encontrado."
-                                )
+                                new ResponseStatusException(HttpStatus.NOT_FOUND, "Documento não encontrado.")
                         );
+
+        Long donoId = documento.getUsuario() != null
+                ? documento.getUsuario().getId()
+                : (documento.getEspaco() != null ? donoDoEspaco(documento.getEspaco()) : null);
+
+        exigirDonoOuAdmin(donoId);
 
         return new DocumentoDTO(documento);
     }

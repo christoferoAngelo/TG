@@ -1,12 +1,73 @@
 import { getAuth } from "firebase/auth";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
 /**
  * =========================================================
- * CLOUDINARY (Não precisa de Token JWT)
+ * TOKEN
+ * O backend valida um ID token do Firebase em /documentos/**.
+ * O token vem SEMPRE do Firebase (renovado automaticamente quando perto de
+ * expirar). Ler de localStorage.getItem("token") enviava "Bearer null" ou um
+ * token vencido, que é o que gerava "Failed to parse Firebase ID token".
+ * =========================================================
+ */
+async function obterToken(forcarRenovacao = false) {
+    const auth = getAuth();
+
+    // Espera o Firebase terminar de restaurar a sessão (evita currentUser nulo logo após o F5)
+    if (typeof auth.authStateReady === "function") {
+        await auth.authStateReady();
+    }
+
+    const usuario = auth.currentUser;
+    if (!usuario) {
+        throw new Error("Sua sessão expirou. Entre novamente para continuar.");
+    }
+
+    return usuario.getIdToken(forcarRenovacao);
+}
+
+// Extrai uma mensagem legível, venha o erro como JSON do filtro/Spring ou como texto puro
+async function lerMensagemDeErro(resposta, padrao) {
+    const texto = await resposta.text();
+    if (!texto) return padrao;
+
+    try {
+        const dados = JSON.parse(texto);
+        return dados.detalhe || dados.message || dados.erro || padrao;
+    } catch {
+        return texto;
+    }
+}
+
+async function requisitar(caminho, { method = "GET", body } = {}, mensagemPadrao, primeiraTentativa = true) {
+    const token = await obterToken(!primeiraTentativa);
+
+    const response = await fetch(`${API_URL}/documentos${caminho}`, {
+        method,
+        headers: {
+            Authorization: `Bearer ${token}`,
+            ...(body ? { "Content-Type": "application/json" } : {}),
+        },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+
+    // O token pode ter vencido entre a leitura e o envio: renova uma vez e tenta de novo
+    if (response.status === 401 && primeiraTentativa) {
+        return requisitar(caminho, { method, body }, mensagemPadrao, false);
+    }
+
+    if (!response.ok) {
+        throw new Error(await lerMensagemDeErro(response, mensagemPadrao));
+    }
+
+    return response.json();
+}
+
+
+/**
+ * =========================================================
+ * CLOUDINARY (não precisa de token)
  * =========================================================
  */
 export async function uploadDocumentoCloudinary(arquivo) {
@@ -55,42 +116,11 @@ export async function uploadDocumentoCloudinary(arquivo) {
  * DOCUMENTOS DO USUÁRIO
  * =========================================================
  */
-export async function criarDocumentoUsuario(usuarioId, documento) {
-    const token = localStorage.getItem("token");
+export const criarDocumentoUsuario = (usuarioId, documento) =>
+    requisitar(`/usuario/${usuarioId}`, { method: "POST", body: documento }, "Erro ao cadastrar documento do usuário.");
 
-    const response = await fetch(`${API_URL}/documentos/usuario/${usuarioId}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(documento)
-    });
-
-    if (!response.ok) {
-        const texto = await response.text();
-        throw new Error(texto || "Erro ao cadastrar documento do usuário.");
-    }
-
-    return response.json();
-}
-
-export async function listarDocumentosUsuario(usuarioId) {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(`${API_URL}/documentos/usuario/${usuarioId}`, {
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error("Erro ao buscar documentos do usuário.");
-    }
-
-    return response.json();
-}
+export const listarDocumentosUsuario = (usuarioId) =>
+    requisitar(`/usuario/${usuarioId}`, {}, "Erro ao buscar documentos do usuário.");
 
 
 /**
@@ -98,53 +128,11 @@ export async function listarDocumentosUsuario(usuarioId) {
  * DOCUMENTOS DO ESPAÇO
  * =========================================================
  */
-export async function criarDocumentoEspaco(espacoId, documento) {
-    // Pede para o Firebase quem é o usuário atual
-    const auth = getAuth();
-    const user = auth.currentUser;
+export const criarDocumentoEspaco = (espacoId, documento) =>
+    requisitar(`/espaco/${espacoId}`, { method: "POST", body: documento }, "Erro ao cadastrar documento do espaço.");
 
-    if (!user) {
-        throw new Error("Você precisa estar logado para enviar um documento.");
-    }
-
-    // Pede o token fresquinho e válido direto pro Firebase!
-    const token = await user.getIdToken();
-
-    console.log("🕵️ TOKEN SENDO ENVIADO:", token ? "Token capturado com sucesso!" : "Ainda vazio :(");
-
-    const response = await fetch(`${API_URL}/documentos/espaco/${espacoId}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(documento)
-    });
-
-    if (!response.ok) {
-        const texto = await response.text();
-        throw new Error(texto || "Erro ao cadastrar documento do espaço.");
-    }
-
-    return response.json();
-}
-
-export async function listarDocumentosEspaco(espacoId) {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(`${API_URL}/documentos/espaco/${espacoId}`, {
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error("Erro ao buscar documentos do espaço.");
-    }
-
-    return response.json();
-}
+export const listarDocumentosEspaco = (espacoId) =>
+    requisitar(`/espaco/${espacoId}`, {}, "Erro ao buscar documentos do espaço.");
 
 
 /**
@@ -152,22 +140,8 @@ export async function listarDocumentosEspaco(espacoId) {
  * DOCUMENTO POR ID
  * =========================================================
  */
-export async function buscarDocumento(id) {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(`${API_URL}/documentos/${id}`, {
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error("Erro ao buscar documento.");
-    }
-
-    return response.json();
-}
+export const buscarDocumento = (id) =>
+    requisitar(`/${id}`, {}, "Erro ao buscar documento.");
 
 
 /**
@@ -175,77 +149,14 @@ export async function buscarDocumento(id) {
  * ADMIN
  * =========================================================
  */
-export async function listarDocumentosPendentes() {
-    const token = localStorage.getItem("token");
+export const listarDocumentosPendentes = () =>
+    requisitar("/admin/pendentes", {}, "Erro ao buscar documentos pendentes.");
 
-    const response = await fetch(`${API_URL}/documentos/admin/pendentes`, {
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    });
+export const aprovarDocumento = (id) =>
+    requisitar(`/admin/${id}/aprovar`, { method: "PUT" }, "Erro ao aprovar documento.");
 
-    if (!response.ok) {
-        throw new Error("Erro ao buscar documentos pendentes.");
-    }
+export const rejeitarDocumento = (id, motivo) =>
+    requisitar(`/admin/${id}/rejeitar?${new URLSearchParams({ motivo })}`, { method: "PUT" }, "Erro ao rejeitar documento.");
 
-    return response.json();
-}
-
-export async function aprovarDocumento(id) {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(`${API_URL}/documentos/admin/${id}/aprovar`, {
-        method: "PUT",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        const texto = await response.text();
-        throw new Error(texto || "Erro ao aprovar documento.");
-    }
-
-    return response.json();
-}
-
-export async function rejeitarDocumento(id, motivo) {
-    const token = localStorage.getItem("token");
-    const params = new URLSearchParams();
-    params.append("motivo", motivo);
-
-    const response = await fetch(`${API_URL}/documentos/admin/${id}/rejeitar?${params.toString()}`, {
-        method: "PUT",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        const texto = await response.text();
-        throw new Error(texto || "Erro ao rejeitar documento.");
-    }
-
-    return response.json();
-}
-
-export async function solicitarCorrecao(id, motivo) {
-    const token = localStorage.getItem("token");
-    const params = new URLSearchParams();
-    params.append("motivo", motivo);
-
-    const response = await fetch(`${API_URL}/documentos/admin/${id}/correcao?${params.toString()}`, {
-        method: "PUT",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        const texto = await response.text();
-        throw new Error(texto || "Erro ao solicitar correção.");
-    }
-
-    return response.json();
-}
+export const solicitarCorrecao = (id, motivo) =>
+    requisitar(`/admin/${id}/correcao?${new URLSearchParams({ motivo })}`, { method: "PUT" }, "Erro ao solicitar correção.");

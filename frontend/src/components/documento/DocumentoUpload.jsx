@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import {
     uploadDocumentoCloudinary
 } from "../../services/documentoService";
+import { rotuloDocumento } from "./rotulosDocumento";
 
 
 export default function DocumentoUpload({
@@ -264,11 +265,7 @@ const handleSubmit = async (e) => {
                                     key={tipo}
                                     value={tipo}
                                 >
-                                    {tipo
-                                        .replaceAll(
-                                            "_",
-                                            " "
-                                        )}
+                                    {rotuloDocumento(tipo)}
                                 </option>
                             )
                         )}
