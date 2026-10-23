@@ -1,23 +1,23 @@
 import React, { useState } from "react";
-// 1. Firebase Config (subindo 2 níveis para src/config)
-import { auth, googleProvider } from "../../config/firebaseConfig"; 
-import { useNavigate, Navigate } from "react-router-dom";
+import { auth, googleProvider } from "../../config/firebaseConfig";
+import { useNavigate } from "react-router-dom";
 
-import { 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    signInWithPopup 
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signInWithPopup
 } from "firebase/auth";
 import { userService } from "../../config/api";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-/**
- * Componente unificado de Autenticação (Login / Registro).
- * Utiliza o Firebase para segurança e registra os dados no MySQL local do LocaFesta.
- */
-export default function Auth() { // Retirada a prop onLoginSuccess
-    const { setUsuarioLogado } = useAuth(); // 2. Consumimos a função para atualizar o usuário globalmente
+import iconVoltar from "../../assets/voltar_icon.png";
+import "./Auth.css";
+
+export default function Auth() {
+    const { setUsuarioLogado } = useAuth();
+    const navigate = useNavigate();
+
     const [isRegistering, setIsRegistering] = useState(false);
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
@@ -26,22 +26,19 @@ export default function Auth() { // Retirada a prop onLoginSuccess
     const [mensagemErro, setMensagemErro] = useState("");
     const [carregando, setCarregando] = useState(false);
 
-    // Função de Login (Email e Senha)
     const handleLogin = async (e) => {
         e.preventDefault();
         setMensagemErro("");
         setCarregando(true);
 
         try {
-            // 1. Autentica no Firebase
             const userCredential = await signInWithEmailAndPassword(auth, email, senha);
             const firebaseUser = userCredential.user;
 
-            // 2. Busca o perfil no MySQL usando o UID do Firebase
             const perfilLocal = await userService.buscarPerfilPorUid(firebaseUser.uid);
-            
+
             if (perfilLocal) {
-                setUsuarioLogado(perfilLocal); // 3. Atualiza o estado global
+                setUsuarioLogado(perfilLocal);
             } else {
                 setMensagemErro("Sua conta do Firebase existe, mas não encontramos seu perfil no banco local.");
             }
@@ -53,12 +50,10 @@ export default function Auth() { // Retirada a prop onLoginSuccess
         }
     };
 
-    // Função de Registro de Novo Usuário (Email e Senha)
     const handleRegister = async (e) => {
         e.preventDefault();
         setMensagemErro("");
 
-        // Validação preventiva de tamanho de senha para evitar o erro do Firebase
         if (senha.length < 6) {
             setMensagemErro("A senha precisa ter pelo menos 6 caracteres.");
             return;
@@ -67,11 +62,9 @@ export default function Auth() { // Retirada a prop onLoginSuccess
         setCarregando(true);
 
         try {
-            // 1. Cria o usuário na base do Firebase
             const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
             const firebaseUser = userCredential.user;
 
-            // 2. Prepara os dados para persistência local
             const dadosCadastro = {
                 firebaseUid: firebaseUser.uid,
                 nome: nome,
@@ -79,10 +72,9 @@ export default function Auth() { // Retirada a prop onLoginSuccess
                 telefone: telefone
             };
 
-            // 3. Salva no banco MySQL através do Spring Boot
             const novoUsuarioSalvo = await userService.cadastrarNoBancoLocal(dadosCadastro);
-            
-            setUsuarioLogado(novoUsuarioSalvo); // 4. Atualiza o estado global
+
+            setUsuarioLogado(novoUsuarioSalvo);
         } catch (error) {
             console.error(error);
             if (error.code === "auth/weak-password") {
@@ -97,25 +89,22 @@ export default function Auth() { // Retirada a prop onLoginSuccess
         }
     };
 
-    // Login com Conta Google
     const handleGoogleLogin = async () => {
         setMensagemErro("");
+        setCarregando(true);
+
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const firebaseUser = result.user;
 
             let perfilLocal = null;
-            
+
             try {
-                // Verifica se o usuário do Google já existe no MySQL
                 perfilLocal = await userService.buscarPerfilPorUid(firebaseUser.uid);
             } catch (err) {
-                // Se der 404, significa que ele realmente não existe no banco local ainda. 
-                // Continuamos o fluxo sem quebrar a aplicação para criar o perfil abaixo.
                 console.log("Usuário novo do Google detectado. Criando cadastro no MySQL...");
             }
 
-            // Se for o primeiro acesso dele, criamos o perfil no MySQL
             if (!perfilLocal) {
                 const novosDados = {
                     firebaseUid: firebaseUser.uid,
@@ -126,193 +115,160 @@ export default function Auth() { // Retirada a prop onLoginSuccess
                 perfilLocal = await userService.cadastrarNoBancoLocal(novosDados);
             }
 
-            setUsuarioLogado(perfilLocal); // 5. Atualiza o estado global
+            setUsuarioLogado(perfilLocal);
         } catch (error) {
             console.error(error);
             setMensagemErro("Falha na autenticação com o Google ou erro ao salvar perfil local.");
+        } finally {
+            setCarregando(false);
         }
     };
 
+    const alternarModo = () => {
+        setMensagemErro("");
+        setIsRegistering(!isRegistering);
+    };
+
     return (
-        <div style={styles.container}>
-            <div style={styles.card}>
-                <h2 style={styles.title}>LocaFesta</h2>
-                <p style={styles.subtitle}>
-                    {isRegistering ? "Crie sua conta para começar" : "Acesse sua conta de eventos"}
-                </p>
+        <div className="auth-page">
+            <button
+                type="button"
+                className="auth-voltar"
+                onClick={() => navigate("/home")}
+            >
+                <img src={iconVoltar} alt="" aria-hidden="true" />
+                Voltar para a Home
+            </button>
 
-                {mensagemErro && <div style={styles.errorAlert}>{mensagemErro}</div>}
+            <div className="auth-shell">
+                <aside className="auth-marca" aria-hidden="true">
+                    <h1 className="auth-marca-nome">LocaFesta</h1>
+                    <p className="auth-marca-texto">
+                        Encontre salões e espaços para festas, gerencie reservas e anuncie o seu
+                        local em um só lugar.
+                    </p>
+                    <ul className="auth-marca-lista">
+                        <li>Busque espaços perto de você</li>
+                        <li>Reserve com segurança</li>
+                        <li>Anuncie como locador</li>
+                    </ul>
+                </aside>
 
-                <form onSubmit={isRegistering ? handleRegister : handleLogin} style={styles.form}>
-                    {isRegistering && (
-                        <>
-                            <label style={styles.label}>Nome Completo</label>
-                            <input 
-                                type="text" 
-                                style={styles.input} 
-                                value={nome} 
-                                onChange={(e) => setNome(e.target.value)} 
-                                required 
-                            />
+                <div className="auth-painel">
+                    <header className="auth-cab">
+                        <h2 className="auth-titulo">
+                            {isRegistering ? "Criar conta" : "Entrar"}
+                        </h2>
+                        <p className="auth-subtitulo">
+                            {isRegistering
+                                ? "Preencha seus dados para começar a usar a plataforma."
+                                : "Acesse sua conta para reservar espaços e gerenciar anúncios."}
+                        </p>
+                    </header>
 
-                            <label style={styles.label}>Telefone de Contato</label>
-                            <input 
-                                type="tel" 
-                                placeholder="(11) 99999-9999"
-                                style={styles.input} 
-                                value={telefone} 
-                                onChange={(e) => setTelefone(e.target.value)} 
-                            />
-                        </>
+                    {mensagemErro && (
+                        <div className="alert-error auth-erro" role="alert">
+                            {mensagemErro}
+                        </div>
                     )}
 
-                    <label style={styles.label}>E-mail</label>
-                    <input 
-                        type="email" 
-                        style={styles.input} 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        required 
-                    />
-
-                    <label style={styles.label}>Senha</label>
-                    <input 
-                        type="password" 
-                        style={styles.input} 
-                        value={senha} 
-                        onChange={(e) => setSenha(e.target.value)} 
-                        required 
-                    />
-
-                    <button type="submit" disabled={carregando} style={styles.submitBtn}>
-                        {carregando ? "Aguarde..." : (isRegistering ? "Cadastrar" : "Entrar")}
-                    </button>
-                </form>
-
-                <div style={styles.divider}>ou</div>
-
-                <button onClick={handleGoogleLogin} style={styles.googleBtn}>
-                    Entrar com o Google
-                </button>
-
-                <p style={styles.switchText}>
-                    {isRegistering ? "Já possui uma conta?" : "Ainda não tem conta?"}{" "}
-                    <span 
-                        onClick={() => setIsRegistering(!isRegistering)} 
-                        style={styles.switchLink}
+                    <form
+                        className="auth-form"
+                        onSubmit={isRegistering ? handleRegister : handleLogin}
                     >
-                        {isRegistering ? "Fazer Login" : "Cadastre-se"}
-                    </span>
-                </p>
-                <div style={{ textAlign: "center", marginTop: "15px" }}>
-    <span 
-        onClick={() => navigate("/home")} 
-        style={{ ...styles.switchLink, fontSize: "14px" }}
-    >
-        ← Voltar para a Home como visitante
-    </span>
-</div>
+                        {isRegistering && (
+                            <>
+                                <div className="auth-campo">
+                                    <label htmlFor="auth-nome">Nome completo</label>
+                                    <input
+                                        id="auth-nome"
+                                        type="text"
+                                        className="auth-input"
+                                        value={nome}
+                                        onChange={(e) => setNome(e.target.value)}
+                                        required
+                                        autoComplete="name"
+                                    />
+                                </div>
+
+                                <div className="auth-campo">
+                                    <label htmlFor="auth-telefone">Telefone de contato</label>
+                                    <input
+                                        id="auth-telefone"
+                                        type="tel"
+                                        className="auth-input"
+                                        placeholder="(11) 99999-9999"
+                                        value={telefone}
+                                        onChange={(e) => setTelefone(e.target.value)}
+                                        autoComplete="tel"
+                                    />
+                                </div>
+                            </>
+                        )}
+
+                        <div className="auth-campo">
+                            <label htmlFor="auth-email">E-mail</label>
+                            <input
+                                id="auth-email"
+                                type="email"
+                                className="auth-input"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                autoComplete="email"
+                            />
+                        </div>
+
+                        <div className="auth-campo">
+                            <label htmlFor="auth-senha">Senha</label>
+                            <input
+                                id="auth-senha"
+                                type="password"
+                                className="auth-input"
+                                value={senha}
+                                onChange={(e) => setSenha(e.target.value)}
+                                required
+                                autoComplete={isRegistering ? "new-password" : "current-password"}
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={carregando}
+                            className="auth-btn auth-btn--primario"
+                        >
+                            {carregando
+                                ? "Aguarde…"
+                                : isRegistering
+                                  ? "Cadastrar"
+                                  : "Entrar"}
+                        </button>
+                    </form>
+
+                    <div className="auth-divisor" aria-hidden="true">
+                        ou
+                    </div>
+
+                    <button
+                        type="button"
+                        disabled={carregando}
+                        className="auth-btn auth-btn--google"
+                        onClick={handleGoogleLogin}
+                    >
+                        <span className="auth-google-g" aria-hidden="true">
+                            G
+                        </span>
+                        Entrar com o Google
+                    </button>
+
+                    <p className="auth-rodape">
+                        {isRegistering ? "Já possui uma conta?" : "Ainda não tem conta?"}{" "}
+                        <button type="button" className="auth-link" onClick={alternarModo}>
+                            {isRegistering ? "Fazer login" : "Cadastre-se"}
+                        </button>
+                    </p>
+                </div>
             </div>
         </div>
     );
 }
-
-const styles = {
-    container: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f5f7fb",
-        fontFamily: "'Segoe UI', Roboto, sans-serif"
-    },
-    card: {
-        background: "#ffffff",
-        padding: "40px",
-        borderRadius: "12px",
-        boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-        width: "100%",
-        maxWidth: "400px",
-        textAlign: "center"
-    },
-    title: {
-        margin: "0 0 5px 0",
-        color: "#4f46e5",
-        fontSize: "28px",
-        fontWeight: "bold"
-    },
-    subtitle: {
-        margin: "0 0 25px 0",
-        color: "#6b7280",
-        fontSize: "14px"
-    },
-    form: {
-        display: "flex",
-        flexDirection: "column",
-        textAlign: "left"
-    },
-    label: {
-        fontSize: "12px",
-        fontWeight: "600",
-        color: "#374151",
-        marginBottom: "6px"
-    },
-    input: {
-        padding: "10px 12px",
-        borderRadius: "6px",
-        border: "1px solid #d1d5db",
-        marginBottom: "16px",
-        fontSize: "14px",
-        outline: "none",
-        transition: "border-color 0.2s",
-    },
-    submitBtn: {
-        backgroundColor: "#4f46e5",
-        color: "#ffffff",
-        border: "none",
-        padding: "12px",
-        borderRadius: "6px",
-        fontSize: "15px",
-        fontWeight: "600",
-        cursor: "pointer",
-        transition: "background-color 0.2s"
-    },
-    divider: {
-        margin: "20px 0",
-        color: "#9ca3af",
-        fontSize: "13px",
-        position: "relative"
-    },
-    googleBtn: {
-        backgroundColor: "#ffffff",
-        color: "#374151",
-        border: "1px solid #d1d5db",
-        padding: "10px",
-        borderRadius: "6px",
-        fontSize: "14px",
-        fontWeight: "600",
-        cursor: "pointer",
-        width: "100%",
-        marginBottom: "20px"
-    },
-    switchText: {
-        fontSize: "13px",
-        color: "#4b5563",
-        margin: 0
-    },
-    switchLink: {
-        color: "#4f46e5",
-        fontWeight: "600",
-        cursor: "pointer",
-        textDecoration: "underline"
-    },
-    errorAlert: {
-        backgroundColor: "#fee2e2",
-        color: "#b91c1c",
-        padding: "10px",
-        borderRadius: "6px",
-        fontSize: "13px",
-        marginBottom: "20px",
-        textAlign: "left"
-    }
-};
