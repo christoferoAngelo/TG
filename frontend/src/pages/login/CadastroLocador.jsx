@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -11,6 +11,25 @@ export default function CadastroLocador() {
     const [nomeFantasia, setNomeFantasia] = useState("");
     const [erro, setErro] = useState("");
     const [loading, setLoading] = useState(false);
+    const [perfilPronto, setPerfilPronto] = useState(null);
+
+    const telefoneOk = Boolean(usuarioLogado?.telefone?.trim());
+    const enderecoOk = Boolean(usuarioLogado?.endereco?.cep);
+
+    useEffect(() => {
+        if (!usuarioLogado?.id) return undefined;
+        let ativo = true;
+        fetch(`http://localhost:8080/api/locatarios/usuario/${usuarioLogado.id}`)
+            .then((res) => {
+                if (ativo) setPerfilPronto(res.ok && telefoneOk && enderecoOk);
+            })
+            .catch(() => {
+                if (ativo) setPerfilPronto(false);
+            });
+        return () => {
+            ativo = false;
+        };
+    }, [usuarioLogado, telefoneOk, enderecoOk]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -59,6 +78,19 @@ export default function CadastroLocador() {
                     Preencha os dados abaixo para começar a alugar seus espaços no LocaFesta.
                 </p>
 
+                {perfilPronto === null ? (
+                    <p style={styles.subtitulo}>Verificando seu cadastro…</p>
+                ) : !perfilPronto ? (
+                    <>
+                        <p style={styles.subtitulo}>
+                            A conta de locador só abre depois do telefone, do CPF e do endereço. Complete esses dados no perfil para publicar espaços, gerenciar reservas e ver relatórios.
+                        </p>
+                        <button type="button" onClick={() => navigate("/perfil")} style={styles.btnSalvar}>
+                            Completar cadastro
+                        </button>
+                    </>
+                ) : (
+                <>
                 {erro && <div style={styles.erroBox}>{erro}</div>}
 
                 <form onSubmit={handleSubmit} style={styles.form}>
@@ -104,6 +136,8 @@ export default function CadastroLocador() {
                         </button>
                     </div>
                 </form>
+                </>
+                )}
             </div>
         </div>
     );

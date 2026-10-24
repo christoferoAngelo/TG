@@ -20,6 +20,7 @@ public class UsuarioDTO {
     private String nome;
     private String email;
     private String telefone;
+    private String fotoUrl;
     private EnderecoDTO endereco;
     private LocalDateTime dataCadastro;
     private LocalDateTime dataAtivo;
@@ -40,6 +41,7 @@ public class UsuarioDTO {
         this.nome = usuario.getNome();
         this.email = usuario.getEmail();
         this.telefone = usuario.getTelefone();
+        this.fotoUrl = usuario.getFotoUrl();
         this.dataCadastro = usuario.getDataCadastro(); 
         this.dataAtivo = usuario.getDataAtivo();
         this.isLocatario = isLocatario;

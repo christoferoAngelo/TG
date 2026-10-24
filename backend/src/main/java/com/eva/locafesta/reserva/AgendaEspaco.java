@@ -34,7 +34,8 @@ public final class AgendaEspaco {
     public record Periodo(Modalidade modalidade, Integer numero, Intervalo intervalo) {}
 
     private static LocalTime hora(int minutos) {
-        return LocalTime.of(minutos / 60, minutos % 60);
+        int dia = Math.floorMod(minutos, 24 * 60);
+        return LocalTime.of(dia / 60, dia % 60);
     }
 
     private static int duracaoMaxMin(Regras r) {
@@ -45,26 +46,30 @@ public final class AgendaEspaco {
     }
 
     /**
-     * Períodos que o espaço oferece, derivados das regras:
-     * 1º período = começa na abertura e dura a duração máxima;
-     * 2º período = termina no fechamento e dura a duração máxima
-     * (só é oferecido se couber depois do 1º + limpeza);
-     * integral = abertura até fechamento.
+     * Períodos que o espaço oferece.
+     * No fracionado, os turnos entram em sequência: cada um dura a duração
+     * do evento e o próximo só começa depois do intervalo de limpeza.
+     * No integral, um único período vai da abertura ao fechamento.
+     * Fechamento no relógio anterior à abertura conta como o dia seguinte.
      */
     public static List<Periodo> periodosOferecidos(Regras r) {
         List<Periodo> out = new ArrayList<>();
         int a = r.abertura().toSecondOfDay() / 60;
         int f = r.fechamento().toSecondOfDay() / 60;
+        if (f <= a) {
+            f += 24 * 60;
+        }
 
         if (r.meioPeriodo() && r.duracaoMaxHoras() != null) {
             int d = duracaoMaxMin(r);
-            if (d > 0 && d <= f - a) {
-                out.add(new Periodo(Modalidade.MEIO_PERIODO, 1,
-                        new Intervalo(hora(a), hora(a + d))));
-                if (a + d + r.limpezaMin() <= f - d) {
-                    out.add(new Periodo(Modalidade.MEIO_PERIODO, 2,
-                            new Intervalo(hora(f - d), hora(f))));
-                }
+            int cursor = a;
+            int numero = 1;
+            while (d > 0 && cursor + d <= f && numero <= 24) {
+                int fim = cursor + d;
+                out.add(new Periodo(Modalidade.MEIO_PERIODO, numero,
+                        new Intervalo(hora(cursor), hora(fim))));
+                cursor = fim + Math.max(0, r.limpezaMin());
+                numero++;
             }
         }
         if (r.integral()) {

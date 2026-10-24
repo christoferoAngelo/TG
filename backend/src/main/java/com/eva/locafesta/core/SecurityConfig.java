@@ -48,6 +48,8 @@ public class SecurityConfig {
                     "/api/locatarios", "/api/locatarios/**",
                     "/api/espacos", "/api/espacos/**", 
                     "/api/reservas", "/api/reservas/**",
+                    "/api/notificacoes", "/api/notificacoes/**",
+                    "/api/favoritos", "/api/favoritos/**",
                     "/api/admin", "/api/admin/**",
                     "/api/pagamento", "/api/pagamento/**",
                     "/api/v1/pagamentos", "/api/v1/pagamentos/**",

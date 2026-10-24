@@ -72,6 +72,20 @@ public class EspacoService {
                 "A duração máxima deve ser maior que zero."
             );
         }
+
+        if (dto.getAntecedenciaMinimaDias() != null
+                && (dto.getAntecedenciaMinimaDias() < 0 || dto.getAntecedenciaMinimaDias() > 365)) {
+            throw new IllegalArgumentException(
+                "A antecedência mínima deve ser um número de 0 a 365 dias."
+            );
+        }
+
+        if (dto.getPrazoCancelamentoDias() != null
+                && (dto.getPrazoCancelamentoDias() < 0 || dto.getPrazoCancelamentoDias() > 30)) {
+            throw new IllegalArgumentException(
+                "O prazo de cancelamento do locador deve ser um número de 0 a 30 dias."
+            );
+        }
     }
 
     private Set<Caracteristica> resolverCaracteristicas(Set<CaracteristicaDTO> dtos) {
@@ -217,9 +231,16 @@ public class EspacoService {
                 .permiteHorarioPersonalizado(
                     dto.getPermiteHorarioPersonalizado() != null ? dto.getPermiteHorarioPersonalizado() : false
                 )
+                .aprovacaoInstantanea(Boolean.TRUE.equals(dto.getAprovacaoInstantanea()))
                 .duracaoMaxHoras(dto.getDuracaoMaxHoras())
                 .intervaloLimpezaMin(
                     dto.getIntervaloLimpezaMin() != null ? dto.getIntervaloLimpezaMin() : 0
+                )
+                .antecedenciaMinimaDias(
+                    dto.getAntecedenciaMinimaDias() != null ? dto.getAntecedenciaMinimaDias() : 0
+                )
+                .prazoCancelamentoDias(
+                    dto.getPrazoCancelamentoDias() != null ? dto.getPrazoCancelamentoDias() : 2
                 )
                 .endereco(endereco)
                 .statusAprovacao("PENDENTE")
@@ -310,11 +331,23 @@ public class EspacoService {
             espaco.setPermiteHorarioPersonalizado(dto.getPermiteHorarioPersonalizado());
         }
 
+        if (dto.getAprovacaoInstantanea() != null) {
+            espaco.setAprovacaoInstantanea(dto.getAprovacaoInstantanea());
+        }
+
         // Duração máxima é opcional: null significa "sem limite", então precisa poder limpar
         espaco.setDuracaoMaxHoras(dto.getDuracaoMaxHoras());
 
         if (dto.getIntervaloLimpezaMin() != null) {
             espaco.setIntervaloLimpezaMin(dto.getIntervaloLimpezaMin());
+        }
+
+        if (dto.getAntecedenciaMinimaDias() != null) {
+            espaco.setAntecedenciaMinimaDias(dto.getAntecedenciaMinimaDias());
+        }
+
+        if (dto.getPrazoCancelamentoDias() != null) {
+            espaco.setPrazoCancelamentoDias(dto.getPrazoCancelamentoDias());
         }
 
         // ---- 5. Mensagem de ajuste/réplica ao admin ----

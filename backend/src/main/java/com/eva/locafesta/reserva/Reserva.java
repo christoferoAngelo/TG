@@ -59,4 +59,19 @@ public class Reserva {
 
     private LocalDateTime dataAvaliacao;
 
+    // LOCATARIO ou LOCADOR. Preenchido só depois do cancelamento.
+    @Column(name = "cancelado_por", length = 20)
+    private String canceladoPor;
+
+    // TOTAL, SEM_REEMBOLSO ou SEM_COBRANCA.
+    @Column(name = "condicao_reembolso", length = 40)
+    private String condicaoReembolso;
+
+    @Column(name = "cancelado_em")
+    private LocalDateTime canceladoEm;
+
+    @Builder.Default
+    @Column(name = "pagamento_liberado", nullable = false)
+    private boolean pagamentoLiberado = false;
+
 }

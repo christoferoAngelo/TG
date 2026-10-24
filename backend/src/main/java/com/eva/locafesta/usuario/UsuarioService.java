@@ -152,6 +152,23 @@ private ApplicationEventPublisher eventPublisher;
         return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
     }
 
+    public UsuarioDTO atualizarFoto(Long usuarioId, String fotoUrl) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
+
+        String url = fotoUrl == null ? "" : fotoUrl.trim();
+        if (url.isEmpty() || url.length() > 500 || !url.startsWith("https://")) {
+            throw new IllegalArgumentException("Envie o endereço da foto.");
+        }
+
+        usuario.setFotoUrl(url);
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
+        boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
+        boolean isLocatario = perfilLocatarioRepository.existsByUsuarioId(usuarioSalvo.getId());
+        return new UsuarioDTO(usuarioSalvo, isLocatario, isLocador);
+    }
+
 // ==========================================
 // MÉTODOS DE ADMINISTRAÇÃO E GERENCIAMENTO
 // ==========================================

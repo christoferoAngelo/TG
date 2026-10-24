@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef } from "react";
+import { createPortal } from "react-dom";
 import "./Modal.css";
 
 /**
@@ -44,7 +45,7 @@ export default function Modal({
         };
     }, []);
 
-    return (
+    return createPortal(
         <div className="mdl-overlay">
             <div
                 ref={dialogoRef}
@@ -74,6 +75,7 @@ export default function Modal({
 
                 {rodape && <footer className="mdl-rodape">{rodape}</footer>}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

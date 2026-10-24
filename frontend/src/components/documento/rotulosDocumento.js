@@ -5,6 +5,13 @@ const ROTULOS = {
     DOCUMENTO_PROPRIEDADE: "Documento de propriedade",
     COMPROVANTE_ENDERECO: "Comprovante de endereço",
     DOCUMENTO_AUTORIZACAO: "Documento de autorização",
+    IPTU: "Capa do IPTU",
+    MATRICULA: "Matrícula atualizada",
+    ESCRITURA: "Escritura pública",
+    CONTRATO_LOCACAO: "Contrato de locação comercial",
+    AUTORIZACAO_USO: "Autorização de uso",
+    ALVARA: "Alvará de funcionamento",
+    AVCB: "AVCB",
     PESSOA: "Conta",
     ESPACO: "Espaço",
 };

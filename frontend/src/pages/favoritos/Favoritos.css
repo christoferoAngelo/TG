@@ -1,0 +1,241 @@
+.fv {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 28px 24px 72px;
+    font-family: var(--font-body);
+    color: var(--color-text);
+}
+
+.fv-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.fv-topo h1 {
+    margin: 0 0 6px;
+    font-family: var(--font-heading);
+    font-size: clamp(1.7rem, 3vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.fv-topo p,
+.fv-muted {
+    margin: 0;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+}
+
+.fv-nova,
+.fv-renomear {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 28px;
+    max-width: 420px;
+}
+
+.fv-renomear {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+.fv-nova label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.fv-nova div,
+.fv-acoes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.fv-nova div {
+    flex-wrap: nowrap;
+}
+
+.fv-nova input,
+.fv-renomear input {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 15px;
+}
+
+.fv-nova button,
+.fv-acoes button,
+.fv-renomear button,
+.fv-voltar,
+.fv-sumiu button,
+.fv-vazio button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.fv-criar,
+.fv-vazio button {
+    border-color: var(--color-text);
+    background: transparent;
+}
+
+.fv-apagar {
+    color: var(--color-danger-text);
+    border-color: var(--color-danger-border);
+}
+
+.fv-pastas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.fv-pasta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+    font-family: inherit;
+}
+
+.fv-capa {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-bg-muted);
+    display: grid;
+    place-items: center;
+    color: var(--color-text-muted);
+}
+
+.fv-capa img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fv-pasta strong {
+    font-size: 1rem;
+}
+
+.fv-pasta small {
+    color: var(--color-text-muted);
+}
+
+.fv-voltar {
+    margin-bottom: 16px;
+}
+
+.fv-erro {
+    margin: 0 0 16px;
+    color: var(--color-danger-text);
+    font-weight: 600;
+}
+
+.fv-vazio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    margin: 48px auto 0;
+    max-width: 360px;
+}
+
+.fv-vazio svg {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 8px;
+    fill: none;
+    stroke: var(--color-text-muted);
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+}
+
+.fv-vazio strong {
+    font-size: 1.15rem;
+}
+
+.fv-vazio p {
+    margin: 0 0 12px;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+}
+
+.fv-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-text);
+    border-radius: 50%;
+    animation: fv-gira 0.7s linear infinite;
+}
+
+.fv-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    z-index: 60;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 12px 18px;
+    border-radius: var(--radius-md);
+    background: var(--color-text);
+    color: var(--color-bg);
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+}
+
+@keyframes fv-gira {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fv-spinner { animation: none; }
+}
+
+.fv-sumiu {
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+}
+
+.fv-sumiu p {
+    margin: 0 0 12px;
+}
+
+.fv-nova button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}

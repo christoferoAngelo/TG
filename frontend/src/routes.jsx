@@ -23,6 +23,7 @@ import DocumentosAdmin from "./pages/documentos/DocumentosAdmin";
 // IMPORT DO NOVO LAYOUT DA SIDEBAR
 import SidebarLayout from "./components/sidebar/SidebarLayout";
 import NovoEspaco from "./pages/novo espaco/NovoEspaco";
+import Favoritos from "./pages/favoritos/Favoritos";
 
 
 // =====================================================
@@ -110,6 +111,7 @@ export default function AppRoutes() {
                     <Route path="/locador/espacos/:id/editar" element={<NovoEspaco />} />
                     <Route path="/perfil" element={<Dashboard />} />
                     <Route path="/minhas-reservas" element={<MinhasReservas />} />
+                    <Route path="/favoritos" element={<Favoritos />} />
                     <Route path="/pagamento" element={<PagamentoPage />} />
                     <Route path="/cadastro-locador" element={<CadastroLocador />} />
                     <Route path="/perfil_locador" element={<DashboardLocador />} />

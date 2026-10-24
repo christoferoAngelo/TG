@@ -6,6 +6,7 @@ import UsuariosTab from '../../components/admin/UsuariosTab'; // <--- Importado
 import NovoAdminTab from '../../components/admin/NovoAdminTab';
 import EspacosTab from '../../components/admin/EspacosTab';
 import HistoricoAuditoria from '../../components/admin/HistoricoAuditoria';
+import DocumentosAdmin from "../documentos/DocumentosAdmin";
 import './DashboardAdmin.css';
 
 export default function DashboardAdmin() {
@@ -33,6 +34,9 @@ export default function DashboardAdmin() {
       case 'espacos':
       case 'moderacao_espacos':
         return <EspacosTab />;
+
+      case 'documentos':
+        return <DocumentosAdmin />;
 
       case 'auditoria':
         return <HistoricoAuditoria />;

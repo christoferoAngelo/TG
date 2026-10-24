@@ -4,11 +4,30 @@
    Tudo com prefixo .ne- para não colidir com o Dashboard.css.
    ========================================================================== */
 
+/*
+   A página fica dentro de .sidebar-content, que já ocupa a altura da janela
+   e ainda inclui o cabeçalho. min-height: 100vh aqui somava outra tela inteira
+   e deixava rolar no vazio. O conteúdo passa a preencher só o que sobra
+   abaixo do cabeçalho e rola dentro de si.
+*/
+.sidebar-content:has(> .ne-page) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar-content:has(> .ne-page) > .header-home {
+    flex-shrink: 0;
+}
+
 .ne-page {
     font-family: var(--font-body);
     background-color: var(--color-bg);
     color: var(--color-text);
-    min-height: 100vh;
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .ne-conteudo {
@@ -166,6 +185,69 @@
     border-color: var(--color-danger, #b3261e);
 }
 
+.ne-valor-input {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    padding: 16px 18px;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.ne-valor-input::-webkit-outer-spin-button,
+.ne-valor-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.ne-repasse {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 14px 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+}
+
+.ne-repasse p {
+    margin: 0 0 4px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
+.ne-repasse-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--color-text-muted);
+}
+
+.ne-repasse-linha strong {
+    color: var(--color-text);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ne-repasse-linha--voce {
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-weight: 700;
+}
+
+.ne-repasse-linha--voce strong {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
 .ne-aviso {
     margin: 0;
     font-size: 13px;
@@ -240,7 +322,19 @@
     gap: 10px;
 }
 
+.ne-busca-tipo {
+    max-width: 320px;
+    margin: 4px 0 8px;
+}
+
+.ne-chips-rolagem {
+    max-height: 220px;
+    overflow: auto;
+    padding: 2px;
+}
+
 .ne-chip {
+    position: relative;
     cursor: pointer;
 }
 
@@ -350,6 +444,7 @@
 }
 
 .ne-foto-add {
+    position: relative;
     aspect-ratio: 4 / 3;
     display: flex;
     flex-direction: column;
@@ -440,36 +535,229 @@
     outline-offset: 2px;
 }
 
-/* --- Barra de ações fixa no rodapé --- */
-.ne-barra {
-    position: sticky;
-    bottom: 0;
-    z-index: 20;
-    background: var(--color-surface);
+/* --- Ações no fim do formulário (sem barra grudada) --- */
+.ne-acoes {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 28px 0 48px;
     border-top: 1px solid var(--color-border);
 }
 
+.ne-acoes-msg {
+    margin: 0;
+    width: 100%;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
 
-.ne-barra-inner {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 14px 24px;
+.ne-acoes-botoes {
+    display: flex;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+/* --- Wizard --- */
+.ne-wizard {
+    margin-top: 28px;
+}
+
+.ne-wizard-trilha {
+    height: 8px;
+    background: var(--color-border);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+}
+
+.ne-wizard-trilha span {
+    display: block;
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: inherit;
+    transition: width 0.25s ease;
+}
+
+.ne-wizard-passos {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin: 14px 0 0;
+    padding: 0;
+}
+
+.ne-wizard-passo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--font-body);
+}
+
+.ne-wizard-passo:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+.ne-wizard-passo--atual,
+.ne-wizard-passo--feita {
+    opacity: 1;
+}
+
+.ne-wizard-num {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ne-wizard-passo--atual .ne-wizard-num {
+    background: var(--color-primary);
+    border-color: transparent;
+    color: var(--color-on-primary);
+}
+
+.ne-wizard-passo--feita .ne-wizard-num {
+    background: var(--color-text);
+    border-color: transparent;
+    color: var(--color-bg);
+}
+
+.ne-wizard-rotulo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.ne-wizard-rotulo strong {
+    font-size: 14px;
+}
+
+.ne-wizard-rotulo small {
+    color: var(--color-text-muted);
+    font-size: 12px;
+}
+
+.ne-opcoes--duas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ne-opcao--linha {
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 4px;
+}
+
+.ne-alertas {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ne-alerta {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-md, 12px);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.ne-alerta--aviso {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+}
+
+.ne-alerta--erro {
+    background: var(--color-danger-soft);
+    color: var(--color-danger-text);
+}
+
+.ne-turnos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ne-turno {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
+    padding: 14px 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
 }
 
-.ne-barra-msg {
-    margin: 0;
-    font-size: 14px;
+.ne-turno p {
+    margin: 4px 0 0;
     color: var(--color-text-muted);
 }
 
-.ne-barra-acoes {
+.ne-turno-extra {
     display: flex;
-    gap: 10px;
-    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ne-contrato {
+    height: 16rem;
+    overflow-y: scroll;
+    margin: 0 0 12px;
+    padding: 16px 18px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+}
+
+.ne-contrato p {
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+
+.ne-contrato--erro {
+    border-color: var(--color-danger, #b3261e);
+}
+
+.ne-termos {
+    margin-top: 8px;
+}
+
+.ne-termos--bloqueado {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.ne-seguranca {
+    margin-top: 16px;
+}
+
+select.ne-input {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%), linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+    background-position: calc(100% - 18px) 55%, calc(100% - 12px) 55%;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 36px;
 }
 
 /* --- Utilitário: esconde visualmente, mantém acessível por teclado --- */
@@ -495,14 +783,23 @@
         padding: 28px 0;
     }
 
-    .ne-opcoes {
+    .ne-opcoes,
+    .ne-opcoes--duas {
         grid-template-columns: 1fr;
+    }
+
+    .ne-wizard-passos {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ne-turno {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 
 @media (max-width: 560px) {
-    .ne-conteudo,
-    .ne-barra-inner {
+    .ne-conteudo {
         padding-left: 16px;
         padding-right: 16px;
     }
@@ -514,12 +811,12 @@
         grid-column: span 6;
     }
 
-    .ne-barra-inner {
-        flex-direction: column;
+    .ne-acoes,
+    .ne-acoes-botoes {
         align-items: stretch;
     }
 
-    .ne-barra-acoes .ne-btn {
+    .ne-acoes-botoes .ne-btn {
         flex: 1;
     }
 }

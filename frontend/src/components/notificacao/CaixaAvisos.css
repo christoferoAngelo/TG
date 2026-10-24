@@ -1,0 +1,134 @@
+.av-sino {
+    position: relative;
+}
+
+.av-sino-botao {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.av-sino-botao svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linejoin: round;
+}
+
+.av-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: var(--radius-pill);
+    background: var(--color-danger);
+    color: var(--color-surface);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 18px;
+    text-align: center;
+}
+
+.av-painel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 40;
+    width: min(360px, calc(100vw - 32px));
+    max-height: min(420px, 70vh);
+    overflow: auto;
+    padding: 14px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.av-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.av-topo h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.av-topo button,
+.av-item button {
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.av-painel ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.av-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: var(--color-primary-soft);
+}
+
+.av-item--lido {
+    background: var(--color-bg-subtle);
+}
+
+.av-item strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.av-item p,
+.av-item time,
+.av-vazio {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.av-item time,
+.av-vazio {
+    display: block;
+    margin-top: 6px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+}
+
+.av-vazio {
+    margin-top: 0;
+    font-size: 14px;
+}
+
+.av-item--lido p {
+    color: var(--color-text-muted);
+}

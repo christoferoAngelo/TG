@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { podeCancelarLocador } from "../../pages/reserva/cancelamento";
 import "./CalendarioSolicitacoes.css";
 
 const NOMES_MES = [
@@ -32,7 +33,7 @@ function formatarChaveData(date) {
  * - solicitacoes: lista de ReservaResponseDTO (id, espaco, dataEvento, valorTotal, status)
  * - onAprovar(id) / onRejeitar(id): mesmos handlers já usados na visão em lista
  */
-export default function CalendarioSolicitacoes({ solicitacoes, onAprovar, onRejeitar }) {
+export default function CalendarioSolicitacoes({ solicitacoes, onAprovar, onRejeitar, onCancelar }) {
     const [mesAtual, setMesAtual] = useState(() => {
         const hoje = new Date();
         return new Date(hoje.getFullYear(), hoje.getMonth(), 1);
@@ -182,6 +183,11 @@ export default function CalendarioSolicitacoes({ solicitacoes, onAprovar, onReje
                                                 Rejeitar
                                             </button>
                                         </div>
+                                    )}
+                                    {podeCancelarLocador(req) && onCancelar && (
+                                        <button type="button" className="btn btn-rejeitar" onClick={() => onCancelar(req.id)}>
+                                            Cancelar
+                                        </button>
                                     )}
                                 </div>
                             ))}

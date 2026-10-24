@@ -506,7 +506,7 @@
 }
 
 /* ==========================================================================
-   RESPONSIVO
+   RESPONSIVO DO HERO ANTIGO
    ========================================================================== */
 @media (max-width: 900px) {
     .header-home {
@@ -534,4 +534,19 @@
     .btn-nav {
         padding: 10px 12px;
     }
+}
+
+.btn-nav-icone {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    display: block;
+    flex-shrink: 0;
+}
+
+.btn-nav-foto {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
 }

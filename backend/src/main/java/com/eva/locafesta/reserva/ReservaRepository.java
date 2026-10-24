@@ -14,8 +14,10 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     // Reservas de um espaço numa data, nos status informados (usado para achar os horários ocupados)
     List<Reserva> findByEspacoIdAndDataEventoAndStatusIn(Long espacoId, LocalDate dataEvento, Collection<String> status);
 
+    List<Reserva> findByDataEventoAndStatusIn(LocalDate dataEvento, Collection<String> status);
+
     // Mágica do Spring Data: Busca reservas onde o ID do Locador do Espaço seja igual ao passado
-    List<Reserva> findByEspacoLocadorUsuarioId(Long usuarioId);
+    List<Reserva> findByEspacoLocadorUsuarioIdOrderByIdAsc(Long usuarioId);
 
     // Reservas feitas pelo próprio locatário, mais recentes primeiro
     List<Reserva> findByLocatarioIdOrderByDataEventoDesc(Long locatarioId);

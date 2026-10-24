@@ -84,6 +84,12 @@ public class Espaco {
     @Column(name = "permite_horario_personalizado", nullable = false)
     private Boolean permiteHorarioPersonalizado = false;
 
+    // false: o locatário envia um pedido e o locador aprova.
+    // true: a reserva já nasce aprovada e a tela de detalhes segue para o pagamento.
+    @Builder.Default
+    @Column(name = "aprovacao_instantanea", nullable = false)
+    private Boolean aprovacaoInstantanea = false;
+
     // Limite de duração em horas. Pode ser nulo.
     @Column(name = "duracao_max_horas", precision = 4, scale = 2)
     private BigDecimal duracaoMaxHoras;
@@ -93,7 +99,17 @@ public class Espaco {
     @Column(name = "intervalo_limpeza_min", nullable = false)
     private Integer intervaloLimpezaMin = 0;
 
-    @Column(name = "restricoes_horario", length = 255)
+    // Dias mínimos entre hoje e a data do evento. 0 permite reservar para hoje.
+    @Builder.Default
+    @Column(name = "antecedencia_minima_dias", nullable = false)
+    private Integer antecedenciaMinimaDias = 0;
+
+    // O locador só cancela uma reserva confirmada até esse número de dias antes do evento.
+    @Builder.Default
+    @Column(name = "prazo_cancelamento_dias", nullable = false)
+    private Integer prazoCancelamentoDias = 2;
+
+    @Column(name = "restricoes_horario", columnDefinition = "TEXT")
     private String restricoesHorario;
 
     // Status do anúncio

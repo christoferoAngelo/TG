@@ -1,37 +1,74 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
-import { ListaEspacos } from "../../components/locatario/ListaEspacos.jsx";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import CaixaAvisos from "../../components/notificacao/CaixaAvisos";
+import BuscaPill from "./explorar/BuscaPill";
+import MenuPerfil from "./explorar/MenuPerfil";
+import ModalFiltros from "./explorar/ModalFiltros";
+import SalvarLista from "./explorar/SalvarLista";
+import { CardExplorar, EsqueletoGrade, MapaEspacos } from "./explorar/CardExplorar";
+import {
+    CATEGORIAS,
+    FILTRO_INICIAL,
+    aplicarFiltros,
+    comodidadesDisponiveis,
+} from "./explorar/explorar";
+import { carregarListas, espacoSalvo } from "../favoritos/favoritosApi";
 import "./Home.css";
+import "./HomeExplorar.css";
 
 const API_BUSCA = "http://localhost:8080/api/locadores/espacos/busca";
 
-const CATEGORIAS = [
-    "Todos",
-    "Salões de festa",
-    "Chácaras",
-    "Sítios",
-    "Rooftops",
-    "Espaços corporativos",
-    "Áreas ao ar livre",
-];
+function IconeCategoria({ id }) {
+    const comum = { viewBox: "0 0 24 24", "aria-hidden": true };
+    if (id === "Chácaras" || id === "Sítios" || id === "Áreas ao ar livre") {
+        return (
+            <svg {...comum}><path d="M12 20V10M8 20c0-4 4-6 4-10 0 4 4 6 4 10M5 20h14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+        );
+    }
+    if (id === "Rooftops") {
+        return (
+            <svg {...comum}><path d="M4 18h16M6 18V10l6-4 6 4v8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
+        );
+    }
+    if (id === "Espaços corporativos") {
+        return (
+            <svg {...comum}><path d="M5 20V6h8v14M13 10h6v10M8 9h2M8 12h2M8 15h2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+        );
+    }
+    if (id === "Todos") {
+        return (
+            <svg {...comum}><path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>
+        );
+    }
+    return (
+        <svg {...comum}><path d="M4 18V9l8-4 8 4v9M9 18v-5h6v5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
+    );
+}
 
 export default function Home() {
+    const navigate = useNavigate();
+    const { usuarioLogado } = useAuth();
+    const [params, setParams] = useSearchParams();
     const [espacos, setEspacos] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState(false);
-    const [categoriaAtiva, setCategoriaAtiva] = useState("Todos");
-    const [termoAtivo, setTermoAtivo] = useState("");
-    const [termoDigitado, setTermoDigitado] = useState("");
-    const [params] = useSearchParams();
-
+    const [onde, setOnde] = useState(params.get("q") || "");
+    const [quando, setQuando] = useState(params.get("data") || "");
+    const [pessoas, setPessoas] = useState(params.get("pessoas") || "0");
+    const [categoria, setCategoria] = useState(params.get("cat") || "Todos");
+    const [filtros, setFiltros] = useState(FILTRO_INICIAL);
+    const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+    const [vista, setVista] = useState("grade");
+    const [listas, setListas] = useState([]);
+    const [espacoLista, setEspacoLista] = useState(null);
+    const [semVaga, setSemVaga] = useState([]);
     const ultimaBusca = useRef(0);
 
-    const buscarEspacosNaApi = (termo = "") => {
+    const buscar = (termo) => {
         const idBusca = ++ultimaBusca.current;
         setCarregando(true);
         setErro(false);
-        setTermoAtivo(termo);
-
         fetch(`${API_BUSCA}?q=${encodeURIComponent(termo)}`)
             .then((res) => {
                 if (!res.ok) throw new Error("Erro na requisição");
@@ -54,90 +91,224 @@ export default function Home() {
 
     useEffect(() => {
         const termoUrl = (params.get("q") || "").trim();
-        setTermoDigitado(termoUrl);
-        buscarEspacosNaApi(termoUrl);
+        const cat = params.get("cat") || "Todos";
+        setOnde(params.get("q") || "");
+        setQuando(params.get("data") || "");
+        setPessoas(params.get("pessoas") || "0");
+        setCategoria(cat);
+        buscar(cat !== "Todos" ? cat : termoUrl);
     }, [params]);
 
-    const handlePesquisar = (e) => {
-        e?.preventDefault();
-        setCategoriaAtiva("Todos");
-        buscarEspacosNaApi(termoDigitado.trim());
+    const atualizarUrl = (proximo) => {
+        const q = (proximo.onde ?? onde).trim();
+        const data = proximo.quando ?? quando;
+        const qtd = String(proximo.pessoas ?? pessoas);
+        const cat = proximo.categoria ?? categoria;
+        const busca = new URLSearchParams();
+        if (cat !== "Todos") busca.set("cat", cat);
+        else if (q) busca.set("q", q);
+        if (data) busca.set("data", data);
+        if (Number(qtd) > 0) busca.set("pessoas", qtd);
+        setParams(busca, { replace: true });
     };
 
-    const handleCategoria = (categoria) => {
-        setCategoriaAtiva(categoria);
-        setTermoDigitado(""); // Limpa o input de texto ao filtrar por categoria chip
-        buscarEspacosNaApi(categoria === "Todos" ? "" : categoria);
+    const pesquisar = () => {
+        atualizarUrl({ onde, quando, pessoas, categoria: "Todos" });
     };
 
-    const tituloLista = termoAtivo ? `Resultados para “${termoAtivo}”` : "Espaços em destaque";
-    const listaVazia = !carregando && !erro && espacos.length === 0;
+    useEffect(() => {
+        if (!usuarioLogado?.id) {
+            setListas([]);
+            return undefined;
+        }
+        let ativo = true;
+        carregarListas(usuarioLogado.id)
+            .then((salvas) => {
+                if (ativo) setListas(Array.isArray(salvas) ? salvas : []);
+            })
+            .catch(() => {
+                if (ativo) setListas([]);
+            });
+        return () => {
+            ativo = false;
+        };
+    }, [usuarioLogado?.id]);
+
+    const escolherCategoria = (id) => {
+        setFiltros(FILTRO_INICIAL);
+        atualizarUrl({ onde: "", categoria: id });
+    };
+
+    const pessoasAplicadas = params.get("pessoas") || "0";
+    const dataAplicada = params.get("data") || "";
+
+    useEffect(() => {
+        if (!dataAplicada) {
+            setSemVaga([]);
+            return;
+        }
+        let ativo = true;
+        fetch(`http://localhost:8080/api/reservas/indisponiveis?data=${dataAplicada}`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((ids) => {
+                if (ativo) setSemVaga(Array.isArray(ids) ? ids.map(Number) : []);
+            })
+            .catch(() => {
+                if (ativo) setSemVaga([]);
+            });
+        return () => {
+            ativo = false;
+        };
+    }, [dataAplicada]);
+
+    const visiveis = useMemo(
+        () => aplicarFiltros(espacos, { pessoas: pessoasAplicadas, filtros })
+            .filter((espaco) => !dataAplicada || !semVaga.includes(Number(espaco.id))),
+        [espacos, pessoasAplicadas, filtros, dataAplicada, semVaga]
+    );
+    const comodidades = useMemo(() => comodidadesDisponiveis(espacos), [espacos]);
+    const filtrosAtivos = filtros.precoMin || filtros.precoMax || filtros.capacidadeMin || filtros.comodidades.length > 0 || filtros.ordem !== "relevancia";
+
+    const titulo = categoria !== "Todos"
+        ? categoria
+        : onde.trim()
+            ? `Resultados para “${onde.trim()}”`
+            : "Espaços para o seu evento";
 
     return (
-        <div className="home-container">
-            <main className="home-main">
-                <section className="hero-section">
-                    <div className="hero-inner">
-                        <h1>Encontre o espaço perfeito para o seu próximo evento</h1>
-                        <p>Explore salões, chácaras e rooftops disponíveis para locação.</p>
-                        
-                        {/* 👇 Barra de pesquisa centralizada no Hero */}
-                        <form onSubmit={handlePesquisar} className="hero-search-container">
-                            <input
-                                type="text"
-                                placeholder="Buscar por cidade, salão, chácara..."
-                                className="search-input"
-                                value={termoDigitado}
-                                onChange={(e) => setTermoDigitado(e.target.value)}
-                            />
-                            <button type="submit" className="search-btn" title="Pesquisar">
-                                🔍
-                            </button>
-                        </form>
-                    </div>
-                </section>
-
-                <nav className="categorias-bar" aria-label="Categorias de espaços">
-                    {CATEGORIAS.map((categoria) => (
+        <div className="hm">
+            <div className="hm-fixos">
+                <header className="hm-topo">
+                    <button type="button" className="hm-logo" onClick={() => navigate("/home")}>
+                        LocaFesta
+                    </button>
+                    <BuscaPill
+                        onde={onde}
+                        quando={quando}
+                        pessoas={pessoas}
+                        onChange={(parcial) => {
+                            if (parcial.onde != null) setOnde(parcial.onde);
+                            if (parcial.quando != null) setQuando(parcial.quando);
+                            if (parcial.pessoas != null) setPessoas(String(parcial.pessoas));
+                        }}
+                        onBuscar={pesquisar}
+                    />
+                    <div className="hm-acoes">
+                        <CaixaAvisos usuarioId={usuarioLogado?.id} />
                         <button
-                            key={categoria}
                             type="button"
-                            className={`chip-categoria ${categoriaAtiva === categoria ? "chip-categoria--ativo" : ""}`}
-                            aria-pressed={categoriaAtiva === categoria}
-                            onClick={() => handleCategoria(categoria)}
+                            className="hm-listas"
+                            aria-label="Favoritos"
+                            onClick={() => navigate(usuarioLogado ? "/favoritos" : "/login")}
                         >
-                            {categoria}
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 19.4 4.8 12.6a4.2 4.2 0 0 1 6-5.9L12 7.8l1.2-1.1a4.2 4.2 0 0 1 6 5.9L12 19.4Z" />
+                            </svg>
                         </button>
-                    ))}
-                </nav>
+                        <MenuPerfil />
+                    </div>
+                </header>
 
-                <div className="home-content">
-                    <h2 className="section-title">{tituloLista}</h2>
-
-                    {erro ? (
-                        <div className="home-estado" role="alert">
-                            <p>Não conseguimos carregar os espaços agora.</p>
+                <div className="hm-faixa">
+                    <div className="hm-cats" role="tablist" aria-label="Categorias de espaços">
+                        {CATEGORIAS.map((item) => (
                             <button
+                                key={item.id}
                                 type="button"
-                                className="chip-categoria"
-                                onClick={() => buscarEspacosNaApi(termoAtivo)}
+                                role="tab"
+                                aria-selected={categoria === item.id}
+                                className={`hm-cat${categoria === item.id ? " hm-cat--ativa" : ""}`}
+                                onClick={() => escolherCategoria(item.id)}
                             >
-                                Tentar novamente
+                                <IconeCategoria id={item.id} />
+                                <span>{item.rotulo}</span>
                             </button>
-                        </div>
-                    ) : listaVazia ? (
-                        <div className="home-estado">
-                            <p>
-                                {termoAtivo
-                                    ? "Nenhum espaço encontrado para essa busca. Tente outro termo ou categoria."
-                                    : "Ainda não há espaços disponíveis para locação."}
-                            </p>
-                        </div>
-                    ) : (
-                        <ListaEspacos espacos={espacos} carregando={carregando} />
+                        ))}
+                    </div>
+                    <button
+                        type="button"
+                        className={`hm-filtros${filtrosAtivos ? " hm-filtros--ativo" : ""}`}
+                        onClick={() => setFiltrosAbertos(true)}
+                    >
+                        Filtros
+                    </button>
+                </div>
+            </div>
+
+            <div className="hm-conteudo">
+                <div className="hm-resumo">
+                    <h1>{titulo}</h1>
+                    {!carregando && !erro && (
+                        <p>{visiveis.length === 1 ? "1 espaço" : `${visiveis.length} espaços`}</p>
                     )}
                 </div>
-            </main>
+
+                {erro ? (
+                    <div className="hm-estado" role="alert">
+                        <p>Não conseguimos carregar os espaços agora.</p>
+                        <button type="button" className="hm-btn hm-btn--primario" onClick={() => buscar(categoria !== "Todos" ? categoria : onde.trim())}>
+                            Tentar novamente
+                        </button>
+                    </div>
+                ) : carregando ? (
+                    <EsqueletoGrade />
+                ) : visiveis.length === 0 ? (
+                    <div className="hm-estado">
+                        <p>Nenhum espaço encontrado com esses filtros. Tente outra cidade, data ou menos comodidades.</p>
+                    </div>
+                ) : vista === "mapa" ? (
+                    <MapaEspacos espacos={visiveis} />
+                ) : (
+                    <div className={vista === "lista" ? "hm-lista" : "hm-grade"}>
+                        {visiveis.map((espaco) => (
+                            <CardExplorar
+                                key={espaco.id}
+                                espaco={espaco}
+                                favorito={espacoSalvo(listas, espaco.id)}
+                                onFavoritar={() => setEspacoLista(espaco)}
+                                dataEvento={dataAplicada}
+                                compacto={vista === "lista"}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="hm-alternar-wrap">
+                <div className="hm-alternar" role="group" aria-label="Modo de visualização">
+                    {[
+                        ["grade", "Grade"],
+                        ["lista", "Lista"],
+                        ["mapa", "Mapa"],
+                    ].map(([id, rotulo]) => (
+                        <button
+                            key={id}
+                            type="button"
+                            className={vista === id ? "hm-alternar--ativo" : ""}
+                            aria-pressed={vista === id}
+                            onClick={() => setVista(id)}
+                        >
+                            {rotulo}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <ModalFiltros
+                aberto={filtrosAbertos}
+                filtros={filtros}
+                comodidades={comodidades}
+                onChange={setFiltros}
+                onLimpar={() => setFiltros(FILTRO_INICIAL)}
+                onFechar={() => setFiltrosAbertos(false)}
+            />
+            <SalvarLista
+                espaco={espacoLista}
+                listas={listas}
+                usuarioId={usuarioLogado?.id}
+                onFechar={() => setEspacoLista(null)}
+                onListas={setListas}
+            />
         </div>
     );
 }

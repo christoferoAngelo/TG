@@ -60,6 +60,20 @@ public class UsuarioController {
         return ResponseEntity.noContent().build(); 
     }
     
+    @PutMapping("/{id}/foto")
+    public ResponseEntity<?> atualizarFoto(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> payload) {
+        try {
+            UsuarioDTO usuarioAtualizado = usuarioService.atualizarFoto(id, payload.get("fotoUrl"));
+            return ResponseEntity.ok(usuarioAtualizado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
     @PutMapping("/{id}/telefone")
     public ResponseEntity<?> atualizarTelefone(
             @PathVariable Long id, 

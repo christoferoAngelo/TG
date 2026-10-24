@@ -7,6 +7,9 @@ import "./DashboardLocador.css";
 import EspacoItem from "../../components/locador/EspacoItem";
 import CalendarioSolicitacoes from "../../components/locador/CalendarioSolicitacoes";
 import ModalCriarLocador from "../../components/locador/ModalCriarLocador";
+import { pedirRecargaAvisos } from "../../components/notificacao/CaixaAvisos";
+import { avisoPrazoLocador, podeCancelarLocador, prazoLocador, textoCancelamento } from "../reserva/cancelamento";
+import RelatorioLocador from "./RelatorioLocador";
 
 // ⚠️ Ajuste para as rotas que você registrou para a página NovoEspaco
 const ROTA_NOVO_ESPACO = "/locador/espacos/novo";
@@ -20,6 +23,7 @@ const STATUS_RESERVA = {
     PENDENTE: { texto: "Pendente", tom: "warn" },
     APROVADA: { texto: "Aprovada", tom: "ok" },
     REJEITADA: { texto: "Rejeitada", tom: "danger" },
+    CANCELADA: { texto: "Cancelada", tom: "muted" },
 };
 
 const statusDe = (s) => (s || "").toUpperCase();
@@ -68,6 +72,9 @@ export default function DashboardLocador() {
     const [modalLocadorAberto, setModalLocadorAberto] = useState(false);
     // Controla se os pedidos aparecem como lista ou como calendário
     const [visualizacaoPedidos, setVisualizacaoPedidos] = useState("lista"); // "lista" | "calendario"
+    const [confirmandoId, setConfirmandoId] = useState(null);
+    const [cancelandoId, setCancelandoId] = useState(null);
+    const [erroCancelar, setErroCancelar] = useState("");
 
     // Carregar espaços E solicitações
     useEffect(() => {
@@ -86,7 +93,11 @@ export default function DashboardLocador() {
             headers: { "Usuario-Id": usuarioLogado.id },
         })
             .then((res) => (res.ok ? res.json() : []))
-            .then((data) => setSolicitacoes(Array.isArray(data) ? data : []))
+            .then((data) => {
+                const lista = Array.isArray(data) ? data : [];
+                lista.sort((a, b) => Number(a.id) - Number(b.id));
+                setSolicitacoes(lista);
+            })
             .catch((err) => console.error("Erro ao buscar solicitações:", err))
             .finally(() => setCarregandoPedidos(false));
     }, [usuarioLogado, ehLocador]);
@@ -154,6 +165,33 @@ export default function DashboardLocador() {
             );
         } catch (err) {
             alert("Erro: " + err.message);
+        }
+    };
+
+    const handleCancelarReserva = async (reservaId) => {
+        setCancelandoId(reservaId);
+        setErroCancelar("");
+        try {
+            const response = await fetch(`${API}/reservas/${reservaId}/cancelar-locador`, {
+                method: "PATCH",
+                headers: { "Usuario-Id": usuarioLogado.id },
+            });
+            if (!response.ok) {
+                const texto = await response.text();
+                throw new Error(
+                    response.status === 404
+                        ? "O cancelamento do locador ainda não está ativo. Reinicie a API e tente de novo."
+                        : (texto || "Não foi possível cancelar esta reserva.")
+                );
+            }
+            const atualizada = await response.json();
+            setSolicitacoes((prev) => prev.map((req) => (req.id === reservaId ? { ...req, ...atualizada } : req)));
+            setConfirmandoId(null);
+            pedirRecargaAvisos();
+        } catch (err) {
+            setErroCancelar(err.message);
+        } finally {
+            setCancelandoId(null);
         }
     };
 
@@ -282,6 +320,8 @@ export default function DashboardLocador() {
                     />
                 </section>
 
+                <RelatorioLocador usuarioId={usuarioLogado.id} />
+
                 <div className="lc-grid">
 
                     {/* ---------- Pedidos de locação ---------- */}
@@ -320,6 +360,11 @@ export default function DashboardLocador() {
                                     solicitacoes={solicitacoes}
                                     onAprovar={handleAprovarReserva}
                                     onRejeitar={handleRejeitarReserva}
+                                    onCancelar={(id) => {
+                                        setErroCancelar("");
+                                        setConfirmandoId(id);
+                                        setVisualizacaoPedidos("lista");
+                                    }}
                                 />
                             </div>
                         ) : (
@@ -340,12 +385,48 @@ export default function DashboardLocador() {
                                                     <span aria-hidden="true">•</span>
                                                     <span>{formatarMoeda(req.valorTotal)}</span>
                                                 </div>
+                                                {textoCancelamento(req) && (
+                                                    <p className="lc-pedido-aviso">{textoCancelamento(req)}</p>
+                                                )}
+                                                {avisoPrazoLocador(req) && (
+                                                    <p className="lc-pedido-aviso">{avisoPrazoLocador(req)}</p>
+                                                )}
+                                                {confirmandoId === req.id && (
+                                                    <div className="lc-cancela">
+                                                        <p>
+                                                            Cancelar esta reserva confirmada? O locatário será avisado de que o reembolso é total
+                                                            e a data volta a ficar disponível. O prazo é de {prazoLocador(req)} dia(s) antes do evento.
+                                                        </p>
+                                                        {erroCancelar && <p className="lc-pedido-erro">{erroCancelar}</p>}
+                                                        <div className="lc-pedido-acoes">
+                                                            <button
+                                                                type="button"
+                                                                className="lc-btn lc-btn--danger"
+                                                                disabled={cancelandoId === req.id}
+                                                                onClick={() => handleCancelarReserva(req.id)}
+                                                            >
+                                                                {cancelandoId === req.id ? "Cancelando…" : "Confirmar cancelamento"}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="lc-btn lc-btn--ghost"
+                                                                disabled={cancelandoId === req.id}
+                                                                onClick={() => {
+                                                                    setConfirmandoId(null);
+                                                                    setErroCancelar("");
+                                                                }}
+                                                            >
+                                                                Voltar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div className="lc-pedido-lado">
                                                 <span className={`lc-badge lc-badge--${st.tom}`}>{st.texto}</span>
 
-                                                {statusDe(req.status) === "PENDENTE" && (
+                                                {statusDe(req.status) === "PENDENTE" && confirmandoId !== req.id && (
                                                     <div className="lc-pedido-acoes">
                                                         <button
                                                             type="button"
@@ -362,6 +443,18 @@ export default function DashboardLocador() {
                                                             Rejeitar
                                                         </button>
                                                     </div>
+                                                )}
+                                                {podeCancelarLocador(req) && confirmandoId !== req.id && (
+                                                    <button
+                                                        type="button"
+                                                        className="lc-btn lc-btn--danger-ghost"
+                                                        onClick={() => {
+                                                            setErroCancelar("");
+                                                            setConfirmandoId(req.id);
+                                                        }}
+                                                    >
+                                                        Cancelar reserva
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>

@@ -49,8 +49,12 @@ public class EspacoDTO {
     private Boolean permitePeriodoIntegral = true;
     private Boolean permiteHorarioPersonalizado = false;
 
+    private Boolean aprovacaoInstantanea = false;
+
     private BigDecimal duracaoMaxHoras;
     private Integer intervaloLimpezaMin = 0;
+    private Integer antecedenciaMinimaDias = 0;
+    private Integer prazoCancelamentoDias = 2;
     
     private Boolean fechaNoDiaSeguinte = false;
 
@@ -114,9 +118,16 @@ public void setFechaNoDiaSeguinte(Boolean fechaNoDiaSeguinte) {
         this.permitePeriodoIntegral = espaco.getPermitePeriodoIntegral();
         this.permiteHorarioPersonalizado =
             espaco.getPermiteHorarioPersonalizado();
+        this.aprovacaoInstantanea = Boolean.TRUE.equals(espaco.getAprovacaoInstantanea());
 
         this.duracaoMaxHoras = espaco.getDuracaoMaxHoras();
         this.intervaloLimpezaMin = espaco.getIntervaloLimpezaMin();
+        this.antecedenciaMinimaDias = espaco.getAntecedenciaMinimaDias() != null
+            ? espaco.getAntecedenciaMinimaDias()
+            : 0;
+        this.prazoCancelamentoDias = espaco.getPrazoCancelamentoDias() != null
+            ? espaco.getPrazoCancelamentoDias()
+            : 2;
     }
 
 }

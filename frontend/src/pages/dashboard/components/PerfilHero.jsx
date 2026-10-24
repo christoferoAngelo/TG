@@ -12,13 +12,29 @@ const iniciaisDe = (nome = "") =>
  * Bloco grande no topo: nome da pessoa, tipos de conta que ela tem
  * e o andamento do cadastro.
  */
-export default function PerfilHero({ nome, email, tipos, feitos, total, onCompletar }) {
+export default function PerfilHero({ nome, email, fotoUrl, tipos, feitos, total, onCompletar, onFoto, enviandoFoto, erroFoto }) {
     const completo = feitos === total;
 
     return (
         <section className="pf-hero" aria-label="Resumo da conta">
-            <div className="pf-avatar" aria-hidden="true">
-                {iniciaisDe(nome) || "?"}
+            <div className="pf-foto">
+                <div className="pf-avatar" aria-hidden="true">
+                    {fotoUrl ? <img src={fotoUrl} alt="" /> : (iniciaisDe(nome) || "?")}
+                </div>
+                <label className="pf-foto-btn">
+                    {enviandoFoto ? "Enviando…" : "Alterar foto"}
+                    <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        disabled={enviandoFoto}
+                        onChange={(evento) => {
+                            const arquivo = evento.target.files?.[0];
+                            evento.target.value = "";
+                            if (arquivo) onFoto?.(arquivo);
+                        }}
+                    />
+                </label>
+                {erroFoto && <p className="pf-foto-erro" role="alert">{erroFoto}</p>}
             </div>
 
             <div className="pf-hero-info">

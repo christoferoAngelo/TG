@@ -4,6 +4,7 @@
    ========================================================================== */
 
 .app-layout {
+    --sidebar-largura: 252px;
     display: flex;
     width: 100vw;
     height: 100vh;
@@ -24,6 +25,10 @@
     transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), padding 0.28s ease;
     z-index: 10;
     box-shadow: 4px 0 24px var(--shadow-color-soft);
+}
+
+.app-layout.sidebar-collapsed {
+    --sidebar-largura: 76px;
 }
 
 .sidebar.collapsed {

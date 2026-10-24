@@ -30,6 +30,9 @@ public class Usuario {
     @Column(length = 20)
     private String telefone;
 
+    @Column(name = "foto_url", length = 500)
+    private String fotoUrl;
+
     @CreationTimestamp
     @Column(name = "data_cadastro", updatable = false)
     private LocalDateTime dataCadastro;

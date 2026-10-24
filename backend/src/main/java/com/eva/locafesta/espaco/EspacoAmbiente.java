@@ -1,5 +1,7 @@
 package com.eva.locafesta.espaco;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ public class EspacoAmbiente {
     private Long id;
 
     // Relacionamento com o Espaço principal
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "espaco_id", nullable = false)
     private Espaco espaco;

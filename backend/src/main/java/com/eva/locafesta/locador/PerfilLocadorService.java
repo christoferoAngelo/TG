@@ -1,5 +1,6 @@
 package com.eva.locafesta.locador;
 
+import com.eva.locafesta.locatario.PerfilLocatarioRepository;
 import com.eva.locafesta.usuario.Usuario;
 import com.eva.locafesta.usuario.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,9 @@ public class PerfilLocadorService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private PerfilLocatarioRepository perfilLocatarioRepository;
+
     // Método auxiliar para converter Entidade em DTO
     private PerfilLocadorDTO converterParaDTO(PerfilLocador perfil) {
         return new PerfilLocadorDTO(perfil);
@@ -35,6 +39,14 @@ public class PerfilLocadorService {
 
         if (locadorRepository.existsByUsuarioId(dto.getUsuarioId())) {
             throw new RuntimeException("Este usuário já possui um perfil de locador.");
+        }
+
+        boolean telefone = usuario.getTelefone() != null && !usuario.getTelefone().isBlank();
+        boolean endereco = usuario.getEndereco() != null && usuario.getEndereco().getCep() != null
+                && !usuario.getEndereco().getCep().isBlank();
+        boolean locatario = perfilLocatarioRepository.existsByUsuarioId(usuario.getId());
+        if (!telefone || !endereco || !locatario) {
+            throw new RuntimeException("Complete telefone, endereço e CPF antes de criar o perfil de locador.");
         }
         
         //construtor sem id, pq ele vai ser gerado pelo @GeneratedValue automaticamente

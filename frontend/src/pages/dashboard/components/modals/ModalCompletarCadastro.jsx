@@ -161,9 +161,15 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
         setErros(novosErros);
 
         if (Object.keys(novosErros).length > 0) {
-            requestAnimationFrame(() =>
-                document.querySelector(".mdl-campo--erro input")?.focus()
-            );
+            requestAnimationFrame(() => {
+                const campo = document.querySelector(".mdl-campo--erro");
+                const reduzirMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                campo?.scrollIntoView({
+                    behavior: reduzirMovimento ? "auto" : "smooth",
+                    block: "center",
+                });
+                campo?.querySelector("input")?.focus({ preventScroll: true });
+            });
             return;
         }
         if (!temAlgoParaSalvar) {
@@ -238,7 +244,7 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
             subtitulo="Preencha o que ainda falta. Você pode salvar uma parte agora e voltar depois para o resto."
             onClose={onClose}
             bloqueado={salvando}
-            tamanho="md"
+            tamanho="lg"
             rodape={
                 <>
                     <button type="button" className="mdl-btn mdl-btn--ghost" onClick={onClose} disabled={salvando}>
@@ -259,8 +265,8 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                 {erroGeral && <p className="mdl-alerta" role="alert">{erroGeral}</p>}
 
                 {/* ---------- Contato ---------- */}
-                <fieldset className={`mdl-secao${destaque("telefone")}`}>
-                    <legend>Contato</legend>
+                <section className={`mdl-secao${destaque("telefone")}`} aria-labelledby="cc-sec-contato">
+                    <h3 id="cc-sec-contato" className="mdl-secao-titulo">Contato</h3>
                     <div className={`mdl-campo${erros.telefone ? " mdl-campo--erro" : ""}`}>
                         <label htmlFor="cc-telefone">Telefone / WhatsApp</label>
                         <input
@@ -278,11 +284,11 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                         />
                         {erros.telefone && <small className="mdl-erro">{erros.telefone}</small>}
                     </div>
-                </fieldset>
+                </section>
 
                 {/* ---------- Identificação ---------- */}
-                <fieldset className={`mdl-secao${destaque("cpf")}`}>
-                    <legend>Identificação</legend>
+                <section className={`mdl-secao${destaque("cpf")}`} aria-labelledby="cc-sec-cpf">
+                    <h3 id="cc-sec-cpf" className="mdl-secao-titulo">Identificação</h3>
                     <p className="mdl-secao-dica">
                         O CPF cria sua conta de locatário, necessária para alugar espaços e para
                         se tornar locador depois.
@@ -319,17 +325,17 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             </>
                         )}
                     </div>
-                </fieldset>
+                </section>
 
                 {/* ---------- Endereço ---------- */}
-                <fieldset className={`mdl-secao${destaque("endereco")}`}>
-                    <legend>Endereço residencial</legend>
+                <section className={`mdl-secao${destaque("endereco")}`} aria-labelledby="cc-sec-endereco">
+                    <h3 id="cc-sec-endereco" className="mdl-secao-titulo">Endereço residencial</h3>
                     <p className="mdl-secao-dica">
                         Usamos o endereço para sugerir espaços perto de você. Digite o CEP e
                         completamos o resto.
                     </p>
-                    <div className="mdl-grid">
-                        <div className={`mdl-campo mdl-span-2${erros.end_cep || cepNaoEncontrado ? " mdl-campo--erro" : ""}`}>
+                    <div className="mdl-endereco">
+                        <div className={`mdl-campo mdl-end-cep${erros.end_cep || cepNaoEncontrado ? " mdl-campo--erro" : ""}`}>
                             <label htmlFor="cc-cep">CEP</label>
                             <input
                                 id="cc-cep"
@@ -348,7 +354,7 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             )}
                         </div>
 
-                        <div className={`mdl-campo mdl-span-4${erros.end_logradouro ? " mdl-campo--erro" : ""}`}>
+                        <div className={`mdl-campo mdl-end-rua${erros.end_logradouro ? " mdl-campo--erro" : ""}`}>
                             <label htmlFor="cc-logradouro">Rua ou avenida</label>
                             <input
                                 id="cc-logradouro"
@@ -359,7 +365,7 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             {erros.end_logradouro && <small className="mdl-erro">{erros.end_logradouro}</small>}
                         </div>
 
-                        <div className={`mdl-campo mdl-span-2${erros.end_numero ? " mdl-campo--erro" : ""}`}>
+                        <div className={`mdl-campo mdl-end-numero${erros.end_numero ? " mdl-campo--erro" : ""}`}>
                             <label htmlFor="cc-numero">Número</label>
                             <input
                                 id="cc-numero"
@@ -371,7 +377,7 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             {erros.end_numero && <small className="mdl-erro">{erros.end_numero}</small>}
                         </div>
 
-                        <div className="mdl-campo mdl-span-4">
+                        <div className="mdl-campo mdl-end-complemento">
                             <label htmlFor="cc-complemento">
                                 Complemento <span className="mdl-opcional">(opcional)</span>
                             </label>
@@ -384,7 +390,7 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             />
                         </div>
 
-                        <div className={`mdl-campo mdl-span-3${erros.end_bairro ? " mdl-campo--erro" : ""}`}>
+                        <div className={`mdl-campo mdl-end-bairro${erros.end_bairro ? " mdl-campo--erro" : ""}`}>
                             <label htmlFor="cc-bairro">Bairro</label>
                             <input
                                 id="cc-bairro"
@@ -395,7 +401,7 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             {erros.end_bairro && <small className="mdl-erro">{erros.end_bairro}</small>}
                         </div>
 
-                        <div className={`mdl-campo mdl-span-2${erros.end_cidade ? " mdl-campo--erro" : ""}`}>
+                        <div className={`mdl-campo mdl-end-cidade${erros.end_cidade ? " mdl-campo--erro" : ""}`}>
                             <label htmlFor="cc-cidade">Cidade</label>
                             <input
                                 id="cc-cidade"
@@ -406,7 +412,7 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             {erros.end_cidade && <small className="mdl-erro">{erros.end_cidade}</small>}
                         </div>
 
-                        <div className={`mdl-campo mdl-span-1${erros.end_estado ? " mdl-campo--erro" : ""}`}>
+                        <div className={`mdl-campo mdl-end-uf${erros.end_estado ? " mdl-campo--erro" : ""}`}>
                             <label htmlFor="cc-estado">UF</label>
                             <input
                                 id="cc-estado"
@@ -419,7 +425,7 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             {erros.end_estado && <small className="mdl-erro">{erros.end_estado}</small>}
                         </div>
                     </div>
-                </fieldset>
+                </section>
             </form>
         </Modal>
     );

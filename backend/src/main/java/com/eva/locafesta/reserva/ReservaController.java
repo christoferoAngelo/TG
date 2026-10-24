@@ -25,12 +25,11 @@ public class ReservaController {
     }
 
     @PostMapping
-    public ResponseEntity<Reserva> solicitarReserva(
+    public ResponseEntity<ReservaResponseDTO> solicitarReserva(
             @RequestBody ReservaDTO dto, 
             @RequestHeader("Usuario-Id") Long usuarioId) {
         
-        Reserva novaReserva = reservaService.criarReserva(dto, usuarioId);
-        return ResponseEntity.ok(novaReserva);
+        return ResponseEntity.ok(reservaService.criarReserva(dto, usuarioId));
     }
 
     // Rota pública: períodos e horários livres/ocupados de um espaço numa data
@@ -65,26 +64,42 @@ public class ReservaController {
 
     // Rota para APROVAR
     @PatchMapping("/{reservaId}/aprovar")
-    public ResponseEntity<Reserva> aprovar(@PathVariable Long reservaId, @RequestHeader("Usuario-Id") Long usuarioId) {
-        Reserva atualizada = reservaService.aprovarReserva(reservaId, usuarioId);
-        return ResponseEntity.ok(atualizada);
+    public ResponseEntity<ReservaResponseDTO> aprovar(@PathVariable Long reservaId, @RequestHeader("Usuario-Id") Long usuarioId) {
+        return ResponseEntity.ok(reservaService.aprovarReserva(reservaId, usuarioId));
     }
 
     // Rota para REJEITAR
     @PatchMapping("/{reservaId}/rejeitar")
-    public ResponseEntity<Reserva> rejeitar(@PathVariable Long reservaId, @RequestHeader("Usuario-Id") Long usuarioId) {
-        Reserva atualizada = reservaService.rejeitarReserva(reservaId, usuarioId);
-        return ResponseEntity.ok(atualizada);
+    public ResponseEntity<ReservaResponseDTO> rejeitar(@PathVariable Long reservaId, @RequestHeader("Usuario-Id") Long usuarioId) {
+        return ResponseEntity.ok(reservaService.rejeitarReserva(reservaId, usuarioId));
+    }
+
+    // Rota para o locatário CANCELAR um pedido que ainda não começou
+    @PatchMapping("/{reservaId}/cancelar")
+    public ResponseEntity<ReservaResponseDTO> cancelar(@PathVariable Long reservaId, @RequestHeader("Usuario-Id") Long usuarioId) {
+        return ResponseEntity.ok(reservaService.cancelarReserva(reservaId, usuarioId));
+    }
+
+    @PatchMapping("/{reservaId}/cancelar-locador")
+    public ResponseEntity<ReservaResponseDTO> cancelarPeloLocador(
+            @PathVariable Long reservaId,
+            @RequestHeader("Usuario-Id") Long usuarioId) {
+        return ResponseEntity.ok(reservaService.cancelarPeloLocador(reservaId, usuarioId));
+    }
+
+    @GetMapping("/indisponiveis")
+    public ResponseEntity<List<Long>> indisponiveis(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        return ResponseEntity.ok(reservaService.espacosSemVaga(data));
     }
 
     // Rota para o locatário AVALIAR uma reserva já concluída
     @PatchMapping("/{reservaId}/avaliar")
-    public ResponseEntity<Reserva> avaliar(
+    public ResponseEntity<ReservaResponseDTO> avaliar(
             @PathVariable Long reservaId,
             @RequestBody AvaliacaoDTO dto,
             @RequestHeader("Usuario-Id") Long usuarioId) {
 
-        Reserva atualizada = reservaService.avaliarReserva(reservaId, usuarioId, dto);
-        return ResponseEntity.ok(atualizada);
+        return ResponseEntity.ok(reservaService.avaliarReserva(reservaId, usuarioId, dto));
     }
 }

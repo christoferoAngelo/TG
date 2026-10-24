@@ -29,6 +29,19 @@ function IconeInicio() {
     );
 }
 
+function IconeFavoritos() {
+    return (
+        <svg className="sidebar-icon-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+                d="M12 19.4 4.8 12.6a4.2 4.2 0 0 1 6-5.9L12 7.8l1.2-1.1a4.2 4.2 0 0 1 6 5.9L12 19.4Z"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}
+
 function IconeMenu({ src, alt = "" }) {
     return <img src={src} alt={alt} className="sidebar-icon-img" />;
 }
@@ -39,9 +52,11 @@ export default function SidebarLayout() {
     const { logout, usuarioLogado } = useAuth();
 
     const [retraida, setRetraida] = useState(false);
+    const naHome = location.pathname === "/home";
 
     const menuItems = [
         { label: "Início", path: "/home", icon: "inicio" },
+        { label: "Favoritos", path: "/favoritos", icon: "favoritos" },
         { label: "Minhas Reservas", path: "/minhas-reservas", iconSrc: iconCalendario },
         { label: "Painel do Locador", path: "/perfil_locador", iconSrc: iconChave },
         { label: "Documentos", path: "/documentos/usuario", iconSrc: iconDocumentos },
@@ -59,6 +74,9 @@ export default function SidebarLayout() {
     const renderIcone = (item) => {
         if (item.icon === "inicio") {
             return <IconeInicio />;
+        }
+        if (item.icon === "favoritos") {
+            return <IconeFavoritos />;
         }
         return <IconeMenu src={item.iconSrc} />;
     };
@@ -124,7 +142,7 @@ export default function SidebarLayout() {
             </aside>
 
             <main className="sidebar-content">
-                <HeaderHome />
+                {!naHome && <HeaderHome />}
                 <Outlet />
             </main>
         </div>

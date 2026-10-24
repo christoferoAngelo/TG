@@ -2,6 +2,7 @@ package com.eva.locafesta.reserva;
 
 import com.eva.locafesta.espaco.Espaco;
 import com.eva.locafesta.espaco.EspacoRepository;
+import com.eva.locafesta.notificacao.NotificacaoService;
 import com.eva.locafesta.reserva.AgendaEspaco.Intervalo;
 import com.eva.locafesta.reserva.AgendaEspaco.Modalidade;
 import com.eva.locafesta.reserva.AgendaEspaco.Periodo;
@@ -16,7 +17,11 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReservaService {
@@ -24,21 +29,29 @@ public class ReservaService {
     // Status que seguram o horário no calendário. REJEITADA e CANCELADA liberam.
     private static final List<String> STATUS_BLOQUEANTES = List.of("PENDENTE", "APROVADA");
 
+    private static final DateTimeFormatter DATA_AVISO = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     private final ReservaRepository reservaRepository;
     private final EspacoRepository espacoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final NotificacaoService notificacaoService;
 
-    public ReservaService(ReservaRepository reservaRepository, EspacoRepository espacoRepository, UsuarioRepository usuarioRepository) {
+    public ReservaService(
+            ReservaRepository reservaRepository,
+            EspacoRepository espacoRepository,
+            UsuarioRepository usuarioRepository,
+            NotificacaoService notificacaoService) {
         this.reservaRepository = reservaRepository;
         this.espacoRepository = espacoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.notificacaoService = notificacaoService;
     }
 
     // ---------------------------------------------------------------
     // Criação da reserva (com controle de horário)
     // ---------------------------------------------------------------
     @Transactional
-    public Reserva criarReserva(ReservaDTO dto, Long usuarioId) {
+    public ReservaResponseDTO criarReserva(ReservaDTO dto, Long usuarioId) {
         if (dto.espacoId() == null || dto.dataEvento() == null) {
             throw erro(HttpStatus.BAD_REQUEST, "Informe o espaço e a data do evento.");
         }
@@ -54,8 +67,11 @@ public class ReservaService {
         if (Boolean.FALSE.equals(espaco.getAtivo()) || !"APROVADO".equals(espaco.getStatusAprovacao())) {
             throw erro(HttpStatus.BAD_REQUEST, "Este espaço não está disponível para reservas.");
         }
-        if (dto.dataEvento().isBefore(LocalDate.now())) {
-            throw erro(HttpStatus.BAD_REQUEST, "A data do evento já passou.");
+        int antecedencia = espaco.getAntecedenciaMinimaDias() != null ? espaco.getAntecedenciaMinimaDias() : 0;
+        if (dto.dataEvento().isBefore(LocalDate.now().plusDays(antecedencia))) {
+            throw erro(HttpStatus.BAD_REQUEST, antecedencia <= 0
+                    ? "A data do evento já passou."
+                    : "Este espaço só aceita reservas com pelo menos " + antecedencia + " dia(s) de antecedência.");
         }
 
         Regras regras = regrasDe(espaco);
@@ -79,10 +95,10 @@ public class ReservaService {
                 .horaFim(intervalo.fim())
                 .valorTotal(dto.valorTotal() != null ? dto.valorTotal() : espaco.getValorDiaria())
                 .observacao(dto.observacao())
-                .status("PENDENTE") // Status padrão
+                .status(Boolean.TRUE.equals(espaco.getAprovacaoInstantanea()) ? "APROVADA" : "PENDENTE")
                 .build();
 
-        return reservaRepository.save(novaReserva);
+        return mapearParaResponseDTO(reservaRepository.save(novaReserva));
     }
 
     // ---------------------------------------------------------------
@@ -92,6 +108,13 @@ public class ReservaService {
     public DisponibilidadeDTO consultarDisponibilidade(Long espacoId, LocalDate data) {
         Espaco espaco = espacoRepository.findById(espacoId)
                 .orElseThrow(() -> erro(HttpStatus.NOT_FOUND, "Espaço não encontrado"));
+
+        int antecedencia = espaco.getAntecedenciaMinimaDias() != null ? espaco.getAntecedenciaMinimaDias() : 0;
+        if (data.isBefore(LocalDate.now().plusDays(antecedencia))) {
+            throw erro(HttpStatus.BAD_REQUEST, antecedencia <= 0
+                    ? "A data do evento já passou."
+                    : "Este espaço só aceita reservas com pelo menos " + antecedencia + " dia(s) de antecedência.");
+        }
 
         Regras regras = regrasDe(espaco);
         List<Intervalo> ocupados = intervalosOcupados(espacoId, data, regras);
@@ -185,7 +208,7 @@ public class ReservaService {
 
    // Listar para o Dashboard do Locador
     public List<ReservaResponseDTO> listarSolicitacoesDoLocador(Long usuarioId) {
-        List<Reserva> reservas = reservaRepository.findByEspacoLocadorUsuarioId(usuarioId);
+        List<Reserva> reservas = reservaRepository.findByEspacoLocadorUsuarioIdOrderByIdAsc(usuarioId);
         return reservas.stream().map(this::mapearParaResponseDTO).toList();
     }
 
@@ -226,39 +249,201 @@ public class ReservaService {
                 reserva.getValorTotal(),
                 reserva.getStatus(),
                 reserva.getNota(),
-                reserva.getComentarioAvaliacao()
+                reserva.getComentarioAvaliacao(),
+                reserva.getCanceladoPor(),
+                reserva.getCondicaoReembolso(),
+                reserva.getCanceladoEm(),
+                reserva.getEspaco() != null && reserva.getEspaco().getPrazoCancelamentoDias() != null
+                        ? reserva.getEspaco().getPrazoCancelamentoDias()
+                        : 2,
+                reserva.isPagamentoLiberado()
         );
     }
 
-    // Aprovar Reserva
-    public Reserva aprovarReserva(Long reservaId, Long usuarioId) {
+    @Transactional
+    public ReservaResponseDTO aprovarReserva(Long reservaId, Long usuarioId) {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
 
-        // Proteção: Garante que quem está aprovando é o dono do espaço
         if (!reserva.getEspaco().getLocador().getUsuario().getId().equals(usuarioId)) {
             throw new RuntimeException("Acesso negado: Você não é o dono deste espaço.");
+        }
+        if (!"PENDENTE".equals(reserva.getStatus())) {
+            throw new RuntimeException("Só é possível aprovar um pedido que ainda está aguardando.");
         }
 
         reserva.setStatus("APROVADA");
-        return reservaRepository.save(reserva);
+        reserva.setPagamentoLiberado(true);
+        Reserva salva = reservaRepository.save(reserva);
+        avisarDecisao(salva, true);
+        return mapearParaResponseDTO(salva);
     }
 
-    // Rejeitar Reserva
-    public Reserva rejeitarReserva(Long reservaId, Long usuarioId) {
+    @Transactional
+    public ReservaResponseDTO rejeitarReserva(Long reservaId, Long usuarioId) {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
 
         if (!reserva.getEspaco().getLocador().getUsuario().getId().equals(usuarioId)) {
             throw new RuntimeException("Acesso negado: Você não é o dono deste espaço.");
         }
+        if (!"PENDENTE".equals(reserva.getStatus())) {
+            throw new RuntimeException("Só é possível recusar um pedido que ainda está aguardando.");
+        }
 
         reserva.setStatus("REJEITADA");
-        return reservaRepository.save(reserva);
+        reserva.setPagamentoLiberado(false);
+        Reserva salva = reservaRepository.save(reserva);
+        avisarDecisao(salva, false);
+        return mapearParaResponseDTO(salva);
+    }
+
+    private void avisarDecisao(Reserva reserva, boolean aprovada) {
+        if (reserva.getLocatario() == null) return;
+        String espaco = reserva.getEspaco() != null ? reserva.getEspaco().getTitulo() : "o espaço";
+        String data = reserva.getDataEvento() != null ? reserva.getDataEvento().format(DATA_AVISO) : "a data marcada";
+        if (aprovada) {
+            notificacaoService.avisar(
+                    reserva.getLocatario().getId(),
+                    reserva.getId(),
+                    "Reserva confirmada",
+                    "O locador confirmou a reserva de " + espaco + " em " + data + ". O pagamento está liberado."
+            );
+        } else {
+            notificacaoService.avisar(
+                    reserva.getLocatario().getId(),
+                    reserva.getId(),
+                    "Reserva recusada",
+                    "O locador recusou a reserva de " + espaco + " em " + data
+                            + ". A data foi liberada e não há cobrança."
+            );
+        }
+    }
+
+    @Transactional
+    public ReservaResponseDTO cancelarReserva(Long reservaId, Long usuarioId) {
+        Reserva reserva = reservaAberta(reservaId);
+        if (reserva.getLocatario() == null || !reserva.getLocatario().getId().equals(usuarioId)) {
+            throw erro(HttpStatus.FORBIDDEN, "Você não pode cancelar esta reserva.");
+        }
+        if (!"PENDENTE".equals(reserva.getStatus()) && !"APROVADA".equals(reserva.getStatus())) {
+            throw erro(HttpStatus.BAD_REQUEST, "Esta reserva não pode mais ser cancelada.");
+        }
+        if (!inicioDoEvento(reserva).isAfter(LocalDateTime.now())) {
+            throw erro(HttpStatus.BAD_REQUEST, "Não é possível cancelar um evento que já começou.");
+        }
+
+        String condicao = "APROVADA".equals(reserva.getStatus()) ? "SEM_REEMBOLSO" : "SEM_COBRANCA";
+        return efetivarCancelamento(reserva, "LOCATARIO", condicao);
+    }
+
+    @Transactional
+    public ReservaResponseDTO cancelarPeloLocador(Long reservaId, Long usuarioId) {
+        Reserva reserva = reservaAberta(reservaId);
+        if (reserva.getEspaco() == null
+                || reserva.getEspaco().getLocador() == null
+                || reserva.getEspaco().getLocador().getUsuario() == null
+                || !reserva.getEspaco().getLocador().getUsuario().getId().equals(usuarioId)) {
+            throw erro(HttpStatus.FORBIDDEN, "Você não pode cancelar esta reserva.");
+        }
+        if (!"APROVADA".equals(reserva.getStatus())) {
+            throw erro(HttpStatus.BAD_REQUEST, "O locador só cancela reservas confirmadas.");
+        }
+
+        int prazo = reserva.getEspaco().getPrazoCancelamentoDias() != null
+                ? reserva.getEspaco().getPrazoCancelamentoDias()
+                : 2;
+        LocalDateTime limite = inicioDoEvento(reserva).minusDays(prazo);
+        if (!LocalDateTime.now().isBefore(limite)) {
+            throw erro(HttpStatus.BAD_REQUEST,
+                    "O prazo para cancelar esta reserva já passou. O limite é de " + prazo + " dia(s) antes do evento.");
+        }
+
+        return efetivarCancelamento(reserva, "LOCADOR", "TOTAL");
+    }
+
+    @Transactional(readOnly = true)
+    public List<Long> espacosSemVaga(LocalDate data) {
+        Map<Long, List<Reserva>> porEspaco = new LinkedHashMap<>();
+        for (Reserva reserva : reservaRepository.findByDataEventoAndStatusIn(data, STATUS_BLOQUEANTES)) {
+            if (reserva.getEspaco() == null || reserva.getEspaco().getId() == null) continue;
+            porEspaco.computeIfAbsent(reserva.getEspaco().getId(), id -> new ArrayList<>()).add(reserva);
+        }
+
+        List<Long> semVaga = new ArrayList<>();
+        for (Map.Entry<Long, List<Reserva>> entrada : porEspaco.entrySet()) {
+            if (semNenhumPeriodoLivre(entrada.getValue().get(0).getEspaco(), entrada.getValue())) {
+                semVaga.add(entrada.getKey());
+            }
+        }
+        return semVaga;
+    }
+
+    private Reserva reservaAberta(Long reservaId) {
+        return reservaRepository.findById(reservaId)
+                .orElseThrow(() -> erro(HttpStatus.NOT_FOUND, "Reserva não encontrada"));
+    }
+
+    private LocalDateTime inicioDoEvento(Reserva reserva) {
+        LocalTime inicio = reserva.getHoraInicio() != null ? reserva.getHoraInicio() : LocalTime.MIN;
+        return LocalDateTime.of(reserva.getDataEvento(), inicio);
+    }
+
+    private ReservaResponseDTO efetivarCancelamento(Reserva reserva, String autor, String condicao) {
+        reserva.setStatus("CANCELADA");
+        reserva.setCanceladoPor(autor);
+        reserva.setCondicaoReembolso(condicao);
+        reserva.setCanceladoEm(LocalDateTime.now());
+        Reserva salva = reservaRepository.save(reserva);
+        avisarCancelamento(salva, autor, condicao);
+        return mapearParaResponseDTO(salva);
+    }
+
+    private void avisarCancelamento(Reserva reserva, String autor, String condicao) {
+        String quem = "LOCADOR".equals(autor) ? "O locador" : "O locatário";
+        String reembolso = switch (condicao) {
+            case "TOTAL" -> "Reembolso total.";
+            case "SEM_REEMBOLSO" -> "Sem reembolso automático.";
+            default -> "Pedido ainda não confirmado, sem cobrança.";
+        };
+        String espaco = reserva.getEspaco() != null ? reserva.getEspaco().getTitulo() : "o espaço";
+        String data = reserva.getDataEvento() != null ? reserva.getDataEvento().format(DATA_AVISO) : "a data marcada";
+        String mensagem = quem + " cancelou a reserva de " + espaco + " em " + data
+                + ". " + reembolso + " A data voltou a ficar disponível para novas reservas.";
+
+        Long locatarioId = reserva.getLocatario() != null ? reserva.getLocatario().getId() : null;
+        Long locadorId = reserva.getEspaco() != null
+                && reserva.getEspaco().getLocador() != null
+                && reserva.getEspaco().getLocador().getUsuario() != null
+                ? reserva.getEspaco().getLocador().getUsuario().getId()
+                : null;
+
+        notificacaoService.avisar(locatarioId, reserva.getId(), "Reserva cancelada", mensagem);
+        if (locadorId != null && !locadorId.equals(locatarioId)) {
+            notificacaoService.avisar(locadorId, reserva.getId(), "Reserva cancelada", mensagem);
+        }
+    }
+
+    private boolean semNenhumPeriodoLivre(Espaco espaco, List<Reserva> ocupadas) {
+        if (espaco.getHorarioAbertura() == null || espaco.getHorarioFechamento() == null) {
+            return !ocupadas.isEmpty();
+        }
+        Regras regras = regrasDe(espaco);
+        List<Periodo> periodos = AgendaEspaco.periodosOferecidos(regras);
+        List<Intervalo> tomados = ocupadas.stream()
+                .map(r -> (r.getHoraInicio() != null && r.getHoraFim() != null)
+                        ? new Intervalo(r.getHoraInicio(), r.getHoraFim())
+                        : new Intervalo(regras.abertura(), regras.fechamento()))
+                .toList();
+        if (periodos.isEmpty()) {
+            return !tomados.isEmpty();
+        }
+        return periodos.stream().allMatch(periodo ->
+                tomados.stream().anyMatch(ocupado -> AgendaEspaco.conflita(periodo.intervalo(), ocupado, regras.limpezaMin())));
     }
 
     // Avaliar uma reserva já concluída (feito pelo locatário)
-    public Reserva avaliarReserva(Long reservaId, Long usuarioId, AvaliacaoDTO dto) {
+    public ReservaResponseDTO avaliarReserva(Long reservaId, Long usuarioId, AvaliacaoDTO dto) {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
 
@@ -292,7 +477,7 @@ public class ReservaService {
         atualizarNotaDoEspaco(reserva.getEspaco().getId());
         atualizarNotaGeralDoLocador(reserva.getEspaco().getLocador().getUsuario().getId());
 
-        return reservaSalva;
+        return mapearParaResponseDTO(reservaSalva);
     }
 
     // Recalcula a média e a quantidade de avaliações do espaço avaliado

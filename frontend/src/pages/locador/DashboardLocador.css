@@ -294,6 +294,31 @@
     gap: 8px;
 }
 
+.lc-pedido-aviso,
+.lc-cancela p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--color-text-muted);
+}
+
+.lc-pedido-erro {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-danger-text);
+}
+
+.lc-cancela {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+}
+
 /* --- Calendário: ajuste defensivo de tamanhos --- */
 .lc-calendario :is(h1, h2, h3, h4, h5, h6),
 .lc-calendario [class*="titulo"],
@@ -512,5 +537,54 @@
 @media (prefers-reduced-motion: reduce) {
     .lc-page * {
         transition: none !important;
+    }
+}
+
+.lc-relatorio-faturamento {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0 0 18px;
+    color: var(--color-text-muted);
+}
+
+.lc-relatorio-faturamento strong {
+    font-size: 1.6rem;
+    color: var(--color-text);
+}
+
+.lc-relatorio-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.lc-relatorio-cols h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+}
+
+.lc-relatorio-cols ol {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lc-relatorio-cols li {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.lc-relatorio-cols span {
+    color: var(--color-text-muted);
+    font-size: 14px;
+}
+
+@media (max-width: 800px) {
+    .lc-relatorio-cols {
+        grid-template-columns: 1fr;
     }
 }

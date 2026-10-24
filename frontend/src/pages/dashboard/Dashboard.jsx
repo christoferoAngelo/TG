@@ -10,6 +10,7 @@ import AtalhosPerfil from "./components/AtalhosPerfil";
 import DadosPessoais from "./components/DadosPessoais";
 import ModalCompletarCadastro from "./components/modals/ModalCompletarCadastro";
 import { cpfOculto } from "../../services/documentos";
+import { uploadDocumentoCloudinary } from "../../services/documentoService";
 
 const API = "http://localhost:8080/api";
 
@@ -29,6 +30,8 @@ export default function Dashboard() {
     const [perfilLocatario, setPerfilLocatario] = useState(null);
     // null = fechado; { foco } = aberto (foco: "telefone" | "cpf" | "endereco" | null)
     const [modal, setModal] = useState(null);
+    const [enviandoFoto, setEnviandoFoto] = useState(false);
+    const [erroFoto, setErroFoto] = useState("");
 
     // Consulta na API se o usuário já tem conta de Locador ou Locatário criada
     useEffect(() => {
@@ -100,16 +103,50 @@ export default function Dashboard() {
         if (atualizarUsuario) await atualizarUsuario();
     };
 
+    const alterarFoto = async (arquivo) => {
+        if (!arquivo.type.startsWith("image/")) {
+            setErroFoto("Escolha uma imagem.");
+            return;
+        }
+        if (arquivo.size > 5 * 1024 * 1024) {
+            setErroFoto("A foto precisa ter no máximo 5 MB.");
+            return;
+        }
+        setEnviandoFoto(true);
+        setErroFoto("");
+        try {
+            const upload = await uploadDocumentoCloudinary(arquivo);
+            const resposta = await fetch(`${API}/users/${usuarioLogado.id}/foto`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fotoUrl: upload.url }),
+            });
+            if (!resposta.ok) {
+                const texto = await resposta.text();
+                throw new Error(texto || "Não foi possível salvar a foto.");
+            }
+            if (atualizarUsuario) await atualizarUsuario();
+        } catch (falha) {
+            setErroFoto(falha.message || "Não foi possível salvar a foto.");
+        } finally {
+            setEnviandoFoto(false);
+        }
+    };
+
     return (
         <div className="pf-page">
             <main className="pf-container">
                 <PerfilHero
                     nome={usuarioLogado?.nome || "Usuário"}
                     email={usuarioLogado?.email}
+                    fotoUrl={usuarioLogado?.fotoUrl}
                     tipos={tipos}
                     feitos={feitos}
                     total={itens.length}
                     onCompletar={() => abrirModal(primeiroPendente)}
+                    onFoto={alterarFoto}
+                    enviandoFoto={enviandoFoto}
+                    erroFoto={erroFoto}
                 />
 
                 {cadastroCompleto ? (
@@ -124,9 +161,13 @@ export default function Dashboard() {
                 <AtalhosPerfil
                     ehLocatario={ehLocatario}
                     ehLocador={ehLocador}
+                    cadastroCompleto={cadastroCompleto}
                     onReservas={() => navigate("/minhas-reservas")}
                     onExplorar={() => navigate("/home")}
-                    onPainel={() => navigate("/perfil_locador")}
+                    onPainel={() => {
+                        if (!ehLocador && !cadastroCompleto) abrirModal(primeiroPendente);
+                        else navigate("/perfil_locador");
+                    }}
                 />
 
                 <DadosPessoais

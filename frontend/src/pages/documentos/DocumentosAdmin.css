@@ -1,0 +1,53 @@
+.val-motivo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 520px;
+    margin: 0 0 16px;
+    padding: 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.val-motivo p,
+.val-erro {
+    margin: 0;
+}
+
+.val-motivo label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.val-motivo textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    color: var(--color-text);
+    background: var(--color-surface);
+    resize: vertical;
+}
+
+.val-motivo div {
+    display: flex;
+    gap: 8px;
+}
+
+.val-motivo button {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.val-erro {
+    color: var(--color-danger-text);
+    font-weight: 600;
+}

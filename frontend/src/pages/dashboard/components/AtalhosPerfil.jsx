@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function AtalhosPerfil({ ehLocatario, ehLocador, onReservas, onExplorar, onPainel }) {
+export default function AtalhosPerfil({ ehLocatario, ehLocador, cadastroCompleto, onReservas, onExplorar, onPainel }) {
     return (
         <section className="pf-atalhos" aria-label="Atalhos">
             <article className="pf-card pf-atalho">
@@ -30,14 +30,14 @@ export default function AtalhosPerfil({ ehLocatario, ehLocador, onReservas, onEx
                         ? "Gerencie seus anúncios, os pedidos de locação e a agenda dos seus espaços."
                         : "No painel do locador você cria sua conta de anunciante e cadastra seus espaços."}
                 </p>
-                {!ehLocador && !ehLocatario && (
+                {!ehLocador && !cadastroCompleto && (
                     <p className="pf-atalho-dica">
-                        Antes de criar a conta de locador, complete seu cadastro com o CPF.
+                        Complete telefone, CPF e endereço para habilitar a conta de locador.
                     </p>
                 )}
                 <div className="pf-atalho-acoes">
                     <button type="button" className="pf-btn pf-btn--primario" onClick={onPainel}>
-                        Acessar painel do locador
+                        {!ehLocador && !cadastroCompleto ? "Completar cadastro" : "Acessar painel do locador"}
                     </button>
                 </div>
             </article>

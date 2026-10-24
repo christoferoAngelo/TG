@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useCallback, useContext, useState, useEffect } from "react";
 // Importe o auth da sua configuração do Firebase
 import { auth } from "../config/firebaseConfig"; 
 // Importe as funções nativas de sessão do Firebase
@@ -52,6 +52,17 @@ export function AuthProvider({ children }) {
         return () => unsubscribe();
     }, []);
 
+    const atualizarUsuario = useCallback(async () => {
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) return null;
+
+        const perfilLocal = await userService.buscarPerfilPorUid(firebaseUser.uid);
+        if (perfilLocal) {
+            setUsuarioLogado(perfilLocal);
+        }
+        return perfilLocal;
+    }, []);
+
     // 4. Função de Logout Corrigida
     const logout = async () => {
         try {
@@ -74,6 +85,7 @@ export function AuthProvider({ children }) {
     const value = {
         usuarioLogado,
         setUsuarioLogado,
+        atualizarUsuario,
         logout
     };
 
