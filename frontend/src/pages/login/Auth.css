@@ -205,8 +205,67 @@
     box-shadow: 0 0 0 1px var(--color-text);
 }
 
-.auth-erro {
+.auth-input--fixo {
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
+}
+
+.auth-input[aria-invalid="true"] {
+    border-color: var(--color-danger-border);
+}
+
+.auth-input[aria-invalid="true"]:focus {
+    border-color: var(--color-danger-text);
+    box-shadow: 0 0 0 1px var(--color-danger-border);
+}
+
+.auth-campo-erro {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--color-danger-text);
+    scroll-margin: 80px;
+}
+
+.auth-erro,
+.auth-sucesso {
     margin-bottom: 18px;
+}
+
+.auth-erro {
+    scroll-margin: 80px;
+}
+
+.auth-reenviar {
+    display: inline-block;
+    margin: -6px 0 18px;
+    text-align: left;
+}
+
+.auth-campo .auth-reenviar {
+    margin: 0;
+    align-self: flex-start;
+}
+
+.auth-btn--google + .auth-campo-erro {
+    margin-top: 8px;
+}
+
+.auth-reenviar:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.auth-esqueci {
+    align-self: flex-end;
+    margin: 2px 0 0;
+    text-align: right;
+}
+
+.auth-esqueci:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 .auth-btn {

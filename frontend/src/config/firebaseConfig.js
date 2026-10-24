@@ -21,6 +21,7 @@ const analytics = getAnalytics(app);
 
 // Inicializa o serviço de autenticação
 const auth = getAuth(app);
+auth.languageCode = "pt-BR";
 
 // 2. Inicializa o provedor de autenticação do Google
 const googleProvider = new GoogleAuthProvider();

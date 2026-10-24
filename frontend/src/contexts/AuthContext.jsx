@@ -26,6 +26,14 @@ export function AuthProvider({ children }) {
                 // Caso o usuário recarregue a página (F5), o Firebase ainda tem a sessão.
                 // Aqui podemos buscar os dados no backend novamente para não perder o estado.
                 try {
+                    await firebaseUser.reload();
+
+                    if (!firebaseUser.emailVerified) {
+                        setUsuarioLogado(null);
+                        setLoading(false);
+                        return;
+                    }
+
                     const perfilLocal = await userService.buscarPerfilPorUid(firebaseUser.uid);
                     if (perfilLocal) {
                         setUsuarioLogado(perfilLocal);

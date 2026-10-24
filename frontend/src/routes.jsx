@@ -4,6 +4,7 @@ import { useAuth } from "./contexts/AuthContext";
 
 // IMPORTS DAS PÁGINAS
 import Auth from "./pages/login/Auth";
+import RedefinirSenha from "./pages/login/RedefinirSenha";
 import CadastroLocador from "./pages/login/CadastroLocador";
 import DashboardLocador from "./pages/locador/DashboardLocador";
 import CaracteristicasPage from "./pages/locador/CaracteristicasPage";
@@ -75,6 +76,7 @@ export default function AppRoutes() {
                     path="/login"
                     element={usuarioLogado ? <Navigate to={rotaInicial} replace /> : <Auth />}
                 />
+                <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
                 {/* Dashboard do Admin (Protegida) */}
                 <Route

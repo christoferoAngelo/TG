@@ -36,7 +36,7 @@ function IconeMenu({ src, alt = "" }) {
 export default function SidebarLayout() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { logout } = useAuth();
+    const { logout, usuarioLogado } = useAuth();
 
     const [retraida, setRetraida] = useState(false);
 
@@ -106,19 +106,21 @@ export default function SidebarLayout() {
                     })}
                 </nav>
 
-                <div className="sidebar-footer">
-                    <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="sidebar-item logout"
-                        title={retraida ? "Sair" : undefined}
-                    >
-                        <span className="sidebar-icon">
-                            <IconeMenu src={iconSair} />
-                        </span>
-                        {!retraida && <span className="sidebar-label">Sair</span>}
-                    </button>
-                </div>
+                {usuarioLogado && (
+                    <div className="sidebar-footer">
+                        <button
+                            type="button"
+                            onClick={handleLogout}
+                            className="sidebar-item logout"
+                            title={retraida ? "Sair" : undefined}
+                        >
+                            <span className="sidebar-icon">
+                                <IconeMenu src={iconSair} />
+                            </span>
+                            {!retraida && <span className="sidebar-label">Sair</span>}
+                        </button>
+                    </div>
+                )}
             </aside>
 
             <main className="sidebar-content">
