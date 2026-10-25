@@ -14,10 +14,23 @@ import {
     comodidadesDisponiveis,
 } from "./explorar/explorar";
 import { carregarListas, espacoSalvo } from "../favoritos/favoritosApi";
+import JellyRadio, { jellyTema } from "../../components/ui/JellyRadio";
+import AnimatedContent from "../../components/bits/AnimatedContent";
+import BlurText from "../../components/bits/BlurText";
+import GradualBlur from "../../components/bits/GradualBlur";
+import PillNav from "../../components/bits/PillNav";
 import "./Home.css";
 import "./HomeExplorar.css";
 
 const API_BUSCA = "http://localhost:8080/api/locadores/espacos/busca";
+
+function LinkCategoria({ href, children, ...props }) {
+    return (
+        <button type="button" {...props}>
+            {children}
+        </button>
+    );
+}
 
 function IconeCategoria({ id }) {
     const comum = { viewBox: "0 0 24 24", "aria-hidden": true };
@@ -210,20 +223,34 @@ export default function Home() {
                 </header>
 
                 <div className="hm-faixa">
-                    <div className="hm-cats" role="tablist" aria-label="Categorias de espaços">
-                        {CATEGORIAS.map((item) => (
-                            <button
-                                key={item.id}
-                                type="button"
-                                role="tab"
-                                aria-selected={categoria === item.id}
-                                className={`hm-cat${categoria === item.id ? " hm-cat--ativa" : ""}`}
-                                onClick={() => escolherCategoria(item.id)}
-                            >
-                                <IconeCategoria id={item.id} />
-                                <span>{item.rotulo}</span>
-                            </button>
-                        ))}
+                    <div className="hm-cats">
+                        <GradualBlur position="left" width="36px" height="100%" strength={1.1} tint="var(--color-surface)" zIndex={2} />
+                        <PillNav
+                            ariaLabel="Categorias de espaços"
+                            linkComponent={LinkCategoria}
+                            items={CATEGORIAS.map((item) => ({
+                                label: item.rotulo,
+                                href: item.id,
+                                icon: <IconeCategoria id={item.id} />
+                            }))}
+                            activeHref={categoria}
+                            onItemClick={(item) => escolherCategoria(item.href)}
+                            itemStyle="plain"
+                            hoverEffect="glide"
+                            indicator="dot"
+                            layout="split"
+                            surface="none"
+                            size="md"
+                            bounce={0.2}
+                            stretch={0.5}
+                            collapse="auto"
+                            intro
+                            theme="light"
+                            textColor="#130501"
+                            highlightColor="#FECB5A"
+                            highlightTextColor="#130501"
+                        />
+                        <GradualBlur position="right" width="36px" height="100%" strength={1.1} tint="var(--color-surface)" zIndex={2} />
                     </div>
                     <button
                         type="button"
@@ -237,7 +264,17 @@ export default function Home() {
 
             <div className="hm-conteudo">
                 <div className="hm-resumo">
-                    <h1>{titulo}</h1>
+                    <BlurText
+                        text={titulo}
+                        className="hm-titulo-anim"
+                        animateBy="words"
+                        effect="blur"
+                        direction="bottom"
+                        delay={70}
+                        blur={8}
+                        distance={16}
+                        trigger="load"
+                    />
                     {!carregando && !erro && (
                         <p>{visiveis.length === 1 ? "1 espaço" : `${visiveis.length} espaços`}</p>
                     )}
@@ -259,7 +296,15 @@ export default function Home() {
                 ) : vista === "mapa" ? (
                     <MapaEspacos espacos={visiveis} />
                 ) : (
-                    <div className={vista === "lista" ? "hm-lista" : "hm-grade"}>
+                    <AnimatedContent
+                        className={vista === "lista" ? "hm-lista" : "hm-grade"}
+                        trigger="mount"
+                        distance={28}
+                        duration={0.55}
+                        blur={2}
+                        stagger={0.045}
+                        once
+                    >
                         {visiveis.map((espaco) => (
                             <CardExplorar
                                 key={espaco.id}
@@ -270,28 +315,24 @@ export default function Home() {
                                 compacto={vista === "lista"}
                             />
                         ))}
-                    </div>
+                    </AnimatedContent>
                 )}
             </div>
 
             <div className="hm-alternar-wrap">
-                <div className="hm-alternar" role="group" aria-label="Modo de visualização">
-                    {[
-                        ["grade", "Grade"],
-                        ["lista", "Lista"],
-                        ["mapa", "Mapa"],
-                    ].map(([id, rotulo]) => (
-                        <button
-                            key={id}
-                            type="button"
-                            className={vista === id ? "hm-alternar--ativo" : ""}
-                            aria-pressed={vista === id}
-                            onClick={() => setVista(id)}
-                        >
-                            {rotulo}
-                        </button>
-                    ))}
-                </div>
+                <JellyRadio
+                    className="hm-alternar"
+                    ariaLabel="Modo de visualização"
+                    size="md"
+                    items={[
+                        { value: "grade", label: "Grade" },
+                        { value: "lista", label: "Lista" },
+                        { value: "mapa", label: "Mapa" },
+                    ]}
+                    value={vista}
+                    onChange={setVista}
+                    {...jellyTema}
+                />
             </div>
 
             <ModalFiltros

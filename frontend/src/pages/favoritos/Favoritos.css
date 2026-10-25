@@ -256,20 +256,14 @@
     animation: fv-gira 0.7s linear infinite;
 }
 
-.fv-toast {
-    position: fixed;
-    bottom: 28px;
+.fv-toast.swipe-toast {
     left: calc(50vw + var(--sidebar-largura, 0px) / 2);
-    z-index: 60;
-    transform: translateX(-50%);
-    margin: 0;
-    padding: 12px 18px;
-    border-radius: var(--radius-md);
-    background: var(--color-text);
-    color: var(--color-bg);
-    font-weight: 700;
-    text-align: center;
-    box-shadow: var(--shadow-md);
+    right: auto;
+    bottom: 28px;
+    translate: -50% 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 @keyframes fv-gira {

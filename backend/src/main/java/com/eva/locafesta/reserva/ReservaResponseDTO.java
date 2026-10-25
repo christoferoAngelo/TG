@@ -19,6 +19,7 @@ public record ReservaResponseDTO(
     String condicaoReembolso,
     LocalDateTime canceladoEm,
     Integer prazoCancelamentoDias,
+    boolean pagamentoLiberado,
     String observacao,
     String locatarioNome
 ) {

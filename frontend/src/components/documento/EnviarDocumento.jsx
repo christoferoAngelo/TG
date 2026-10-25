@@ -1,4 +1,5 @@
 import { useState } from "react";
+import GlideSelect from "../bits/GlideSelect";
 
 const API_URL = "http://localhost:8080";
 
@@ -197,48 +198,28 @@ function EnviarDocumento({
                         Tipo do documento
                     </label>
 
-                    <select
+                    <GlideSelect
+                        className="glide-select--bloco"
+                        ariaLabel="Tipo do documento"
+                        size="lg"
+                        menuWidth={320}
+                        placeholder="Selecione"
                         value={tipoDocumento}
-                        onChange={(e) =>
-                            setTipoDocumento(e.target.value)
+                        options={
+                            categoria === "PESSOA"
+                                ? [
+                                    { value: "CPF", label: "CPF" },
+                                    { value: "RG", label: "RG" },
+                                    { value: "COMPROVANTE_ENDERECO", label: "Comprovante de endereço" }
+                                ]
+                                : [
+                                    { value: "DOCUMENTO_ESPACO", label: "Documento do espaço" },
+                                    { value: "COMPROVANTE_ENDERECO", label: "Comprovante de endereço" },
+                                    { value: "COMPROVANTE_PROPRIEDADE", label: "Comprovante de propriedade" }
+                                ]
                         }
-                    >
-
-                        <option value="">
-                            Selecione
-                        </option>
-
-                        {categoria === "PESSOA" ? (
-                            <>
-                                <option value="CPF">
-                                    CPF
-                                </option>
-
-                                <option value="RG">
-                                    RG
-                                </option>
-
-                                <option value="COMPROVANTE_ENDERECO">
-                                    Comprovante de endereço
-                                </option>
-                            </>
-                        ) : (
-                            <>
-                                <option value="DOCUMENTO_ESPACO">
-                                    Documento do espaço
-                                </option>
-
-                                <option value="COMPROVANTE_ENDERECO">
-                                    Comprovante de endereço
-                                </option>
-
-                                <option value="COMPROVANTE_PROPRIEDADE">
-                                    Comprovante de propriedade
-                                </option>
-                            </>
-                        )}
-
-                    </select>
+                        onChange={setTipoDocumento}
+                    />
 
                 </div>
 

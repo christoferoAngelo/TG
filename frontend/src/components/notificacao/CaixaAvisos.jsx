@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./CaixaAvisos.css";
+import AnimatedList from "../bits/AnimatedList";
 
 const API = "http://localhost:8080/api";
 
@@ -103,20 +104,32 @@ export default function CaixaAvisos({ usuarioId }) {
                     {avisos.length === 0 ? (
                         <p className="av-vazio">Nenhum aviso por enquanto.</p>
                     ) : (
-                        <ul>
-                            {avisos.map((aviso) => (
-                                <li key={aviso.id} className={aviso.lida ? "av-item av-item--lido" : "av-item"}>
+                        <AnimatedList
+                            className="av-lista"
+                            items={avisos}
+                            frame={false}
+                            theme="light"
+                            width="100%"
+                            maxHeight={320}
+                            selectOnHover={false}
+                            enableArrowNavigation={false}
+                            showGradients
+                            animation="fade"
+                            stagger={0.04}
+                            accentColor="#FECB5A"
+                            renderItem={(aviso) => (
+                                <div className={aviso.lida ? "av-item av-item--lido" : "av-item"}>
                                     <div>
                                         <strong>{aviso.titulo}</strong>
                                         <p>{aviso.mensagem}</p>
                                         <time>{quando(aviso.criadaEm)}</time>
                                     </div>
                                     {!aviso.lida && (
-                                        <button type="button" onClick={() => marcar(aviso.id)}>Marcar como lido</button>
+                                        <button type="button" onClick={(evento) => { evento.stopPropagation(); marcar(aviso.id); }}>Marcar como lido</button>
                                     )}
-                                </li>
-                            ))}
-                        </ul>
+                                </div>
+                            )}
+                        />
                     )}
                 </section>
             )}

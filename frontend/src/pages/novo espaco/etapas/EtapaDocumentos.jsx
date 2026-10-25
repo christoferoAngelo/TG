@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import GlideSelect from "../../../components/bits/GlideSelect";
 import Campo from "./Campo";
 
 export const TIPOS_VINCULO = [
@@ -98,18 +99,17 @@ export default function EtapaDocumentos({
                         opcional={editando}
                         erro={erros.documentoTipo}
                     >
-                        <select
+                        <GlideSelect
                             id="ne-documento-tipo"
-                            className="ne-input"
+                            className="glide-select--bloco"
+                            ariaLabel="Tipo de documento"
+                            size="lg"
+                            menuWidth={420}
+                            placeholder="Selecione o comprovante"
                             value={documento.tipo}
-                            aria-invalid={erros.documentoTipo ? "true" : undefined}
-                            onChange={(e) => setDocumento((prev) => ({ ...prev, tipo: e.target.value }))}
-                        >
-                            <option value="">Selecione o comprovante</option>
-                            {TIPOS_VINCULO.map((tipo) => (
-                                <option key={tipo.valor} value={tipo.valor}>{tipo.rotulo}</option>
-                            ))}
-                        </select>
+                            options={TIPOS_VINCULO.map((tipo) => ({ value: tipo.valor, label: tipo.rotulo }))}
+                            onChange={(valor) => setDocumento((prev) => ({ ...prev, tipo: valor }))}
+                        />
                     </Campo>
                     <Campo
                         id="ne-documento-arquivo"
@@ -147,18 +147,17 @@ export default function EtapaDocumentos({
                             Opcional. Alvará e AVCB não bloqueiam o cadastro. Quem envia o AVCB pode ser destacado depois como Espaço certificado.
                         </p>
                         <Campo id="ne-seguranca-tipo" label="Documento de segurança" opcional erro={erros.segurancaTipo} span={6}>
-                            <select
+                            <GlideSelect
                                 id="ne-seguranca-tipo"
-                                className="ne-input"
+                                className="glide-select--bloco"
+                                ariaLabel="Documento de segurança"
+                                size="lg"
+                                menuWidth={420}
+                                placeholder="Selecione"
                                 value={seguranca.tipo}
-                                aria-invalid={erros.segurancaTipo ? "true" : undefined}
-                                onChange={(e) => setSeguranca((prev) => ({ ...prev, tipo: e.target.value }))}
-                            >
-                                <option value="">Selecione</option>
-                                {TIPOS_SEGURANCA.map((tipo) => (
-                                    <option key={tipo.valor} value={tipo.valor}>{tipo.rotulo}</option>
-                                ))}
-                            </select>
+                                options={TIPOS_SEGURANCA.map((tipo) => ({ value: tipo.valor, label: tipo.rotulo }))}
+                                onChange={(valor) => setSeguranca((prev) => ({ ...prev, tipo: valor }))}
+                            />
                         </Campo>
                         <Campo id="ne-seguranca-arquivo" label="Arquivo de segurança" opcional erro={erros.segurancaArquivo}>
                             <input

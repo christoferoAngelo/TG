@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { IconeAdmin } from './AdminIcons';
+import GlideSelect from '../bits/GlideSelect';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -192,15 +193,19 @@ export default function UsuariosTab() {
 
               <div className="adm-campo-grupo">
                 <label htmlFor="adm-user-perfil">Tipo de perfil</label>
-                <select
+                <GlideSelect
                   id="adm-user-perfil"
-                  className="adm-campo"
+                  className="glide-select--bloco"
+                  ariaLabel="Tipo de perfil"
+                  size="lg"
+                  menuWidth={220}
                   value={formData.tipoUsuario}
-                  onChange={e => setFormData({ ...formData, tipoUsuario: e.target.value })}
-                >
-                  <option value="LOCATARIO">Locatário</option>
-                  <option value="LOCADOR">Locador</option>
-                </select>
+                  options={[
+                    { value: "LOCATARIO", label: "Locatário" },
+                    { value: "LOCADOR", label: "Locador" }
+                  ]}
+                  onChange={(valor) => setFormData({ ...formData, tipoUsuario: valor })}
+                />
               </div>
 
               <div className="adm-modal-acoes">

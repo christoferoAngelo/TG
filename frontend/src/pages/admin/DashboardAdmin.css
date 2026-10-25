@@ -359,12 +359,7 @@
 }
 
 .adm-abas {
-    display: inline-flex;
-    gap: 4px;
     margin-bottom: 18px;
-    padding: 4px;
-    background: var(--color-bg-subtle);
-    border-radius: var(--radius-pill);
 }
 
 .adm-abas button {

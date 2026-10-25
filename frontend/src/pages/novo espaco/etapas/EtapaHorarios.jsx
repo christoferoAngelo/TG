@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import Campo from "./Campo";
+import { Slider } from "../../../components/base/slider/slider";
 import { calcularTurnos } from "../turnos";
 
 export default function EtapaHorarios({ form, erros, bind, setCampo, setAdicional }) {
@@ -99,15 +100,15 @@ export default function EtapaHorarios({ form, erros, bind, setCampo, setAdiciona
                     erro={erros.antecedenciaMinimaDias}
                     dica="O locatário não consegue escolher datas antes desse prazo. Use 0 para permitir o mesmo dia."
                 >
-                    <input
-                        type="number"
-                        min="0"
-                        max="365"
-                        step="1"
-                        inputMode="numeric"
-                        className="ne-input"
-                        placeholder="0"
-                        {...bind("antecedenciaMinimaDias")}
+                    <Slider
+                        aria-label="Antecedência mínima em dias"
+                        labelPosition="bottom"
+                        minValue={0}
+                        maxValue={60}
+                        step={1}
+                        value={[Number(form.antecedenciaMinimaDias) || 0]}
+                        labelFormatter={(valor) => `${valor} dias`}
+                        onChange={([valor]) => setCampo("antecedenciaMinimaDias", String(valor))}
                     />
                 </Campo>
                 <Campo
@@ -117,15 +118,15 @@ export default function EtapaHorarios({ form, erros, bind, setCampo, setAdiciona
                     erro={erros.prazoCancelamentoDias}
                     dica="Depois de confirmada, você só cancela até esse número de dias antes do evento. O locatário recebe reembolso total."
                 >
-                    <input
-                        type="number"
-                        min="0"
-                        max="30"
-                        step="1"
-                        inputMode="numeric"
-                        className="ne-input"
-                        placeholder="2"
-                        {...bind("prazoCancelamentoDias")}
+                    <Slider
+                        aria-label="Prazo para cancelar em dias"
+                        labelPosition="bottom"
+                        minValue={0}
+                        maxValue={30}
+                        step={1}
+                        value={[form.prazoCancelamentoDias === "" ? 2 : Number(form.prazoCancelamentoDias)]}
+                        labelFormatter={(valor) => `${valor} dias`}
+                        onChange={([valor]) => setCampo("prazoCancelamentoDias", String(valor))}
                     />
                 </Campo>
 

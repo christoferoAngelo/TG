@@ -11,6 +11,9 @@ import ModalCriarLocador from "../../components/locador/ModalCriarLocador";
 import { pedirRecargaAvisos } from "../../components/notificacao/CaixaAvisos";
 import { avisoPrazoLocador, podeCancelarLocador, prazoLocador, textoCancelamento } from "../reserva/cancelamento";
 import RelatorioLocador from "./RelatorioLocador";
+import JellyRadio, { jellyTema } from "../../components/ui/JellyRadio";
+import AnimatedList from "../../components/bits/AnimatedList";
+import Counter from "../../components/bits/Counter";
 
 // ⚠️ Ajuste para as rotas que você registrou para a página NovoEspaco
 const ROTA_NOVO_ESPACO = "/locador/espacos/novo";
@@ -49,7 +52,9 @@ function Stat({ label, valor, dica, alerta }) {
     return (
         <div className={`lc-stat${alerta ? " lc-stat--alerta" : ""}`}>
             <span className="lc-stat-label">{label}</span>
-            <strong className="lc-stat-valor">{valor}</strong>
+            <strong className="lc-stat-valor">
+                <Counter value={Number(valor) || 0} locale="pt-BR" fontSize={30} textColor="var(--color-text)" />
+            </strong>
             {dica && <span className="lc-stat-dica">{dica}</span>}
         </div>
     );
@@ -334,22 +339,17 @@ export default function DashboardLocador() {
                                 <span className="lc-card-contador">{solicitacoes.length}</span>
                             </h2>
 
-                            <div className="segmented-control">
-                                <button
-                                    type="button"
-                                    className={visualizacaoPedidos === "lista" ? "ativo" : ""}
-                                    onClick={() => setVisualizacaoPedidos("lista")}
-                                >
-                                    Lista
-                                </button>
-                                <button
-                                    type="button"
-                                    className={visualizacaoPedidos === "calendario" ? "ativo" : ""}
-                                    onClick={() => setVisualizacaoPedidos("calendario")}
-                                >
-                                    Calendário
-                                </button>
-                            </div>
+                            <JellyRadio
+                                ariaLabel="Visualização dos pedidos"
+                                size="sm"
+                                items={[
+                                    { value: "lista", label: "Lista" },
+                                    { value: "calendario", label: "Calendário" },
+                                ]}
+                                value={visualizacaoPedidos}
+                                onChange={setVisualizacaoPedidos}
+                                {...jellyTema}
+                            />
                         </div>
 
                         {carregandoPedidos ? (
@@ -371,14 +371,25 @@ export default function DashboardLocador() {
                                 />
                             </div>
                         ) : (
-                            <div className="lc-pedidos-lista">
-                                {solicitacoes.map((req) => {
+                            <AnimatedList
+                                className="lc-pedidos-lista"
+                                items={solicitacoes}
+                                frame={false}
+                                theme="light"
+                                width="100%"
+                                maxHeight={640}
+                                gap={12}
+                                selectOnHover={false}
+                                enableArrowNavigation={false}
+                                animation="fade"
+                                accentColor="#FECB5A"
+                                renderItem={(req) => {
                                     const st = STATUS_RESERVA[statusDe(req.status)] || {
                                         texto: req.status || "—",
                                         tom: "muted",
                                     };
                                     return (
-                                        <div key={req.id} className="lc-pedido">
+                                        <div className="lc-pedido">
                                             <div className="lc-pedido-info">
                                                 <strong className="lc-pedido-titulo">
                                                     {req.espaco?.titulo || "Espaço"}
@@ -465,8 +476,8 @@ export default function DashboardLocador() {
                                             </div>
                                         </div>
                                     );
-                                })}
-                            </div>
+                                }}
+                            />
                         )}
                     </section>
 

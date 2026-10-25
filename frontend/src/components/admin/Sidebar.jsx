@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { IconeAdmin } from "./AdminIcons";
 import "./Sidebar.css";
 
@@ -32,10 +33,25 @@ export default function Sidebar({
     setMenuAtivo,
     handleLogout,
 }) {
+    const [sobre, setSobre] = useState(false);
+    const [ignorarHover, setIgnorarHover] = useState(false);
+    const aberta = sidebarExpandida || (sobre && !ignorarHover);
+
     return (
-        <aside className={`adm-side ${sidebarExpandida ? "aberta" : "recolhida"}`}>
+        <aside
+            className={`adm-side ${aberta ? "aberta" : "recolhida"}`}
+            onPointerEnter={(evento) => {
+                if (evento.pointerType === "touch" || ignorarHover) return;
+                if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+                setSobre(true);
+            }}
+            onPointerLeave={() => {
+                setSobre(false);
+                setIgnorarHover(false);
+            }}
+        >
             <div className="adm-side-topo">
-                {sidebarExpandida && (
+                {aberta && (
                     <div className="adm-marca">
                         <strong>LocaFesta</strong>
                         <span>Admin</span>
@@ -44,9 +60,18 @@ export default function Sidebar({
                 <button
                     type="button"
                     className="adm-recolher"
-                    onClick={() => setSidebarExpandida(!sidebarExpandida)}
+                    onClick={() => {
+                        if (sidebarExpandida) {
+                            setSidebarExpandida(false);
+                            setSobre(false);
+                            setIgnorarHover(true);
+                            return;
+                        }
+                        setSidebarExpandida(true);
+                        setIgnorarHover(false);
+                    }}
                     title={sidebarExpandida ? "Recolher menu" : "Expandir menu"}
-                    aria-expanded={sidebarExpandida}
+                    aria-expanded={aberta}
                     aria-label={sidebarExpandida ? "Recolher menu" : "Expandir menu"}
                 >
                     <IconeAdmin nome="menu" />
@@ -56,7 +81,7 @@ export default function Sidebar({
             <nav className="adm-side-nav" aria-label="Menu do administrador">
                 {GRUPOS.map((grupo) => (
                     <div className="adm-grupo" key={grupo.titulo}>
-                        {sidebarExpandida && <span className="adm-grupo-titulo">{grupo.titulo}</span>}
+                        {aberta && <span className="adm-grupo-titulo">{grupo.titulo}</span>}
                         {grupo.itens.map((item) => {
                             const ativo = menuAtivo === item.id;
                             return (
@@ -65,13 +90,13 @@ export default function Sidebar({
                                     type="button"
                                     className={`adm-item ${ativo ? "ativo" : ""}`}
                                     onClick={() => setMenuAtivo(item.id)}
-                                    title={sidebarExpandida ? undefined : item.label}
+                                    title={aberta ? undefined : item.label}
                                     aria-current={ativo ? "page" : undefined}
                                 >
                                     <span className="adm-item-ico">
                                         <IconeAdmin nome={item.icone} />
                                     </span>
-                                    {sidebarExpandida && <span className="adm-item-label">{item.label}</span>}
+                                    {aberta && <span className="adm-item-label">{item.label}</span>}
                                 </button>
                             );
                         })}
@@ -83,13 +108,13 @@ export default function Sidebar({
                 <button
                     type="button"
                     className="adm-item sair"
-                    title={sidebarExpandida ? undefined : "Sair"}
+                    title={aberta ? undefined : "Sair"}
                     onClick={handleLogout}
                 >
                     <span className="adm-item-ico">
                         <IconeAdmin nome="sair" />
                     </span>
-                    {sidebarExpandida && <span className="adm-item-label">Sair</span>}
+                    {aberta && <span className="adm-item-label">Sair</span>}
                 </button>
             </div>
         </aside>

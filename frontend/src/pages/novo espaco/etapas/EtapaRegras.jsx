@@ -1,4 +1,5 @@
 import Campo from "./Campo";
+import SpringCheck from "../../../components/bits/SpringCheck";
 
 export default function EtapaRegras({
     form,
@@ -20,15 +21,19 @@ export default function EtapaRegras({
                         {caracteristicasDisponiveis.map((item) => {
                             const marcado = form.caracteristicas.some((c) => c.id === item.id);
                             return (
-                                <label key={item.id} className="ne-chip">
-                                    <input
-                                        type="checkbox"
-                                        className="ne-sr"
-                                        checked={marcado}
-                                        onChange={() => toggleCaracteristica(item)}
-                                    />
-                                    <span className={marcado ? "ne-chip-ativo" : ""}>{item.nome}</span>
-                                </label>
+                                <SpringCheck
+                                    key={item.id}
+                                    label={item.nome}
+                                    checked={marcado}
+                                    onChange={() => toggleCaracteristica(item)}
+                                    color="#130501"
+                                    fillColor="#FECB5A"
+                                    checkColor="#130501"
+                                    boxSize={22}
+                                    fontSize={15}
+                                    doneOpacity={1}
+                                    strikeLag={1}
+                                />
                             );
                         })}
                     </div>

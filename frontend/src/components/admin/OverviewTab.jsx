@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { IconeAdmin } from './AdminIcons';
+import Counter from '../bits/Counter';
+import GlideSelect from '../bits/GlideSelect';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -94,7 +96,6 @@ export default function OverviewTab() {
     };
   }, [usuarios, dataInicio, dataFim]);
 
-  const valor = (numero) => (loading ? "…" : numero);
   const parte = (numero) => ((numero / (metricas.totalUsuarios || 1)) * 100).toFixed(0);
 
   return (
@@ -102,18 +103,22 @@ export default function OverviewTab() {
       <div className="filter-bar">
         <div className="filter-group">
           <label className="filter-label" htmlFor="adm-periodo">Período</label>
-          <select
+          <GlideSelect
             id="adm-periodo"
+            className="glide-select--bloco"
+            ariaLabel="Período"
+            size="lg"
+            menuWidth={240}
             value={presetPeriodo}
-            onChange={(e) => setPresetPeriodo(e.target.value)}
-            className="select-input"
-          >
-            <option value="30">Últimos 30 dias</option>
-            <option value="60">Últimos 60 dias</option>
-            <option value="90">Últimos 90 dias</option>
-            <option value="all">Todo o período</option>
-            <option value="custom">Personalizado</option>
-          </select>
+            options={[
+              { value: "30", label: "Últimos 30 dias" },
+              { value: "60", label: "Últimos 60 dias" },
+              { value: "90", label: "Últimos 90 dias" },
+              { value: "all", label: "Todo o período" },
+              { value: "custom", label: "Personalizado" }
+            ]}
+            onChange={setPresetPeriodo}
+          />
         </div>
         <div className="filter-group">
           <label className="filter-label" htmlFor="adm-de">De</label>
@@ -141,35 +146,35 @@ export default function OverviewTab() {
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="usuarios" /></span>
           <div>
-            <strong>{valor(metricas.totalUsuarios)}</strong>
+            <strong>{loading ? "…" : <Counter value={metricas.totalUsuarios} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
             <span>Total de usuários</span>
           </div>
         </article>
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="espacos" /></span>
           <div>
-            <strong>{valor(metricas.locadoresCount)}</strong>
+            <strong>{loading ? "…" : <Counter value={metricas.locadoresCount} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
             <span>Locadores</span>
           </div>
         </article>
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="usuario" /></span>
           <div>
-            <strong>{valor(metricas.locatariosCount)}</strong>
+            <strong>{loading ? "…" : <Counter value={metricas.locatariosCount} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
             <span>Locatários</span>
           </div>
         </article>
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="novos" /></span>
           <div>
-            <strong>{valor(metricas.novosNoPeriodo)}</strong>
+            <strong>{loading ? "…" : <Counter value={metricas.novosNoPeriodo} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
             <span>Novos no período</span>
           </div>
         </article>
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="ativos" /></span>
           <div>
-            <strong>{valor(metricas.ativosNoPeriodo)}</strong>
+            <strong>{loading ? "…" : <Counter value={metricas.ativosNoPeriodo} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
             <span>Ativos no período</span>
           </div>
         </article>

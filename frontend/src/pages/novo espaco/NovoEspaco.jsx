@@ -4,7 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import "../dashboard/Dashboard.css";
 import { criarDocumentoEspaco, uploadDocumentoCloudinary } from "../../services/documentoService";
 import "./NovoEspaco.css";
-import BarraProgresso from "./etapas/BarraProgresso";
+import Stepper, { Step } from "../../components/bits/Stepper";
 import EtapaBasico from "./etapas/EtapaBasico";
 import EtapaHorarios from "./etapas/EtapaHorarios";
 import EtapaRegras from "./etapas/EtapaRegras";
@@ -745,12 +745,23 @@ export default function NovoEspaco() {
                         <strong>Motivo da rejeição:</strong> {espacoOriginal.motivoRejeicao}
                     </div>
                 )}
-                <BarraProgresso etapa={etapa} onIr={irParaEtapa} />
             </header>
 
             <form className="ne-form" onSubmit={handleSubmit} noValidate>
                 <div className="ne-conteudo">
-                    {etapa === 1 && (
+                    <Stepper
+                        className="ne-stepper"
+                        step={etapa}
+                        onStepChange={irParaEtapa}
+                        linear
+                        showFooter={false}
+                        frame={false}
+                        theme="light"
+                        accentColor="#FECB5A"
+                        width="100%"
+                        radius={16}
+                    >
+                    <Step title="O básico">
                         <EtapaBasico
                             form={form}
                             erros={erros}
@@ -770,8 +781,8 @@ export default function NovoEspaco() {
                             adicionarFotos={adicionarFotos}
                             removerFoto={removerFoto}
                         />
-                    )}
-                    {etapa === 2 && (
+                    </Step>
+                    <Step title="Horários">
                         <EtapaHorarios
                             form={form}
                             erros={erros}
@@ -779,16 +790,16 @@ export default function NovoEspaco() {
                             setCampo={setCampo}
                             setAdicional={setAdicional}
                         />
-                    )}
-                    {etapa === 3 && (
+                    </Step>
+                    <Step title="Regras">
                         <EtapaRegras
                             form={form}
                             caracteristicasDisponiveis={caracteristicasDisponiveis}
                             toggleCaracteristica={toggleCaracteristica}
                             bind={bind}
                         />
-                    )}
-                    {etapa === 4 && (
+                    </Step>
+                    <Step title="Documentos">
                         <EtapaDocumentos
                             editando={editando}
                             erros={erros}
@@ -807,7 +818,8 @@ export default function NovoEspaco() {
                             respostaLocador={respostaLocador}
                             setRespostaLocador={setRespostaLocador}
                         />
-                    )}
+                    </Step>
+                    </Stepper>
 
                     <div className="ne-acoes">
                         {mensagemEtapa && (

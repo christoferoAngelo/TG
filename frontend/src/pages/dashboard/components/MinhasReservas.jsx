@@ -5,6 +5,8 @@ import Modal from "../../../components/locador/Modal";
 import { pedirRecargaAvisos } from "../../../components/notificacao/CaixaAvisos";
 import { podeCancelarLocatario, textoCancelamento } from "../../reserva/cancelamento";
 import "./MinhasReservas.css";
+import JellyRadio, { jellyTema } from "../../../components/ui/JellyRadio";
+import PeekRating from "../../../components/bits/PeekRating";
 
 const API = "http://localhost:8080/api";
 
@@ -285,21 +287,23 @@ export default function MinhasReservas() {
                         onChange={(e) => setBusca(e.target.value)}
                     />
                 </label>
-                <div className="mr-filtros" role="tablist" aria-label="Filtrar reservas">
-                    {FILTROS.map((item) => (
-                        <button
-                            key={item.id}
-                            type="button"
-                            role="tab"
-                            aria-selected={filtro === item.id}
-                            className={filtro === item.id ? "mr-filtro mr-filtro--ativo" : "mr-filtro"}
-                            onClick={() => setFiltro(item.id)}
-                        >
-                            {item.rotulo}
-                            <span>{carregando ? "" : contagens[item.id] ?? 0}</span>
-                        </button>
-                    ))}
-                </div>
+                <JellyRadio
+                    className="mr-filtros"
+                    ariaLabel="Filtrar reservas"
+                    size="sm"
+                    items={FILTROS.map((item) => ({
+                        value: item.id,
+                        label: (
+                            <>
+                                {item.rotulo}
+                                <span>{carregando ? "" : contagens[item.id] ?? 0}</span>
+                            </>
+                        ),
+                    }))}
+                    value={filtro}
+                    onChange={setFiltro}
+                    {...jellyTema}
+                />
             </div>
 
             {carregando && (
@@ -479,23 +483,21 @@ export default function MinhasReservas() {
                     <form id="mr-avaliar" className="mr-form" onSubmit={enviarAvaliacao}>
                         <div className={`mdl-campo${erroNota ? " mdl-campo--erro" : ""}`}>
                             <span className="mr-rotulo">Sua nota</span>
-                            <div className="mr-estrelas" role="group" aria-label="Nota de 1 a 5">
-                                {[1, 2, 3, 4, 5].map((valor) => (
-                                    <button
-                                        key={valor}
-                                        type="button"
-                                        className={valor <= nota ? "mr-estrela mr-estrela--ativa" : "mr-estrela"}
-                                        aria-label={`${valor} estrela${valor > 1 ? "s" : ""}`}
-                                        aria-pressed={valor <= nota}
-                                        onClick={() => {
-                                            setNota(valor);
-                                            setErroNota("");
-                                        }}
-                                    >
-                                        ★
-                                    </button>
-                                ))}
-                            </div>
+                            <PeekRating
+                                value={nota}
+                                onChange={(valor) => {
+                                    setNota(valor);
+                                    setErroNota("");
+                                }}
+                                count={5}
+                                allowClear={false}
+                                activeColor="#FECB5A"
+                                idleColor="#EDDAB0"
+                                tipColor="#130501"
+                                tipTextColor="#FEFBE6"
+                                ariaLabel="Nota de 1 a 5"
+                                labels={["Ruim", "Regular", "Boa", "Muito boa", "Excelente"]}
+                            />
                             {erroNota && <small className="mdl-erro">{erroNota}</small>}
                         </div>
                         <div className="mdl-campo">

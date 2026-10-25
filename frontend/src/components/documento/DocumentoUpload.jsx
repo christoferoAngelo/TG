@@ -4,6 +4,7 @@ import {
     uploadDocumentoCloudinary
 } from "../../services/documentoService";
 import { rotuloDocumento } from "./rotulosDocumento";
+import GlideSelect from "../bits/GlideSelect";
 
 
 export default function DocumentoUpload({
@@ -244,33 +245,20 @@ const handleSubmit = async (e) => {
                         Tipo de documento
                     </label>
 
-                    <select
-                        className="input"
+                    <GlideSelect
+                        className="glide-select--bloco"
+                        ariaLabel="Tipo de documento"
+                        size="lg"
+                        menuWidth={320}
+                        placeholder="Selecione..."
                         value={tipoDocumento}
-                        onChange={(e) =>
-                            setTipoDocumento(
-                                e.target.value
-                            )
-                        }
                         disabled={enviando}
-                    >
-
-                        <option value="">
-                            Selecione...
-                        </option>
-
-                        {tiposDisponiveis.map(
-                            (tipo) => (
-                                <option
-                                    key={tipo}
-                                    value={tipo}
-                                >
-                                    {rotuloDocumento(tipo)}
-                                </option>
-                            )
-                        )}
-
-                    </select>
+                        options={tiposDisponiveis.map((tipo) => ({
+                            value: tipo,
+                            label: rotuloDocumento(tipo)
+                        }))}
+                        onChange={setTipoDocumento}
+                    />
 
                 </div>
 

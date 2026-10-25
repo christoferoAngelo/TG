@@ -13,6 +13,7 @@ import {
     renomearLista,
 } from "./favoritosApi";
 import "../home/HomeExplorar.css";
+import SwipeToast from "../../components/bits/SwipeToast";
 import "./Favoritos.css";
 
 const API_BUSCA = "http://localhost:8080/api/locadores/espacos/busca";
@@ -272,9 +273,17 @@ export default function Favoritos() {
                 </>
             )}
 
-            {aviso && (
-                <p className="fv-toast" role="status">{aviso}</p>
-            )}
+            <SwipeToast
+                className="fv-toast"
+                open={Boolean(aviso)}
+                title={aviso || "Lista criada."}
+                onClose={() => setAviso("")}
+                background="#130501"
+                color="#FEFBE6"
+                fuseColor="#FECB5A"
+                duration={3200}
+                closeButton={false}
+            />
 
             {confirmarApagar && aberta && (
                 <div className="fv-confirma" role="presentation" onClick={() => setConfirmarApagar(false)}>

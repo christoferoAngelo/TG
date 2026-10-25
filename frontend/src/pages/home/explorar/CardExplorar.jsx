@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import GlareHover from "../../../components/bits/GlareHover";
+import PulseHeart from "../../../components/bits/PulseHeart";
+import SpotlightCard from "../../../components/bits/SpotlightCard";
 import { formatarData, formatarMoeda, fotosDe, localDe, precoDe, unidadePreco } from "./explorar";
 
 export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compacto = false }) {
@@ -17,29 +20,46 @@ export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compac
     };
 
     return (
-        <article className={`hm-card${compacto ? " hm-card--lista" : ""}`}>
+        <SpotlightCard
+            className={`hm-card${compacto ? " hm-card--lista" : ""}`}
+            theme="light"
+            spotlightColor="#FECB5A"
+            intensity={0.2}
+            borderGlow={0.45}
+            spotlightSize={220}
+        >
             <div className="hm-card-midia">
-                <button type="button" className="hm-card-abrir" onClick={abrir} aria-label={`Ver ${espaco.titulo}`}>
-                    {foto ? (
-                        <img src={foto.url} alt={foto.ambiente} />
-                    ) : (
-                        <span className="hm-card-sem-foto">Sem foto</span>
-                    )}
-                </button>
-                <button
-                    type="button"
-                    className={`hm-coracao${favorito ? " hm-coracao--ativo" : ""}`}
-                    aria-pressed={favorito}
-                    aria-label={favorito ? "Salvo em uma lista" : "Salvar em uma lista"}
-                    onClick={(evento) => {
-                        evento.stopPropagation();
-                        onFavoritar(espaco.id);
-                    }}
+                <GlareHover
+                    className="hm-card-brilho"
+                    width="100%"
+                    height="100%"
+                    background="transparent"
+                    borderRadius="14px"
+                    borderColor="transparent"
+                    glareColor="#FEFBE6"
+                    glareOpacity={0.42}
+                    glareSize={28}
                 >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 19.4 4.8 12.6a4.2 4.2 0 0 1 6-5.9L12 7.8l1.2-1.1a4.2 4.2 0 0 1 6 5.9L12 19.4Z" />
-                    </svg>
-                </button>
+                    <button type="button" className="hm-card-abrir" onClick={abrir} aria-label={`Ver ${espaco.titulo}`}>
+                        {foto ? (
+                            <img src={foto.url} alt={foto.ambiente} />
+                        ) : (
+                            <span className="hm-card-sem-foto">Sem foto</span>
+                        )}
+                    </button>
+                </GlareHover>
+                <PulseHeart
+                    className="hm-coracao"
+                    liked={Boolean(favorito)}
+                    showCount={false}
+                    size={34}
+                    likedColor="#FECB5A"
+                    idleColor="#FEFBE6"
+                    pillColor="#FEFBE6"
+                    textColor="#130501"
+                    label={favorito ? "Salvo em uma lista" : "Salvar em uma lista"}
+                    onChange={() => onFavoritar(espaco.id)}
+                />
                 {fotos.length > 1 && (
                     <>
                         <button type="button" className="hm-seta hm-seta--esq" aria-label="Foto anterior" onClick={(evento) => mover(evento, -1)}>‹</button>
@@ -70,7 +90,7 @@ export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compac
                     </p>
                 )}
             </button>
-        </article>
+        </SpotlightCard>
     );
 }
 

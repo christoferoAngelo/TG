@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DetalheEspacoModal from './DetalheEspacoModal';
+import JellyRadio, { jellyTema } from '../ui/JellyRadio';
 import './EspacosTab.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -127,17 +128,19 @@ export default function EspacosTab() {
   return (
     <div className="admin-form-container">
       <div className="content-box">
-        <div className="adm-abas" role="tablist" aria-label="Situação dos espaços">
-          <button type="button" className={statusAba === 'PENDENTE' ? 'ativo' : ''} onClick={() => setStatusAba('PENDENTE')}>
-            Pendentes
-          </button>
-          <button type="button" className={statusAba === 'APROVADO' ? 'ativo' : ''} onClick={() => setStatusAba('APROVADO')}>
-            Aprovados
-          </button>
-          <button type="button" className={statusAba === 'REJEITADO' ? 'ativo' : ''} onClick={() => setStatusAba('REJEITADO')}>
-            Recusados
-          </button>
-        </div>
+        <JellyRadio
+          className="adm-abas"
+          ariaLabel="Situação dos espaços"
+          size="sm"
+          items={[
+            { value: 'PENDENTE', label: 'Pendentes' },
+            { value: 'APROVADO', label: 'Aprovados' },
+            { value: 'REJEITADO', label: 'Recusados' },
+          ]}
+          value={statusAba}
+          onChange={setStatusAba}
+          {...jellyTema}
+        />
 
         {mensagem && <div className="alert-success">{mensagem}</div>}
         {erro && <div className="alert-error">{erro}</div>}

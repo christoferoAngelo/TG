@@ -5,6 +5,10 @@ import { useAuth } from "../../contexts/AuthContext";
 import { antecedenciaSalva, interpretarRegras } from "../novo espaco/regrasTexto";
 import { calcularTurnos, formatarMinutos, paraMinutos } from "../novo espaco/turnos";
 import "./DetalhesEspaco.css";
+import AnimatedContent from "../../components/bits/AnimatedContent";
+import BlurText from "../../components/bits/BlurText";
+import Carousel from "../../components/bits/Carousel";
+import GradualBlur from "../../components/bits/GradualBlur";
 
 const API = "http://localhost:8080/api";
 const ROTA_LOGIN = "/login";
@@ -489,7 +493,15 @@ export default function DetalhesEspaco() {
                 </button>
 
                 <header className="dt-titulo">
-                    <h1>{espaco.titulo}</h1>
+                    <BlurText
+                        text={espaco.titulo}
+                        className="dt-titulo-anim"
+                        animateBy="words"
+                        effect="focus"
+                        delay={60}
+                        blur={8}
+                        trigger="load"
+                    />
                     <p className="dt-meta">
                         {nota ? (
                             <a href="#avaliacoes" className="dt-nota">
@@ -507,6 +519,7 @@ export default function DetalhesEspaco() {
                 {/* ---------- Galeria ---------- */}
                 {totalFotos > 0 ? (
                     <section className={`dt-hero dt-hero--${qtdHero}`} aria-label="Fotos do espaço">
+                        <GradualBlur position="bottom" height="4.5rem" strength={1.4} tint="var(--color-bg)" zIndex={2} />
                         {fotos.lista.slice(0, qtdHero).map((foto, i) => (
                             <button
                                 type="button"
@@ -609,7 +622,7 @@ export default function DetalhesEspaco() {
 
                         {/* ---------- Cômodos ---------- */}
                         {espaco.ambientes?.length > 0 && (
-                            <section className="dt-secao">
+                            <AnimatedContent className="dt-secao" container=".sidebar-content" distance={20} duration={0.5} blur={1} once>
                                 <h2>Conheça cada ambiente</h2>
                                 <div className="dt-ambientes">
                                     {espaco.ambientes.map((amb, idx) => (
@@ -619,8 +632,9 @@ export default function DetalhesEspaco() {
                                                 {amb.descricao && <p>{amb.descricao}</p>}
                                             </div>
                                             {amb.imagensUrls?.length > 0 ? (
-                                                <div className="dt-galeria">
-                                                    {amb.imagensUrls.map((url, i) => (
+                                                <Carousel
+                                                    className="dt-carrossel"
+                                                    items={amb.imagensUrls.map((url, i) => (
                                                         <button
                                                             type="button"
                                                             key={url + i}
@@ -628,17 +642,27 @@ export default function DetalhesEspaco() {
                                                             onClick={() => setLightbox(fotos.inicios[idx] + i)}
                                                             aria-label={`Ampliar ${amb.titulo}, foto ${i + 1}`}
                                                         >
-                                                            <img src={url} alt={`${amb.titulo}, foto ${i + 1}`} loading="lazy" />
+                                                            <img src={url} alt={`${amb.titulo}, foto ${i + 1}`} />
                                                         </button>
                                                     ))}
-                                                </div>
+                                                    baseWidth="100%"
+                                                    aspectRatio={1.45}
+                                                    effect="slide"
+                                                    arrows
+                                                    loop={amb.imagensUrls.length > 1}
+                                                    draggable
+                                                    indicator="dots"
+                                                    theme="light"
+                                                    frame={false}
+                                                    radius={14}
+                                                />
                                             ) : (
                                                 <p className="dt-vazio">Sem fotos para este cômodo.</p>
                                             )}
                                         </article>
                                     ))}
                                 </div>
-                            </section>
+                            </AnimatedContent>
                         )}
 
                         {/* ---------- Características ---------- */}

@@ -1,5 +1,9 @@
 import { useEffect } from "react";
 
+import { Slider } from "../../../components/base/slider/slider";
+import GlideSelect from "../../../components/bits/GlideSelect";
+import SpringCheck from "../../../components/bits/SpringCheck";
+
 export default function ModalFiltros({ aberto, filtros, comodidades, onChange, onLimpar, onFechar }) {
     useEffect(() => {
         if (!aberto) return undefined;
@@ -41,56 +45,63 @@ export default function ModalFiltros({ aberto, filtros, comodidades, onChange, o
                 <div className="hm-modal-corpo">
                     <fieldset>
                         <legend>Faixa de preço (diária)</legend>
-                        <div className="hm-faixa-preco">
-                            <label>
-                                Mínimo
-                                <input
-                                    type="number"
-                                    min="0"
-                                    inputMode="decimal"
-                                    placeholder="0"
-                                    value={filtros.precoMin}
-                                    onChange={(evento) => onChange({ ...filtros, precoMin: evento.target.value })}
-                                />
-                            </label>
-                            <label>
-                                Máximo
-                                <input
-                                    type="number"
-                                    min="0"
-                                    inputMode="decimal"
-                                    placeholder="Sem limite"
-                                    value={filtros.precoMax}
-                                    onChange={(evento) => onChange({ ...filtros, precoMax: evento.target.value })}
-                                />
-                            </label>
-                        </div>
+                        <Slider
+                            aria-label="Faixa de preço da diária"
+                            labelPosition="bottom"
+                            minValue={0}
+                            maxValue={15000}
+                            step={100}
+                            value={[
+                                filtros.precoMin === "" ? 0 : Number(filtros.precoMin),
+                                filtros.precoMax === "" ? 15000 : Number(filtros.precoMax)
+                            ]}
+                            labelFormatter={(valor) => {
+                                if (valor <= 0) return "Qualquer";
+                                if (valor >= 15000) return "Sem limite";
+                                return `R$ ${valor}`;
+                            }}
+                            onChange={([minimo, maximo]) => onChange({
+                                ...filtros,
+                                precoMin: minimo <= 0 ? "" : String(minimo),
+                                precoMax: maximo >= 15000 ? "" : String(maximo)
+                            })}
+                        />
                     </fieldset>
 
                     <label className="hm-filtro-linha">
                         Capacidade mínima
-                        <input
-                            type="number"
-                            min="1"
-                            inputMode="numeric"
-                            placeholder="Qualquer"
-                            value={filtros.capacidadeMin}
-                            onChange={(evento) => onChange({ ...filtros, capacidadeMin: evento.target.value })}
+                        <Slider
+                            aria-label="Capacidade mínima"
+                            labelPosition="bottom"
+                            minValue={0}
+                            maxValue={300}
+                            step={5}
+                            value={[filtros.capacidadeMin === "" ? 0 : Number(filtros.capacidadeMin)]}
+                            labelFormatter={(valor) => (valor <= 0 ? "Qualquer" : `${valor} pessoas`)}
+                            onChange={([valor]) => onChange({
+                                ...filtros,
+                                capacidadeMin: valor <= 0 ? "" : String(valor)
+                            })}
                         />
                     </label>
 
                     <label className="hm-filtro-linha">
                         Ordenar por
-                        <select
+                        <GlideSelect
+                            className="glide-select--bloco"
+                            ariaLabel="Ordenar por"
+                            size="lg"
+                            menuWidth={280}
                             value={filtros.ordem}
-                            onChange={(evento) => onChange({ ...filtros, ordem: evento.target.value })}
-                        >
-                            <option value="relevancia">Relevância</option>
-                            <option value="preco-asc">Menor preço</option>
-                            <option value="preco-desc">Maior preço</option>
-                            <option value="nota">Melhor avaliação</option>
-                            <option value="capacidade">Maior capacidade</option>
-                        </select>
+                            options={[
+                                { value: "relevancia", label: "Relevância" },
+                                { value: "preco-asc", label: "Menor preço" },
+                                { value: "preco-desc", label: "Maior preço" },
+                                { value: "nota", label: "Melhor avaliação" },
+                                { value: "capacidade", label: "Maior capacidade" }
+                            ]}
+                            onChange={(valor) => onChange({ ...filtros, ordem: valor })}
+                        />
                     </label>
 
                     <fieldset>
@@ -100,14 +111,19 @@ export default function ModalFiltros({ aberto, filtros, comodidades, onChange, o
                         ) : (
                             <div className="hm-comodidades">
                                 {comodidades.map((item) => (
-                                    <label key={item.id || item.nome}>
-                                        <input
-                                            type="checkbox"
-                                            checked={filtros.comodidades.includes(item.nome)}
-                                            onChange={() => alternarComodidade(item.nome)}
-                                        />
-                                        {item.nome}
-                                    </label>
+                                    <SpringCheck
+                                        key={item.id || item.nome}
+                                        label={item.nome}
+                                        checked={filtros.comodidades.includes(item.nome)}
+                                        onChange={() => alternarComodidade(item.nome)}
+                                        color="#130501"
+                                        fillColor="#FECB5A"
+                                        checkColor="#130501"
+                                        boxSize={20}
+                                        fontSize={14}
+                                        doneOpacity={1}
+                                        strikeLag={1}
+                                    />
                                 ))}
                             </div>
                         )}

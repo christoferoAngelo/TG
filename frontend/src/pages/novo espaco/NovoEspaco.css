@@ -821,6 +821,26 @@ select.ne-input {
     }
 }
 
+.ne-stepper,
+.ne-secao {
+    width: 100%;
+    color: var(--color-text);
+}
+
+.ne-stepper {
+    background: transparent;
+}
+
+.ne-stepper .stepper__viewport {
+    height: auto !important;
+    overflow: visible;
+}
+
+.ne-stepper .stepper__body {
+    padding-left: 0;
+    padding-right: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .ne-page * {
         transition: none !important;

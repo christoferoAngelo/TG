@@ -20,7 +20,7 @@ const SECOES = {
 
 export default function DashboardAdmin() {
     const { logout } = useAuth();
-    const [sidebarExpandida, setSidebarExpandida] = useState(true);
+    const [sidebarExpandida, setSidebarExpandida] = useState(false);
     const [menuAtivo, setMenuAtivo] = useState("overview");
 
     const handleLogout = async () => {
