@@ -54,14 +54,12 @@ export default function SidebarLayout() {
     const { logout, usuarioLogado } = useAuth();
 
     const [fixada, setFixada] = useState(false);
-    const [sobre, setSobre] = useState(false);
-    const [ignorarHover, setIgnorarHover] = useState(false);
-    const retraida = !fixada && (!sobre || ignorarHover);
+    const retraida = !fixada;
     const reduzirMovimento = useReducedMotion();
     const naHome = location.pathname === "/home";
     const mola = reduzirMovimento
         ? { duration: 0 }
-        : { type: "spring", stiffness: 360, damping: 36, mass: 0.72 };
+        : { type: "spring", stiffness: 160, damping: 28, mass: 1 };
     const varianteItem = {
         oculto: { opacity: reduzirMovimento ? 1 : 0, x: reduzirMovimento ? 0 : -12 },
         visivel: {
@@ -109,15 +107,6 @@ export default function SidebarLayout() {
                     paddingRight: retraida ? 10 : 14
                 }}
                 transition={mola}
-                onPointerEnter={(evento) => {
-                    if (evento.pointerType === "touch" || ignorarHover) return;
-                    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-                    setSobre(true);
-                }}
-                onPointerLeave={() => {
-                    setSobre(false);
-                    setIgnorarHover(false);
-                }}
             >
                 <div className="sidebar-header">
                     <AnimatePresence initial={false}>
@@ -139,18 +128,9 @@ export default function SidebarLayout() {
                     <button
                         type="button"
                         className="toggle-btn"
-                        onClick={() => {
-                            if (fixada) {
-                                setFixada(false);
-                                setSobre(false);
-                                setIgnorarHover(true);
-                                return;
-                            }
-                            setFixada(true);
-                            setIgnorarHover(false);
-                        }}
+                        onClick={() => setFixada((aberta) => !aberta)}
                         title={fixada ? "Recolher menu" : "Expandir menu"}
-                        aria-expanded={!retraida}
+                        aria-expanded={fixada}
                         aria-label={fixada ? "Recolher menu" : "Expandir menu"}
                     >
                         <motion.span

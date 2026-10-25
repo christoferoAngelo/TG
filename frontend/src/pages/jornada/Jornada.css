@@ -1,0 +1,36 @@
+.jornada {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 32px 20px 40px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+}
+
+.jornada-palco {
+    width: min(980px, 100%);
+    height: 500px;
+    position: relative;
+}
+
+.jornada-comecar {
+    height: 48px;
+    padding: 0 28px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.jornada-comecar:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}

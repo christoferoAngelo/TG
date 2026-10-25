@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Modal from "../../../components/locador/Modal";
 import { adicionarEspaco, contemEspaco, criarLista, removerEspaco } from "../../favoritos/favoritosApi";
 import "./SalvarLista.css";
 
 export default function SalvarLista({ espaco, listas, usuarioId, onFechar, onListas }) {
     const navigate = useNavigate();
+    const location = useLocation();
     const [nome, setNome] = useState("");
     const [erro, setErro] = useState("");
     const [ocupado, setOcupado] = useState(false);
@@ -21,7 +22,9 @@ export default function SalvarLista({ espaco, listas, usuarioId, onFechar, onLis
 
     const entrar = () => {
         onFechar();
-        navigate("/login");
+        navigate("/login", {
+            state: { fundo: { pathname: location.pathname, search: location.search, hash: location.hash } }
+        });
     };
 
     const alternar = async (lista, marcado) => {

@@ -1,18 +1,21 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import CaixaAvisos from "../../../components/notificacao/CaixaAvisos";
 import userIcon from "../../../assets/user_icon.png";
 
 export default function HeaderHome() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { usuarioLogado } = useAuth();
     
     const isLocador = usuarioLogado?.locador;
 
     const handleAnunciarClick = () => {
         if (!usuarioLogado) {
-            navigate("/login");
+            navigate("/login", {
+                state: { fundo: { pathname: location.pathname, search: location.search, hash: location.hash } }
+            });
         } else if (isLocador) {
             navigate("/perfil_locador");
         } else {
@@ -53,7 +56,9 @@ export default function HeaderHome() {
                 </button>
                 
                 <button 
-                    onClick={() => navigate(usuarioLogado ? "/perfil" : "/login")} 
+                    onClick={() => navigate(usuarioLogado ? "/perfil" : "/login", usuarioLogado ? undefined : {
+                        state: { fundo: { pathname: location.pathname, search: location.search, hash: location.hash } }
+                    })} 
                     className="btn-nav"
                 >
                     {usuarioLogado?.fotoUrl ? (

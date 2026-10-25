@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { auth, googleProvider } from "../../config/firebaseConfig";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion, useReducedMotion } from "motion/react";
 
 import {
     createUserWithEmailAndPassword,
@@ -14,7 +15,10 @@ import { mascararTelefone } from "../../services/documentos";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-import iconVoltar from "../../assets/voltar_icon.png";
+import logoLocaFesta from "../../assets/logo-locafesta.png";
+import fotoFesta from "../../assets/login-festa.jpg";
+import TermosModal from "../../components/apresentacao/TermosModal";
+import { CHAVE_JORNADA, CHAVE_TERMOS } from "../../components/apresentacao/termos";
 import "./Auth.css";
 
 function ErroDoCampo({ erro, campo }) {
@@ -36,6 +40,8 @@ function destinoDepoisDoLogin(usuario) {
 export default function Auth() {
     const { setUsuarioLogado } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const reduzirMovimento = useReducedMotion();
 
     const [isRegistering, setIsRegistering] = useState(false);
     const [nome, setNome] = useState("");
@@ -47,6 +53,8 @@ export default function Auth() {
     const [mensagemSucesso, setMensagemSucesso] = useState("");
     const [aguardandoVerificacao, setAguardandoVerificacao] = useState(false);
     const [carregando, setCarregando] = useState(false);
+    const [termosAbertos, setTermosAbertos] = useState(false);
+    const acaoTermos = useRef(null);
 
     const limparAvisos = () => {
         setErro(null);
@@ -167,6 +175,8 @@ export default function Auth() {
             setMensagemSucesso(
                 `Conta criada. Enviamos um link de verificação para ${email}. Confirme o e-mail antes de entrar.`
             );
+            acaoTermos.current = "cadastro";
+            setTermosAbertos(true);
         } catch (error) {
             console.error(error);
             if (error.code === "auth/weak-password") {
@@ -181,7 +191,7 @@ export default function Auth() {
         }
     };
 
-    const handleGoogleLogin = async () => {
+    const entrarComGoogle = async (irParaJornada) => {
         limparAvisos();
         setCarregando(true);
 
@@ -208,13 +218,41 @@ export default function Auth() {
             }
 
             setUsuarioLogado(perfilLocal);
-            navigate(destinoDepoisDoLogin(perfilLocal));
+            navigate(irParaJornada ? "/jornada" : destinoDepoisDoLogin(perfilLocal));
         } catch (error) {
             console.error(error);
             mostrarErro("auth-google", "Falha na autenticação com o Google ou erro ao salvar perfil local.");
         } finally {
             setCarregando(false);
         }
+    };
+
+    const handleGoogleLogin = () => {
+        const termosAceitos = localStorage.getItem(CHAVE_TERMOS) === "true";
+        const jornadaVista = localStorage.getItem(CHAVE_JORNADA) === "true";
+        if (!termosAceitos) {
+            acaoTermos.current = "google";
+            setTermosAbertos(true);
+            return;
+        }
+        entrarComGoogle(!jornadaVista);
+    };
+
+    const aceitarTermos = () => {
+        localStorage.setItem(CHAVE_TERMOS, "true");
+        const acao = acaoTermos.current;
+        acaoTermos.current = null;
+        setTermosAbertos(false);
+        if (acao === "google") {
+            entrarComGoogle(true);
+            return;
+        }
+        navigate("/jornada");
+    };
+
+    const fecharTermos = () => {
+        acaoTermos.current = null;
+        setTermosAbertos(false);
     };
 
     const reenviarEmailVerificacao = async () => {
@@ -282,34 +320,91 @@ export default function Auth() {
         setIsRegistering(!isRegistering);
     };
 
-    return (
-        <div className="auth-page">
-            <button
-                type="button"
-                className="auth-voltar"
-                onClick={() => navigate("/home")}
-            >
-                <img src={iconVoltar} alt="" aria-hidden="true" />
-                Voltar para a Home
-            </button>
+    const fechar = () => {
+        const fundo = location.state?.fundo;
+        const caminho = fundo?.pathname;
+        if (caminho === "/home" || (typeof caminho === "string" && caminho.startsWith("/espaco/"))) {
+            navigate(`${caminho}${fundo.search || ""}`, { replace: true });
+            return;
+        }
+        navigate("/home", { replace: true });
+    };
 
-            <div className="auth-shell">
-                <aside className="auth-marca" aria-hidden="true">
-                    <h1 className="auth-marca-nome">LocaFesta</h1>
+    useEffect(() => {
+        const tecla = (evento) => {
+            if (evento.key !== "Escape") return;
+            if (termosAbertos) {
+                acaoTermos.current = null;
+                setTermosAbertos(false);
+                return;
+            }
+            fechar();
+        };
+        document.addEventListener("keydown", tecla);
+        return () => document.removeEventListener("keydown", tecla);
+    }, [location, navigate, termosAbertos]);
+
+    const mola = reduzirMovimento
+        ? { duration: 0 }
+        : { type: "spring", stiffness: 220, damping: 20, mass: 0.95 };
+
+    return (
+        <div
+            className="auth-modal"
+            role="presentation"
+            onMouseDown={(evento) => {
+                if (evento.target === evento.currentTarget) fechar();
+            }}
+        >
+            <motion.div
+                className="auth-shell"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="auth-titulo"
+                initial={reduzirMovimento ? false : { opacity: 0, scale: 0.9, y: 28 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={mola}
+                onMouseDown={(evento) => evento.stopPropagation()}
+            >
+                <button type="button" className="auth-fechar" onClick={fechar} aria-label="Fechar">
+                    ×
+                </button>
+                <aside
+                    className="auth-marca"
+                    style={{
+                        backgroundImage: `linear-gradient(180deg, rgba(19, 5, 1, 0.28) 0%, rgba(19, 5, 1, 0.04) 32%, rgba(19, 5, 1, 0.18) 55%, rgba(19, 5, 1, 0.78) 100%), url(${fotoFesta})`
+                    }}
+                >
+                    <img className="auth-logo" src={logoLocaFesta} alt="LocaFesta" />
                     <p className="auth-marca-texto">
-                        Encontre salões e espaços para festas, gerencie reservas e anuncie o seu
-                        local em um só lugar.
+                        Encontre salões e espaços para festas, gerencie reservas e anuncie o seu local em um só lugar.
                     </p>
                     <ul className="auth-marca-lista">
-                        <li>Busque espaços perto de você</li>
-                        <li>Reserve com segurança</li>
-                        <li>Anuncie como locador</li>
+                        <li>
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M6 5.5h9.2A2.3 2.3 0 0 1 17.5 7.8V19L12 16.2 6.5 19V7.8A2.3 2.3 0 0 1 8.8 5.5H6Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                            </svg>
+                            Busque espaços perto de você
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 4.2 18.5 6.6v5.2c0 3.6-2.6 6.4-6.5 7.8-3.9-1.4-6.5-4.2-6.5-7.8V6.6L12 4.2Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                            </svg>
+                            Reserve com segurança
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 9.5v5h3.2L14 18V6l-5.8 3.5H5Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                                <path d="M16.5 9.2a3.4 3.4 0 0 1 0 5.6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                            </svg>
+                            Anuncie como locador
+                        </li>
                     </ul>
                 </aside>
 
                 <div className="auth-painel">
                     <header className="auth-cab">
-                        <h2 className="auth-titulo">
+                        <h2 id="auth-titulo" className="auth-titulo">
                             {isRegistering ? "Criar conta" : "Entrar"}
                         </h2>
                         <p className="auth-subtitulo">
@@ -484,7 +579,8 @@ export default function Auth() {
                         </button>
                     </p>
                 </div>
-            </div>
+            </motion.div>
+            <TermosModal aberto={termosAbertos} onAceitar={aceitarTermos} onFechar={fecharTermos} />
         </div>
     );
 }

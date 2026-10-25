@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import HeaderHome from "../home/components/HeaderHome";
 import { useAuth } from "../../contexts/AuthContext";
 import { antecedenciaSalva, interpretarRegras } from "../novo espaco/regrasTexto";
@@ -143,6 +143,7 @@ export default function DetalhesEspaco() {
     const { id } = useParams();
     const { usuarioLogado } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [espaco, setEspaco] = useState(null);
     const [carregando, setCarregando] = useState(true);
@@ -353,7 +354,9 @@ export default function DetalhesEspaco() {
         setErroReserva("");
 
         if (!usuarioLogado?.id) {
-            navigate(ROTA_LOGIN);
+            navigate(ROTA_LOGIN, {
+                state: { fundo: { pathname: location.pathname, search: location.search, hash: location.hash } }
+            });
             return;
         }
         if (!data) return setErroReserva("Escolha a data do evento.");

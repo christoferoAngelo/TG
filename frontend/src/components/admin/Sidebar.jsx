@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { IconeAdmin } from "./AdminIcons";
 import "./Sidebar.css";
 
@@ -33,23 +32,10 @@ export default function Sidebar({
     setMenuAtivo,
     handleLogout,
 }) {
-    const [sobre, setSobre] = useState(false);
-    const [ignorarHover, setIgnorarHover] = useState(false);
-    const aberta = sidebarExpandida || (sobre && !ignorarHover);
+    const aberta = sidebarExpandida;
 
     return (
-        <aside
-            className={`adm-side ${aberta ? "aberta" : "recolhida"}`}
-            onPointerEnter={(evento) => {
-                if (evento.pointerType === "touch" || ignorarHover) return;
-                if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-                setSobre(true);
-            }}
-            onPointerLeave={() => {
-                setSobre(false);
-                setIgnorarHover(false);
-            }}
-        >
+        <aside className={`adm-side ${aberta ? "aberta" : "recolhida"}`}>
             <div className="adm-side-topo">
                 {aberta && (
                     <div className="adm-marca">
@@ -60,18 +46,9 @@ export default function Sidebar({
                 <button
                     type="button"
                     className="adm-recolher"
-                    onClick={() => {
-                        if (sidebarExpandida) {
-                            setSidebarExpandida(false);
-                            setSobre(false);
-                            setIgnorarHover(true);
-                            return;
-                        }
-                        setSidebarExpandida(true);
-                        setIgnorarHover(false);
-                    }}
+                    onClick={() => setSidebarExpandida((aberta) => !aberta)}
                     title={sidebarExpandida ? "Recolher menu" : "Expandir menu"}
-                    aria-expanded={aberta}
+                    aria-expanded={sidebarExpandida}
                     aria-label={sidebarExpandida ? "Recolher menu" : "Expandir menu"}
                 >
                     <IconeAdmin nome="menu" />

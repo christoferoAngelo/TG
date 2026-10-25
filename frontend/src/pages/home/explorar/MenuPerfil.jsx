@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 
 export default function MenuPerfil() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { usuarioLogado, logout } = useAuth();
     const [aberto, setAberto] = useState(false);
     const caixaRef = useRef(null);
@@ -30,6 +31,12 @@ export default function MenuPerfil() {
 
     const ir = (rota) => {
         setAberto(false);
+        if (rota === "/login") {
+            navigate(rota, {
+                state: { fundo: { pathname: location.pathname, search: location.search, hash: location.hash } }
+            });
+            return;
+        }
         navigate(rota);
     };
 

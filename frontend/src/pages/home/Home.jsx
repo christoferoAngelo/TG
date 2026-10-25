@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import CaixaAvisos from "../../components/notificacao/CaixaAvisos";
 import BuscaPill from "./explorar/BuscaPill";
@@ -61,6 +61,7 @@ function IconeCategoria({ id }) {
 
 export default function Home() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { usuarioLogado } = useAuth();
     const [params, setParams] = useSearchParams();
     const [espacos, setEspacos] = useState([]);
@@ -212,7 +213,7 @@ export default function Home() {
                             type="button"
                             className="hm-listas"
                             aria-label="Favoritos"
-                            onClick={() => navigate(usuarioLogado ? "/favoritos" : "/login")}
+                            onClick={() => navigate(usuarioLogado ? "/favoritos" : "/login", usuarioLogado ? undefined : { state: { fundo: location } })}
                         >
                             <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M12 19.4 4.8 12.6a4.2 4.2 0 0 1 6-5.9L12 7.8l1.2-1.1a4.2 4.2 0 0 1 6 5.9L12 19.4Z" />

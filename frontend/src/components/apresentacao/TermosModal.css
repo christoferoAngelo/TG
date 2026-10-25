@@ -1,0 +1,109 @@
+.termos-fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: color-mix(in srgb, var(--palette-coffee) 78%, transparent);
+}
+
+.termos-caixa {
+    width: min(560px, 100%);
+    max-height: min(86dvh, 720px);
+    display: flex;
+    flex-direction: column;
+    padding: 22px 22px 18px;
+    border-radius: 22px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: var(--shadow-md);
+    font-family: var(--font-body);
+}
+
+.termos-topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.termos-topo h2 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    letter-spacing: -0.03em;
+}
+
+.termos-fechar {
+    flex: 0 0 auto;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.termos-rola {
+    min-height: 0;
+    overflow: auto;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+}
+
+.termos-rola h3 {
+    margin: 14px 0 6px;
+    font-size: 13px;
+}
+
+.termos-rola h3:first-child {
+    margin-top: 0;
+}
+
+.termos-rola p {
+    margin: 0 0 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
+.termos-aceite {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 14px 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.termos-aceite input {
+    margin-top: 2px;
+    accent-color: var(--color-primary-text);
+}
+
+.termos-confirmar {
+    height: 48px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.termos-confirmar:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}

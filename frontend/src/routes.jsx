@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 
 // IMPORTS DAS PÁGINAS
@@ -11,6 +11,7 @@ import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Dashboard from "./pages/dashboard/Dashboard";
 import MinhasReservas from "./pages/dashboard/components/MinhasReservas";
 import Home from "./pages/home/Home";
+import Jornada from "./pages/jornada/Jornada";
 import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco";
 import { PagamentoPage } from "./pages/pagamento/PagamentoPage";
 
@@ -63,32 +64,34 @@ function getRotaPorRole(usuario) {
     return "/home";
 }
 
-export default function AppRoutes() {
+function fundoDoLogin(location) {
+    const fundo = location.state?.fundo;
+    const caminho = fundo?.pathname || "";
+    if (caminho === "/home" || caminho.startsWith("/espaco/")) return fundo;
+    return { pathname: "/home", search: "", hash: "" };
+}
+
+function RotasAplicacao() {
+    const location = useLocation();
     const { usuarioLogado } = useAuth();
     const rotaInicial = getRotaPorRole(usuarioLogado);
+    const loginAberto = location.pathname === "/login" && !usuarioLogado;
+    const localRotas = location.pathname === "/login" ? fundoDoLogin(location) : location;
 
     return (
-        <BrowserRouter>
-            <Routes>
-                {/* Rota inicial / padrão */}
+        <>
+            <div inert={loginAberto ? true : undefined}>
+                <Routes location={localRotas}>
                 <Route path="/" element={<Navigate to="/home" replace />} />
 
-                {/* ===================================================== */}
-                {/* ROTAS PÚBLICAS COM SIDEBAR (ACESSÍVEIS SEM LOGIN)       */}
-                {/* ===================================================== */}
                 <Route element={<SidebarLayout />}>
                     <Route path="/home" element={<Home />} />
                     <Route path="/espaco/:id" element={<DetalhesEspaco />} />
                 </Route>
 
-                {/* Tela de Login (Redireciona para o painel se já estiver logado) */}
-                <Route
-                    path="/login"
-                    element={usuarioLogado ? <Navigate to={rotaInicial} replace /> : <Auth />}
-                />
                 <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+                <Route path="/jornada" element={<Jornada />} />
 
-                {/* Dashboard do Admin (Protegida) */}
                 <Route
                     path="/dashboard-admin"
                     element={
@@ -106,9 +109,6 @@ export default function AppRoutes() {
                     }
                 />
 
-                {/* ===================================================== */}
-                {/* ROTAS PROTEGIDAS COM SIDEBAR (EXIGEM LOGIN)           */}
-                {/* ===================================================== */}
                 <Route
                     element={
                         <RouteProtegida>
@@ -128,12 +128,21 @@ export default function AppRoutes() {
                     <Route path="/documentos/espaco/:id" element={<DocumentosEspaco />} />
                 </Route>
 
-                {/* Rota genérica para caminhos não encontrados */}
-                <Route
-                    path="*"
-                    element={<Navigate to="/home" replace />}
-                />
-            </Routes>
+                <Route path="*" element={<Navigate to="/home" replace />} />
+                </Routes>
+            </div>
+            {loginAberto && <Auth />}
+            {location.pathname === "/login" && usuarioLogado && (
+                <Navigate to={rotaInicial} replace />
+            )}
+        </>
+    );
+}
+
+export default function AppRoutes() {
+    return (
+        <BrowserRouter>
+            <RotasAplicacao />
         </BrowserRouter>
     );
 }
