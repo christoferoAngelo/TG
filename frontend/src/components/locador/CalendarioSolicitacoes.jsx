@@ -33,7 +33,7 @@ function formatarChaveData(date) {
  * - solicitacoes: lista de ReservaResponseDTO (id, espaco, dataEvento, valorTotal, status)
  * - onAprovar(id) / onRejeitar(id): mesmos handlers já usados na visão em lista
  */
-export default function CalendarioSolicitacoes({ solicitacoes, onAprovar, onRejeitar, onCancelar }) {
+export default function CalendarioSolicitacoes({ solicitacoes, onAprovar, onRejeitar, onCancelar, onVer }) {
     const [mesAtual, setMesAtual] = useState(() => {
         const hoje = new Date();
         return new Date(hoje.getFullYear(), hoje.getMonth(), 1);
@@ -172,6 +172,11 @@ export default function CalendarioSolicitacoes({ solicitacoes, onAprovar, onReje
                                         <span className={`badge ${BADGE_POR_STATUS[req.status] || ""}`}>
                                             {req.status}
                                         </span>
+                                        {onVer && (
+                                            <button type="button" className="btn btn-acao" onClick={() => onVer(req)}>
+                                                Ver detalhes
+                                            </button>
+                                        )}
                                     </div>
 
                                     {req.status === "PENDENTE" && (

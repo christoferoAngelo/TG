@@ -45,6 +45,7 @@ export default function EtapaRegras({
                         <textarea
                             className="ne-textarea"
                             rows={4}
+                            maxLength={800}
                             placeholder="Ex: Som alto até 22h, proibido DJ."
                             {...bind("regrasSom")}
                         />
@@ -53,6 +54,7 @@ export default function EtapaRegras({
                         <textarea
                             className="ne-textarea"
                             rows={4}
+                            maxLength={800}
                             placeholder="Ex: Entregar varrido e colocar o lixo no contêiner."
                             {...bind("regrasLimpeza")}
                         />
@@ -61,6 +63,7 @@ export default function EtapaRegras({
                         <textarea
                             className="ne-textarea"
                             rows={4}
+                            maxLength={800}
                             placeholder="Ex: Câmeras na área externa e chaves com o caseiro."
                             {...bind("regrasAcesso")}
                         />

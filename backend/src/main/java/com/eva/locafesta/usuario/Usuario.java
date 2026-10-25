@@ -50,7 +50,7 @@ public class Usuario {
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
-    @Column(name = "is_admin", nullable = false)
+    @Column(name = "is_admin", nullable = false, columnDefinition = "TINYINT(1)")
     private boolean isAdmin = false;
 
 

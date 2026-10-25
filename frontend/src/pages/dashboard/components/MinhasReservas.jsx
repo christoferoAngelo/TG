@@ -373,7 +373,10 @@ export default function MinhasReservas() {
                                             <p className="mr-nota-status">O locador não aceitou este pedido.</p>
                                         )}
                                         {reserva.status === "CANCELADA" && (
-                                            <p className="mr-nota-status">{textoCancelamento(reserva)}</p>
+                                            <div className="mr-motivo">
+                                                <strong>Motivo do cancelamento</strong>
+                                                <p>{textoCancelamento(reserva)}</p>
+                                            </div>
                                         )}
                                         {reserva.nota ? (
                                             <p className="mr-avaliacao">

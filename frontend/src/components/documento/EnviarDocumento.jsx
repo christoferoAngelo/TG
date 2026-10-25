@@ -267,6 +267,7 @@ function EnviarDocumento({
                     </label>
 
                     <textarea
+                        maxLength={500}
                         value={observacao}
                         onChange={(e) =>
                             setObservacao(e.target.value)

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "../dashboard/Dashboard.css";
+
+const API = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 export default function CaracteristicasPage() {
-    const navigate = useNavigate();
     const [caracteristicas, setCaracteristicas] = useState([]);
     const [carregando, setCarregando] = useState(false);
     const [form, setForm] = useState({ nome: "", icone: "" });
@@ -13,7 +12,7 @@ export default function CaracteristicasPage() {
     const carregarCaracteristicas = async () => {
         setCarregando(true);
         try {
-            const res = await fetch("http://localhost:8080/api/caracteristicas");
+            const res = await fetch(`${API}/api/caracteristicas`);
             if (res.ok) {
                 const data = await res.json();
                 setCaracteristicas(data);
@@ -35,7 +34,7 @@ export default function CaracteristicasPage() {
         setErro("");
 
         try {
-            const res = await fetch("http://localhost:8080/api/caracteristicas", {
+            const res = await fetch(`${API}/api/caracteristicas`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form)
@@ -58,7 +57,7 @@ export default function CaracteristicasPage() {
         if (!window.confirm("Deseja realmente excluir esta característica?")) return;
 
         try {
-            const res = await fetch(`http://localhost:8080/api/caracteristicas/${id}`, {
+            const res = await fetch(`${API}/api/caracteristicas/${id}`, {
                 method: "DELETE"
             });
 
@@ -73,94 +72,66 @@ export default function CaracteristicasPage() {
     };
 
     return (
-        <div className="dashboard">
-            <header className="header">
-                <h2 className="logo" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
-                    LocaFesta - Características
-                </h2>
-                <button onClick={() => navigate(-1)} className="btn btn-cancelar">
-                    Voltar
-                </button>
-            </header>
-
-            <main className="main" style={{ maxWidth: "800px", margin: "20px auto" }}>
-                <div className="card">
-                    <h3 className="card-title">Cadastrar Nova Característica</h3>
-                    {erro && <p style={{ color: "red", marginTop: "10px" }}>{erro}</p>}
-
-                    <form onSubmit={handleSalvar} style={{ marginTop: "15px" }}>
-                        <div className="form-row">
-                            <div className="input-group flex-2">
-                                <label>Nome da Característica:</label>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="Ex: Piscina, Wi-Fi, Estacionamento"
-                                    value={form.nome}
-                                    onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                                    className="input"
-                                />
-                            </div>
-                            <div className="input-group flex-1">
-                                <label>Ícone (Opcional):</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: pool, wifi, local_parking"
-                                    value={form.icone}
-                                    onChange={(e) => setForm({ ...form, icone: e.target.value })}
-                                    className="input"
-                                />
-                            </div>
-                        </div>
-                        <button type="submit" className="btn btn-destaque" style={{ marginTop: "10px" }}>
-                            + Adicionar
-                        </button>
-                    </form>
+        <div>
+            <form className="content-box adm-carac-form" onSubmit={handleSalvar}>
+                <h3>Nova característica</h3>
+                <p className="section-description">O locador marca estes itens ao criar o anúncio.</p>
+                {erro && <p className="error-message">{erro}</p>}
+                <div className="adm-carac-campos">
+                    <div className="adm-campo-grupo">
+                        <label htmlFor="adm-carac-nome">Nome</label>
+                        <input
+                            id="adm-carac-nome"
+                            className="adm-campo"
+                            type="text"
+                            required
+                            maxLength={50}
+                            placeholder="Ex.: Piscina, Wi-Fi, Estacionamento"
+                            value={form.nome}
+                            onChange={(e) => setForm({ ...form, nome: e.target.value })}
+                        />
+                    </div>
+                    <div className="adm-campo-grupo">
+                        <label htmlFor="adm-carac-icone">Ícone (opcional)</label>
+                        <input
+                            id="adm-carac-icone"
+                            className="adm-campo"
+                            type="text"
+                            maxLength={100}
+                            placeholder="Ex.: pool, wifi"
+                            value={form.icone}
+                            onChange={(e) => setForm({ ...form, icone: e.target.value })}
+                        />
+                    </div>
                 </div>
+                <button type="submit" className="btn btn-destaque">Adicionar</button>
+            </form>
 
-                <div className="card" style={{ marginTop: "20px" }}>
-                    <h3 className="card-title">Características Cadastradas</h3>
-
-                    {carregando ? (
-                        <p className="data-line">Carregando...</p>
-                    ) : caracteristicas.length === 0 ? (
-                        <p className="data-line data-line-empty">Nenhuma característica cadastrada.</p>
-                    ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "15px" }}>
-                            {caracteristicas.map((item) => (
-                                <div
-                                    key={item.id}
-                                    style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        padding: "10px 15px",
-                                        backgroundColor: "#f8f9fa",
-                                        borderRadius: "6px",
-                                        border: "1px solid #eee"
-                                    }}
-                                >
-                                    <div>
-                                        <strong>{item.nome}</strong>
-                                        {item.icone && (
-                                            <span style={{ marginLeft: "10px", color: "#666", fontSize: "0.85rem" }}>
-                                                (ícone: {item.icone})
-                                            </span>
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={() => handleExcluir(item.id)}
-                                        className="btn btn-cancelar"
-                                        style={{ backgroundColor: "#dc3545", color: "#fff", padding: "4px 10px", fontSize: "0.85rem" }}
-                                    >
-                                        Excluir
-                                    </button>
+            <div className="content-box">
+                <h3>Cadastradas</h3>
+                {carregando ? (
+                    <div className="adm-vazio"><p>Carregando…</p></div>
+                ) : caracteristicas.length === 0 ? (
+                    <div className="adm-vazio">
+                        <strong>Nenhuma característica</strong>
+                        <p>As que você adicionar aparecem para o locador.</p>
+                    </div>
+                ) : (
+                    <ul className="adm-carac-lista">
+                        {caracteristicas.map((item) => (
+                            <li key={item.id}>
+                                <div>
+                                    <strong>{item.nome}</strong>
+                                    {item.icone && <span>{item.icone}</span>}
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </main>
+                                <button type="button" className="btn-sm btn-delete" onClick={() => handleExcluir(item.id)}>
+                                    Excluir
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
         </div>
     );
 }

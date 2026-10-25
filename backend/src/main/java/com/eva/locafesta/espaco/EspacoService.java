@@ -8,6 +8,7 @@ import com.eva.locafesta.endereco.EnderecoDTO;
 import com.eva.locafesta.endereco.GeocodingService;
 import com.eva.locafesta.locador.PerfilLocador;
 import com.eva.locafesta.locador.PerfilLocadorRepository;
+import com.eva.locafesta.notificacao.NotificacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,9 @@ public class EspacoService {
 
     @Autowired
     private GeocodingService geocodingService;
+
+    @Autowired
+    private NotificacaoService notificacaoService;
 
     // ------------------------------------------------------------------
     // Validações e helpers compartilhados entre criar e atualizar
@@ -85,6 +89,47 @@ public class EspacoService {
             throw new IllegalArgumentException(
                 "O prazo de cancelamento do locador deve ser um número de 0 a 30 dias."
             );
+        }
+
+        exigirTamanho(dto.getTitulo(), 150, "O nome do espaço");
+        exigirTamanho(dto.getDescricao(), 2000, "A descrição");
+        exigirTamanho(dto.getRestricoesHorario(), 4000, "As regras");
+        if (dto.getEndereco() != null) {
+            exigirTamanho(dto.getEndereco().getLogradouro(), 120, "O logradouro");
+            exigirTamanho(dto.getEndereco().getNumero(), 20, "O número");
+            exigirTamanho(dto.getEndereco().getComplemento(), 80, "O complemento");
+            exigirTamanho(dto.getEndereco().getBairro(), 80, "O bairro");
+            exigirTamanho(dto.getEndereco().getCidade(), 80, "A cidade");
+        }
+        exigirTamanho(dto.getRespostaLocador(), 500, "A resposta do locador");
+        exigirTamanho(dto.getMotivoRejeicao(), 500, "O motivo da recusa");
+
+        boolean integral = !Boolean.FALSE.equals(dto.getPermitePeriodoIntegral());
+        boolean fracionado = Boolean.TRUE.equals(dto.getPermiteMeioPeriodo());
+        if (!integral && !fracionado) {
+            throw new IllegalArgumentException("Escolha diária, fracionada ou as duas.");
+        }
+
+        int fotos = 0;
+        if (dto.getAmbientes() != null) {
+            for (EspacoAmbienteDTO ambiente : dto.getAmbientes()) {
+                exigirTamanho(ambiente.getTitulo(), 100, "O nome do cômodo");
+                exigirTamanho(ambiente.getDescricao(), 800, "A descrição do cômodo");
+                int doAmbiente = ambiente.getImagensUrls() == null ? 0 : ambiente.getImagensUrls().size();
+                if (doAmbiente > 8) {
+                    throw new IllegalArgumentException("Cada cômodo aceita no máximo 8 fotos.");
+                }
+                fotos += doAmbiente;
+            }
+        }
+        if (fotos > 24) {
+            throw new IllegalArgumentException("O anúncio aceita no máximo 24 fotos.");
+        }
+    }
+
+    private void exigirTamanho(String valor, int maximo, String nome) {
+        if (valor != null && valor.trim().length() > maximo) {
+            throw new IllegalArgumentException(nome + " deve ter no máximo " + maximo + " caracteres.");
         }
     }
 
@@ -430,6 +475,14 @@ public class EspacoService {
         espaco.setRespostaLocador(null);
 
         Espaco espacoSalvo = espacoRepository.save(espaco);
+        if (espacoSalvo.getLocador() != null && espacoSalvo.getLocador().getUsuario() != null) {
+            notificacaoService.avisar(
+                    espacoSalvo.getLocador().getUsuario().getId(),
+                    null,
+                    "Espaço aprovado",
+                    "O anúncio " + espacoSalvo.getTitulo() + " foi aprovado e já pode receber reservas."
+            );
+        }
         return new EspacoDTO(espacoSalvo);
     }
 

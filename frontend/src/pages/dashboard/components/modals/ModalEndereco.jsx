@@ -82,27 +82,27 @@ export default function ModalEndereco({ usuarioLogado, onClose, onSuccess }) {
                     <div className="form-row">
                         <div className="input-group flex-3">
                             <label>Rua/Avenida:</label>
-                            <input type="text" required value={formEndereco.logradouro} onChange={(e) => setFormEndereco({ ...formEndereco, logradouro: e.target.value })} className="input" />
+                            <input type="text" required maxLength={120} value={formEndereco.logradouro} onChange={(e) => setFormEndereco({ ...formEndereco, logradouro: e.target.value })} className="input" />
                         </div>
                         <div className="input-group flex-1">
                             <label>Número:</label>
-                            <input type="text" required value={formEndereco.numero} onChange={(e) => setFormEndereco({ ...formEndereco, numero: e.target.value })} className="input" />
+                            <input type="text" required maxLength={20} value={formEndereco.numero} onChange={(e) => setFormEndereco({ ...formEndereco, numero: e.target.value })} className="input" />
                         </div>
                     </div>
 
                     <div className="input-group">
                         <label>Complemento (Opcional):</label>
-                        <input type="text" placeholder="Apto, Bloco..." value={formEndereco.complemento} onChange={(e) => setFormEndereco({ ...formEndereco, complemento: e.target.value })} className="input" />
+                        <input type="text" maxLength={80} placeholder="Apto, Bloco..." value={formEndereco.complemento} onChange={(e) => setFormEndereco({ ...formEndereco, complemento: e.target.value })} className="input" />
                     </div>
 
                     <div className="form-row">
                         <div className="input-group flex-2">
                             <label>Bairro:</label>
-                            <input type="text" required value={formEndereco.bairro} onChange={(e) => setFormEndereco({ ...formEndereco, bairro: e.target.value })} className="input" />
+                            <input type="text" required maxLength={80} value={formEndereco.bairro} onChange={(e) => setFormEndereco({ ...formEndereco, bairro: e.target.value })} className="input" />
                         </div>
                         <div className="input-group flex-2">
                             <label>Cidade:</label>
-                            <input type="text" required value={formEndereco.cidade} onChange={(e) => setFormEndereco({ ...formEndereco, cidade: e.target.value })} className="input" />
+                            <input type="text" required maxLength={80} value={formEndereco.cidade} onChange={(e) => setFormEndereco({ ...formEndereco, cidade: e.target.value })} className="input" />
                         </div>
                         <div className="input-group flex-1">
                             <label>UF:</label>

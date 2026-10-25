@@ -63,12 +63,9 @@ export default function HistoricoAuditoria() {
   return (
     <div className="auditoria-container">
       <div className="auditoria-header">
-        <div>
-          <h2>Histórico de Auditoria</h2>
-          <p>Rastreamento de ações administrativas realizadas no sistema</p>
-        </div>
+        <p>Ações registradas por administradores.</p>
         <div className="auditoria-counter">
-          Total de registros: <strong>{totalElements}</strong>
+          {totalElements} {totalElements === 1 ? "registro" : "registros"}
         </div>
       </div>
 

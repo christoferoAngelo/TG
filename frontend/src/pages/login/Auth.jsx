@@ -27,6 +27,12 @@ function ErroDoCampo({ erro, campo }) {
     );
 }
 
+function destinoDepoisDoLogin(usuario) {
+    if (usuario?.admin || usuario?.isAdmin) return "/dashboard-admin";
+    if (usuario?.locador || usuario?.isLocador) return "/perfil_locador";
+    return "/home";
+}
+
 export default function Auth() {
     const { setUsuarioLogado } = useAuth();
     const navigate = useNavigate();
@@ -101,6 +107,7 @@ export default function Auth() {
 
             if (perfilLocal) {
                 setUsuarioLogado(perfilLocal);
+                navigate(destinoDepoisDoLogin(perfilLocal));
             } else {
                 mostrarErro(
                     "auth-email",
@@ -201,6 +208,7 @@ export default function Auth() {
             }
 
             setUsuarioLogado(perfilLocal);
+            navigate(destinoDepoisDoLogin(perfilLocal));
         } catch (error) {
             console.error(error);
             mostrarErro("auth-google", "Falha na autenticação com o Google ou erro ao salvar perfil local.");

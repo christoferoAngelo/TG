@@ -1,136 +1,97 @@
-import React from 'react';
-import './Sidebar.css';
+import { IconeAdmin } from "./AdminIcons";
+import "./Sidebar.css";
 
-export default function Sidebar({ 
-  sidebarExpandida, 
-  setSidebarExpandida, 
-  menuAtivo, 
-  setMenuAtivo, 
-  usuariosCount, 
-  espacosCount, 
-  handleLogout 
+const GRUPOS = [
+    {
+        titulo: "Painel",
+        itens: [
+            { id: "overview", label: "Visão geral", icone: "visao" },
+            { id: "usuarios", label: "Usuários", icone: "usuarios" },
+            { id: "espacos", label: "Espaços", icone: "espacos" },
+        ],
+    },
+    {
+        titulo: "Análise",
+        itens: [
+            { id: "documentos", label: "Documentos", icone: "documentos" },
+            { id: "caracteristicas", label: "Características", icone: "caracteristicas" },
+        ],
+    },
+    {
+        titulo: "Equipe",
+        itens: [
+            { id: "novo_admin", label: "Administradores", icone: "admin" },
+        ],
+    },
+];
+
+export default function Sidebar({
+    sidebarExpandida,
+    setSidebarExpandida,
+    menuAtivo,
+    setMenuAtivo,
+    handleLogout,
 }) {
-  return (
-    <aside className={`sidebar ${sidebarExpandida ? 'expanded' : 'collapsed'}`}>
-      <div className="sidebar-header">
-        <button 
-          className="btn-toggle-sidebar"
-          onClick={() => setSidebarExpandida(!sidebarExpandida)}
-          title={sidebarExpandida ? "Recolher menu" : "Expandir menu"}
-        >
-          ☰
-        </button>
-        {sidebarExpandida && <span className="sidebar-logo">LocaFesta Admin</span>}
-      </div>
+    return (
+        <aside className={`adm-side ${sidebarExpandida ? "aberta" : "recolhida"}`}>
+            <div className="adm-side-topo">
+                {sidebarExpandida && (
+                    <div className="adm-marca">
+                        <strong>LocaFesta</strong>
+                        <span>Admin</span>
+                    </div>
+                )}
+                <button
+                    type="button"
+                    className="adm-recolher"
+                    onClick={() => setSidebarExpandida(!sidebarExpandida)}
+                    title={sidebarExpandida ? "Recolher menu" : "Expandir menu"}
+                    aria-expanded={sidebarExpandida}
+                    aria-label={sidebarExpandida ? "Recolher menu" : "Expandir menu"}
+                >
+                    <IconeAdmin nome="menu" />
+                </button>
+            </div>
 
-      <nav className="sidebar-nav">
-        <div className="nav-group">
-          {sidebarExpandida && <span className="group-title">Métricas & Dados</span>}
-          <button 
-            className={`nav-item ${menuAtivo === 'overview' ? 'active' : ''}`} 
-            onClick={() => setMenuAtivo('overview')} 
-            title="Visão Geral"
-          >
-            <span className="nav-icon">📊</span>
-            {sidebarExpandida && <span className="nav-label">Visão Geral</span>}
-          </button>
-          
-          <button 
-            className={`nav-item ${menuAtivo === 'usuarios' ? 'active' : ''}`} 
-            onClick={() => setMenuAtivo('usuarios')} 
-            title="Lista de Usuários"
-          >
-            <span className="nav-icon">👥</span>
-            {sidebarExpandida && <span className="nav-label">Usuários ({usuariosCount})</span>}
-          </button>
-          
-          <button 
-            className={`nav-item ${menuAtivo === 'espacos' ? 'active' : ''}`} 
-            onClick={() => setMenuAtivo('espacos')} 
-            title="Lista de Espaços"
-          >
-            <span className="nav-icon">🏡</span>
-            {sidebarExpandida && <span className="nav-label">Espaços ({espacosCount})</span>}
-          </button>
-        </div>
+            <nav className="adm-side-nav" aria-label="Menu do administrador">
+                {GRUPOS.map((grupo) => (
+                    <div className="adm-grupo" key={grupo.titulo}>
+                        {sidebarExpandida && <span className="adm-grupo-titulo">{grupo.titulo}</span>}
+                        {grupo.itens.map((item) => {
+                            const ativo = menuAtivo === item.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    className={`adm-item ${ativo ? "ativo" : ""}`}
+                                    onClick={() => setMenuAtivo(item.id)}
+                                    title={sidebarExpandida ? undefined : item.label}
+                                    aria-current={ativo ? "page" : undefined}
+                                >
+                                    <span className="adm-item-ico">
+                                        <IconeAdmin nome={item.icone} />
+                                    </span>
+                                    {sidebarExpandida && <span className="adm-item-label">{item.label}</span>}
+                                </button>
+                            );
+                        })}
+                    </div>
+                ))}
+            </nav>
 
-        <div className="nav-group">
-          {sidebarExpandida && <span className="group-title">Validação & Moderação</span>}
-          <button 
-            className={`nav-item ${menuAtivo === 'documentos' ? 'active' : ''}`} 
-            onClick={() => setMenuAtivo('documentos')} 
-            title="Aprovação de Alvarás e RG/CNH"
-          >
-            <span className="nav-icon">🛡️</span>
-            {sidebarExpandida && <span className="nav-label">Aprovar Documentos</span>}
-            <span className="badge-alert">!</span>
-          </button>
-          
-          <button 
-            className={`nav-item ${menuAtivo === 'moderacao_espacos' ? 'active' : ''}`} 
-            onClick={() => setMenuAtivo('moderacao_espacos')} 
-            title="Aprovar novos espaços"
-          >
-            <span className="nav-icon">📋</span>
-            {sidebarExpandida && <span className="nav-label">Anúncios Pendentes</span>}
-          </button>
-        </div>
-
-{/* DENTRO DO Sidebar.jsx */}
-<div className="nav-group">
-  {sidebarExpandida && <span className="group-title">Gestão Interna</span>}
-  
-  <button 
-    className={`nav-item ${menuAtivo === 'novo_admin' ? 'active' : ''}`} 
-    onClick={() => setMenuAtivo('novo_admin')} 
-    title="Cadastrar Novo Administrador"
-  >
-    <span className="nav-icon">➕</span>
-    {sidebarExpandida && <span className="nav-label">Novo Administrador</span>}
-  </button>
-
-  {/* Novo item para a Auditoria */}
-  <button 
-    className={`nav-item ${menuAtivo === 'auditoria' ? 'active' : ''}`} 
-    onClick={() => setMenuAtivo('auditoria')} 
-    title="Histórico de Auditoria"
-  >
-    <span className="nav-icon">📜</span>
-    {sidebarExpandida && <span className="nav-label">Auditoria</span>}
-  </button>
-  
-  <button 
-    className={`nav-item ${menuAtivo === 'financeiro' ? 'active' : ''}`} 
-    onClick={() => setMenuAtivo('financeiro')} 
-    title="Transações e Reservas"
-  >
-    <span className="nav-icon">💳</span>
-    {sidebarExpandida && <span className="nav-label">Reservas & Repasses</span>}
-  </button>
-  
-  <button 
-    className={`nav-item ${menuAtivo === 'denuncias' ? 'active' : ''}`} 
-    onClick={() => setMenuAtivo('denuncias')} 
-    title="Suporte e Denúncias"
-  >
-    <span className="nav-icon">🚩</span>
-    {sidebarExpandida && <span className="nav-label">Suporte & Denúncias</span>}
-  </button>
-</div>
-
-
-      </nav>
-
-      <div className="sidebar-footer">
-        <button className="nav-item" title="Configurações">
-          <span className="nav-icon">⚙️</span>
-          {sidebarExpandida && <span className="nav-label">Configurações</span>}
-        </button>
-        <button className="nav-item btn-logout" title="Sair do Sistema" onClick={handleLogout}>
-          <span className="nav-icon">🚪</span>
-          {sidebarExpandida && <span className="nav-label">Sair</span>}
-        </button>
-      </div>
-    </aside>
-  );
+            <div className="adm-side-rodape">
+                <button
+                    type="button"
+                    className="adm-item sair"
+                    title={sidebarExpandida ? undefined : "Sair"}
+                    onClick={handleLogout}
+                >
+                    <span className="adm-item-ico">
+                        <IconeAdmin nome="sair" />
+                    </span>
+                    {sidebarExpandida && <span className="adm-item-label">Sair</span>}
+                </button>
+            </div>
+        </aside>
+    );
 }

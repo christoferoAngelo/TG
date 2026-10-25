@@ -25,6 +25,7 @@ export default function Favoritos() {
     const [abertaId, setAbertaId] = useState(null);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
+    const [novaAberta, setNovaAberta] = useState(false);
     const [nomeNova, setNomeNova] = useState("");
     const [criando, setCriando] = useState(false);
     const [editando, setEditando] = useState(false);
@@ -80,6 +81,7 @@ export default function Favoritos() {
             const criada = await criarLista(usuarioLogado.id, limpo);
             setListas((atual) => [...atual, criada]);
             setNomeNova("");
+            setNovaAberta(false);
             setAbertaId(criada.id);
             setAviso("Lista criada.");
         } catch (falha) {
@@ -143,22 +145,37 @@ export default function Favoritos() {
                         </div>
                     </header>
 
-                    <form className="fv-nova" onSubmit={criar}>
-                        <label htmlFor="fv-nome">Nova lista</label>
-                        <div>
-                            <input
-                                id="fv-nome"
-                                value={nomeNova}
-                                maxLength={80}
-                                placeholder="Nome da lista"
-                                onChange={(evento) => setNomeNova(evento.target.value)}
-                            />
-                            <button type="submit" className="fv-criar" disabled={criando}>
-                                {criando && <span className="fv-spinner" aria-hidden="true" />}
-                                {criando ? "Criando" : "Criar lista"}
-                            </button>
-                        </div>
-                    </form>
+                    <div className="fv-nova">
+                        <button
+                            type="button"
+                            className="fv-criar"
+                            aria-expanded={novaAberta}
+                            onClick={() => {
+                                setNovaAberta((aberta) => !aberta);
+                                setErro("");
+                            }}
+                        >
+                            Nova lista
+                        </button>
+                        {novaAberta && (
+                            <form onSubmit={criar}>
+                                <label htmlFor="fv-nome">Nome da lista</label>
+                                <div>
+                                    <input
+                                        id="fv-nome"
+                                        value={nomeNova}
+                                        maxLength={80}
+                                        placeholder="Nome da lista"
+                                        onChange={(evento) => setNomeNova(evento.target.value)}
+                                    />
+                                    <button type="submit" className="fv-criar" disabled={criando}>
+                                        {criando && <span className="fv-spinner" aria-hidden="true" />}
+                                        {criando ? "Salvando" : "Salvar"}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
 
                     {erro && <p className="fv-erro" role="alert">{erro}</p>}
 
@@ -220,11 +237,7 @@ export default function Favoritos() {
                         {!editando && (
                             <div className="fv-acoes">
                                 <button type="button" onClick={() => { setNomeEdit(aberta.nome); setEditando(true); }}>Renomear</button>
-                                {confirmarApagar ? (
-                                    <button type="button" className="fv-apagar" onClick={apagar}>Confirmar exclusão</button>
-                                ) : (
-                                    <button type="button" className="fv-apagar" onClick={() => setConfirmarApagar(true)}>Apagar lista</button>
-                                )}
+                                <button type="button" className="fv-apagar" onClick={() => setConfirmarApagar(true)}>Apagar lista</button>
                             </div>
                         )}
                     </header>
@@ -261,6 +274,24 @@ export default function Favoritos() {
 
             {aviso && (
                 <p className="fv-toast" role="status">{aviso}</p>
+            )}
+
+            {confirmarApagar && aberta && (
+                <div className="fv-confirma" role="presentation" onClick={() => setConfirmarApagar(false)}>
+                    <article
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="fv-apagar-titulo"
+                        onClick={(evento) => evento.stopPropagation()}
+                    >
+                        <h2 id="fv-apagar-titulo">Apagar esta lista?</h2>
+                        <p>A lista “{aberta.nome}” será removida. Os espaços continuam na busca.</p>
+                        <div>
+                            <button type="button" onClick={() => setConfirmarApagar(false)}>Cancelar</button>
+                            <button type="button" className="fv-apagar" onClick={apagar}>Apagar lista</button>
+                        </div>
+                    </article>
+                </div>
             )}
 
             <SalvarLista

@@ -7,7 +7,6 @@ import Auth from "./pages/login/Auth";
 import RedefinirSenha from "./pages/login/RedefinirSenha";
 import CadastroLocador from "./pages/login/CadastroLocador";
 import DashboardLocador from "./pages/locador/DashboardLocador";
-import CaracteristicasPage from "./pages/locador/CaracteristicasPage";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Dashboard from "./pages/dashboard/Dashboard";
 import MinhasReservas from "./pages/dashboard/components/MinhasReservas";
@@ -47,10 +46,20 @@ function RouteProtegida({ children }) {
     return children;
 }
 
+function RouteAdmin({ children }) {
+    const { usuarioLogado } = useAuth();
+
+    if (!usuarioLogado || !(usuarioLogado.admin || usuarioLogado.isAdmin)) {
+        return <Navigate to="/home" replace />;
+    }
+
+    return children;
+}
+
 function getRotaPorRole(usuario) {
     if (!usuario) return "/login";
-    if (usuario.admin) return "/dashboard-admin";
-    if (usuario.locador) return "/perfil_locador";
+    if (usuario.admin || usuario.isAdmin) return "/dashboard-admin";
+    if (usuario.locador || usuario.isLocador) return "/perfil_locador";
     return "/home";
 }
 
@@ -83,17 +92,17 @@ export default function AppRoutes() {
                 <Route
                     path="/dashboard-admin"
                     element={
-                        <RouteProtegida>
+                        <RouteAdmin>
                             <DashboardAdmin />
-                        </RouteProtegida>
+                        </RouteAdmin>
                     }
                 />
                 <Route
                     path="/documentos-admin"
                     element={
-                        <RouteProtegida>
+                        <RouteAdmin>
                             <DocumentosAdmin />
-                        </RouteProtegida>
+                        </RouteAdmin>
                     }
                 />
 
@@ -115,7 +124,6 @@ export default function AppRoutes() {
                     <Route path="/pagamento" element={<PagamentoPage />} />
                     <Route path="/cadastro-locador" element={<CadastroLocador />} />
                     <Route path="/perfil_locador" element={<DashboardLocador />} />
-                    <Route path="/admin-caracteristicas" element={<CaracteristicasPage />} />
                     <Route path="/documentos/usuario" element={<DocumentosUsuario />} />
                     <Route path="/documentos/espaco/:id" element={<DocumentosEspaco />} />
                 </Route>

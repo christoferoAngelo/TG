@@ -6,6 +6,7 @@ import "./DashboardLocador.css";
 
 import EspacoItem from "../../components/locador/EspacoItem";
 import CalendarioSolicitacoes from "../../components/locador/CalendarioSolicitacoes";
+import PedidoLocacaoModal from "../../components/locador/PedidoLocacaoModal";
 import ModalCriarLocador from "../../components/locador/ModalCriarLocador";
 import { pedirRecargaAvisos } from "../../components/notificacao/CaixaAvisos";
 import { avisoPrazoLocador, podeCancelarLocador, prazoLocador, textoCancelamento } from "../reserva/cancelamento";
@@ -73,6 +74,7 @@ export default function DashboardLocador() {
     // Controla se os pedidos aparecem como lista ou como calendário
     const [visualizacaoPedidos, setVisualizacaoPedidos] = useState("lista"); // "lista" | "calendario"
     const [confirmandoId, setConfirmandoId] = useState(null);
+    const [pedidoAberto, setPedidoAberto] = useState(null);
     const [cancelandoId, setCancelandoId] = useState(null);
     const [erroCancelar, setErroCancelar] = useState("");
 
@@ -365,6 +367,7 @@ export default function DashboardLocador() {
                                         setConfirmandoId(id);
                                         setVisualizacaoPedidos("lista");
                                     }}
+                                    onVer={(pedido) => setPedidoAberto(pedido)}
                                 />
                             </div>
                         ) : (
@@ -385,6 +388,9 @@ export default function DashboardLocador() {
                                                     <span aria-hidden="true">•</span>
                                                     <span>{formatarMoeda(req.valorTotal)}</span>
                                                 </div>
+                                                <button type="button" className="lc-pedido-ver" onClick={() => setPedidoAberto(req)}>
+                                                    Ver detalhes
+                                                </button>
                                                 {textoCancelamento(req) && (
                                                     <p className="lc-pedido-aviso">{textoCancelamento(req)}</p>
                                                 )}
@@ -494,6 +500,18 @@ export default function DashboardLocador() {
                     </section>
                 </div>
             </main>
+            <PedidoLocacaoModal
+                pedido={pedidoAberto}
+                onFechar={() => setPedidoAberto(null)}
+                onAprovar={(id) => {
+                    setPedidoAberto(null);
+                    handleAprovarReserva(id);
+                }}
+                onRejeitar={(id) => {
+                    setPedidoAberto(null);
+                    handleRejeitarReserva(id);
+                }}
+            />
         </div>
     );
 }

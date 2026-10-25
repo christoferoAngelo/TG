@@ -19,7 +19,8 @@ public record ReservaResponseDTO(
     String condicaoReembolso,
     LocalDateTime canceladoEm,
     Integer prazoCancelamentoDias,
-    boolean pagamentoLiberado
+    String observacao,
+    String locatarioNome
 ) {
     // Sub-record para enviar apenas o que importa do Espaço
     public record EspacoResumoDTO(Long id, String titulo) {}

@@ -20,12 +20,15 @@ export function validarEtapa1(form, ambientes) {
     const preenchidos = ambientes.filter((a) => a.titulo.trim() || a.descricao.trim() || a.fotos.length > 0);
     if (preenchidos.length === 0) {
         e.ambientes = "Adicione pelo menos um cômodo com fotos.";
+    } else if (preenchidos.reduce((soma, a) => soma + a.fotos.length, 0) > 24) {
+        e.ambientes = "O anúncio aceita no máximo 24 fotos.";
     } else {
         const amb = {};
         preenchidos.forEach((a) => {
             const erroAmb = {};
             if (!a.titulo.trim()) erroAmb.titulo = "Dê um nome ao cômodo.";
             if (a.fotos.length === 0) erroAmb.fotos = "Adicione pelo menos uma foto.";
+            if (a.fotos.length > 8) erroAmb.fotos = "Cada cômodo aceita no máximo 8 fotos.";
             if (Object.keys(erroAmb).length) amb[a.id] = erroAmb;
         });
         if (Object.keys(amb).length) e.amb = amb;
@@ -54,7 +57,11 @@ export function validarEtapa2(form) {
         e.prazoCancelamentoDias = "Informe um número inteiro de 0 a 30.";
     }
 
-    if (form.tipoLocacao !== "FRACIONADO") return e;
+    if (!form.aceitaIntegral && !form.aceitaFracionado) {
+        e.formas = "Escolha diária, fracionada ou as duas.";
+    }
+
+    if (!form.aceitaFracionado) return e;
 
     const duracao = Number(form.duracaoMaxHoras);
     if (!(duracao > 0) || duracao > 99.99) {

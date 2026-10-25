@@ -256,9 +256,25 @@
     color: var(--color-text-secondary);
 }
 
-.mr-nota-status {
+.mr-motivo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+}
+
+.mr-motivo strong {
     font-size: 13px;
-    color: var(--color-text-muted);
+}
+
+.mr-motivo p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-text-secondary);
 }
 
 .mr-avaliacao {

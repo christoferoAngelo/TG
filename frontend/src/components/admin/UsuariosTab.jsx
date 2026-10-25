@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { IconeAdmin } from './AdminIcons';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -91,22 +92,23 @@ export default function UsuariosTab() {
 
   return (
     <div className="content-box">
-      <div className="tab-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h3>👥 Gerenciamento de Usuários</h3>
-        <input
-          type="text"
-          placeholder="Buscar por nome ou e-mail..."
-          value={termoBusca}
-          onChange={(e) => setTermoBusca(e.target.value)}
-          className="search-input"
-          style={{ padding: '0.5rem 1rem', width: '300px', borderRadius: '4px', border: '1px solid #ccc' }}
-        />
+      <div className="adm-toolbar">
+        <label className="adm-busca">
+          <IconeAdmin nome="busca" />
+          <input
+            type="search"
+            placeholder="Buscar por nome ou e-mail"
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            aria-label="Buscar usuários"
+          />
+        </label>
       </div>
 
-      {erro && <p className="error-message">⚠️ {erro}</p>}
+      {erro && <p className="error-message">{erro}</p>}
 
       {loading ? (
-        <p>Carregando usuários...</p>
+        <div className="adm-vazio"><p>Carregando usuários…</p></div>
       ) : (
         <div className="table-responsive">
           <table className="admin-table">
@@ -122,7 +124,12 @@ export default function UsuariosTab() {
             <tbody>
               {usuariosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center' }}>Nenhum usuário encontrado.</td>
+                  <td colSpan="5">
+                    <div className="adm-vazio">
+                      <strong>Nenhum usuário encontrado</strong>
+                      <p>Tente outro nome ou e-mail.</p>
+                    </div>
+                  </td>
                 </tr>
               ) : (
                 usuariosFiltrados.map((u) => (
@@ -136,19 +143,14 @@ export default function UsuariosTab() {
                       </span>
                     </td>
                     <td>
-                      <button 
-                        className="btn-action btn-edit" 
-                        onClick={() => handleAbrirEdicao(u)}
-                        style={{ marginRight: '8px' }}
-                      >
-                        ✏️ Editar
-                      </button>
-                      <button 
-                        className="btn-action btn-delete" 
-                        onClick={() => handleExcluir(u.id, u.nome || u.email)}
-                      >
-                        🗑️ Excluir
-                      </button>
+                      <div className="action-buttons">
+                        <button type="button" className="btn-sm btn-edit" onClick={() => handleAbrirEdicao(u)}>
+                          Editar
+                        </button>
+                        <button type="button" className="btn-sm btn-delete" onClick={() => handleExcluir(u.id, u.nome || u.email)}>
+                          Excluir
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -158,51 +160,54 @@ export default function UsuariosTab() {
         </div>
       )}
 
-      {/* MODAL / FORMULÁRIO SOBREPOSTO DE EDIÇÃO */}
       {usuarioEmEdicao && (
-        <div className="modal-backdrop" style={modalOverlayStyle}>
-          <div className="modal-card" style={modalContentStyle}>
-            <h3>Editar Usuário #{usuarioEmEdicao.id}</h3>
+        <div className="modal-overlay" onClick={() => setUsuarioEmEdicao(null)}>
+          <div className="modal-content" onClick={(evento) => evento.stopPropagation()}>
+            <h3>Editar usuário</h3>
+            <p className="modal-desc">Conta #{usuarioEmEdicao.id}</p>
             <form onSubmit={handleSalvarEdicao}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label>Nome:</label>
-                <input 
-                  type="text" 
-                  value={formData.nome} 
+              <div className="adm-campo-grupo">
+                <label htmlFor="adm-user-nome">Nome</label>
+                <input
+                  id="adm-user-nome"
+                  className="adm-campo"
+                  type="text"
+                  value={formData.nome}
                   onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                  required 
-                  style={{ width: '100%', padding: '0.5rem', marginTop: '4px' }}
+                  required
                 />
               </div>
 
-              <div style={{ marginBottom: '1rem' }}>
-                <label>E-mail:</label>
-                <input 
-                  type="email" 
-                  value={formData.email} 
+              <div className="adm-campo-grupo">
+                <label htmlFor="adm-user-email">E-mail</label>
+                <input
+                  id="adm-user-email"
+                  className="adm-campo"
+                  type="email"
+                  value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  required 
-                  style={{ width: '100%', padding: '0.5rem', marginTop: '4px' }}
+                  required
                 />
               </div>
 
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label>Tipo de Perfil:</label>
-                <select 
-                  value={formData.tipoUsuario} 
+              <div className="adm-campo-grupo">
+                <label htmlFor="adm-user-perfil">Tipo de perfil</label>
+                <select
+                  id="adm-user-perfil"
+                  className="adm-campo"
+                  value={formData.tipoUsuario}
                   onChange={e => setFormData({ ...formData, tipoUsuario: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', marginTop: '4px' }}
                 >
                   <option value="LOCATARIO">Locatário</option>
                   <option value="LOCADOR">Locador</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setUsuarioEmEdicao(null)} className="btn-secondary">
+              <div className="adm-modal-acoes">
+                <button type="button" onClick={() => setUsuarioEmEdicao(null)} className="btn btn-cancelar">
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="btn btn-destaque">
                   Salvar
                 </button>
               </div>
@@ -213,25 +218,3 @@ export default function UsuariosTab() {
     </div>
   );
 }
-
-// Estilização simples para o Modal caso precise inline
-const modalOverlayStyle = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1000,
-};
-
-const modalContentStyle = {
-  backgroundColor: '#fff',
-  padding: '2rem',
-  borderRadius: '8px',
-  minWidth: '400px',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-};

@@ -256,7 +256,9 @@ public class ReservaService {
                 reserva.getEspaco() != null && reserva.getEspaco().getPrazoCancelamentoDias() != null
                         ? reserva.getEspaco().getPrazoCancelamentoDias()
                         : 2,
-                reserva.isPagamentoLiberado()
+                reserva.isPagamentoLiberado(),
+                reserva.getObservacao(),
+                reserva.getLocatario() != null ? reserva.getLocatario().getNome() : null
         );
     }
 

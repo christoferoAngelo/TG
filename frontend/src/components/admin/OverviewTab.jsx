@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { IconeAdmin } from './AdminIcons';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -93,90 +94,104 @@ export default function OverviewTab() {
     };
   }, [usuarios, dataInicio, dataFim]);
 
+  const valor = (numero) => (loading ? "…" : numero);
+  const parte = (numero) => ((numero / (metricas.totalUsuarios || 1)) * 100).toFixed(0);
+
   return (
     <div>
-      {/* BARRA DE FILTROS */}
       <div className="filter-bar">
         <div className="filter-group">
-          <label className="filter-label">📅 Período de Análise:</label>
-          <select 
-            value={presetPeriodo} 
-            onChange={(e) => setPresetPeriodo(e.target.value)} 
+          <label className="filter-label" htmlFor="adm-periodo">Período</label>
+          <select
+            id="adm-periodo"
+            value={presetPeriodo}
+            onChange={(e) => setPresetPeriodo(e.target.value)}
             className="select-input"
           >
             <option value="30">Últimos 30 dias</option>
             <option value="60">Últimos 60 dias</option>
             <option value="90">Últimos 90 dias</option>
-            <option value="all">Todo o Período</option>
+            <option value="all">Todo o período</option>
             <option value="custom">Personalizado</option>
           </select>
         </div>
         <div className="filter-group">
-          <label className="filter-label">De:</label>
-          <input 
-            type="date" 
-            value={dataInicio} 
-            onChange={(e) => { setDataInicio(e.target.value); setPresetPeriodo('custom'); }} 
-            className="date-input" 
+          <label className="filter-label" htmlFor="adm-de">De</label>
+          <input
+            id="adm-de"
+            type="date"
+            value={dataInicio}
+            onChange={(e) => { setDataInicio(e.target.value); setPresetPeriodo('custom'); }}
+            className="date-input"
           />
         </div>
         <div className="filter-group">
-          <label className="filter-label">Até:</label>
-          <input 
-            type="date" 
-            value={dataFim} 
-            onChange={(e) => { setDataFim(e.target.value); setPresetPeriodo('custom'); }} 
-            className="date-input" 
+          <label className="filter-label" htmlFor="adm-ate">Até</label>
+          <input
+            id="adm-ate"
+            type="date"
+            value={dataFim}
+            onChange={(e) => { setDataFim(e.target.value); setPresetPeriodo('custom'); }}
+            className="date-input"
           />
         </div>
       </div>
 
-      {/* CARDS DE MÉTRICAS */}
-      <div className="grid-cards">
-        <div className="stat-card">
-          <span className="stat-card-icon">👥</span>
+      <div className="adm-metricas">
+        <article className="adm-metrica">
+          <span className="adm-metrica-ico"><IconeAdmin nome="usuarios" /></span>
           <div>
-            <h3 className="stat-card-value">{loading ? '...' : metricas.totalUsuarios}</h3>
-            <p className="stat-card-label">Total de Usuários</p>
+            <strong>{valor(metricas.totalUsuarios)}</strong>
+            <span>Total de usuários</span>
           </div>
-        </div>
-        <div className="stat-card stat-card-blue">
-          <span className="stat-card-icon">🏡</span>
+        </article>
+        <article className="adm-metrica">
+          <span className="adm-metrica-ico"><IconeAdmin nome="espacos" /></span>
           <div>
-            <h3 className="stat-card-value">{loading ? '...' : metricas.locadoresCount}</h3>
-            <p className="stat-card-label">Locadores</p>
+            <strong>{valor(metricas.locadoresCount)}</strong>
+            <span>Locadores</span>
           </div>
-        </div>
-        <div className="stat-card stat-card-green">
-          <span className="stat-card-icon">🎉</span>
+        </article>
+        <article className="adm-metrica">
+          <span className="adm-metrica-ico"><IconeAdmin nome="usuario" /></span>
           <div>
-            <h3 className="stat-card-value">{loading ? '...' : metricas.locatariosCount}</h3>
-            <p className="stat-card-label">Locatários</p>
+            <strong>{valor(metricas.locatariosCount)}</strong>
+            <span>Locatários</span>
           </div>
-        </div>
-        <div className="stat-card stat-card-yellow">
-          <span className="stat-card-icon">🆕</span>
+        </article>
+        <article className="adm-metrica">
+          <span className="adm-metrica-ico"><IconeAdmin nome="novos" /></span>
           <div>
-            <h3 className="stat-card-value">{loading ? '...' : metricas.novosNoPeriodo}</h3>
-            <p className="stat-card-label">Novos no Período</p>
+            <strong>{valor(metricas.novosNoPeriodo)}</strong>
+            <span>Novos no período</span>
           </div>
-        </div>
-        <div className="stat-card stat-card-purple">
-          <span className="stat-card-icon">⚡</span>
+        </article>
+        <article className="adm-metrica">
+          <span className="adm-metrica-ico"><IconeAdmin nome="ativos" /></span>
           <div>
-            <h3 className="stat-card-value">{loading ? '...' : metricas.ativosNoPeriodo}</h3>
-            <p className="stat-card-label">Ativos no Período</p>
+            <strong>{valor(metricas.ativosNoPeriodo)}</strong>
+            <span>Ativos no período</span>
           </div>
-        </div>
+        </article>
       </div>
 
-      {/* PAINEL RESUMO */}
       <div className="content-box">
-        <h3>Resumo Geral do Sistema</h3>
-        <p>• <strong>Locadores:</strong> {metricas.locadoresCount} ({((metricas.locadoresCount / (metricas.totalUsuarios || 1)) * 100).toFixed(0)}% do total)</p>
-        <p>• <strong>Locatários:</strong> {metricas.locatariosCount} ({((metricas.locatariosCount / (metricas.totalUsuarios || 1)) * 100).toFixed(0)}% do total)</p>
-        <p>• <strong>Administradores:</strong> {metricas.adminsCount}</p>
-        {erro && <p className="error-message">⚠️ {erro}</p>}
+        <h3>Composição das contas</h3>
+        <div className="adm-composicao">
+          <div className="adm-linha">
+            <span>Locadores</span>
+            <strong>{metricas.locadoresCount} · {parte(metricas.locadoresCount)}%</strong>
+          </div>
+          <div className="adm-linha">
+            <span>Locatários</span>
+            <strong>{metricas.locatariosCount} · {parte(metricas.locatariosCount)}%</strong>
+          </div>
+          <div className="adm-linha">
+            <span>Administradores</span>
+            <strong>{metricas.adminsCount}</strong>
+          </div>
+        </div>
+        {erro && <p className="error-message">{erro}</p>}
       </div>
     </div>
   );

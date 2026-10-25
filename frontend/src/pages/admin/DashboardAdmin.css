@@ -1,269 +1,542 @@
-/* ==========================================================================
-   ADMIN — estilos compartilhados por todas as abas do painel administrativo
-   (este arquivo é carregado pela página DashboardAdmin, que contém as abas).
-
-   O que for específico de uma aba fica no CSS da própria aba
-   (components/admin/*.css). Botões, badges, alertas e modais genéricos
-   vivem em styles/ui/.
-   ========================================================================== */
-
-/* --- Layout da página --- */
-.admin-layout {
-  display: flex;
-  min-height: 100vh;
-  background-color: var(--color-bg);
-  font-family: var(--font-body);
+.adm {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
 }
 
-.main-content {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
+.adm-main {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 32px 36px 56px;
 }
 
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
+.adm-topo {
+    margin-bottom: 24px;
 }
 
-.admin-title {
-  font-size: 1.8rem;
-  color: var(--color-text);
-  margin: 0;
+.adm-topo h1 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--color-text);
 }
 
-.admin-subtitle {
-  color: var(--color-text-muted);
-  margin: 5px 0 0 0;
-  font-size: 0.95rem;
+.adm-topo p {
+    margin: 6px 0 0;
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
 }
 
-/* Invólucro de uma aba (entrada suave) */
-.admin-form-container {
-  padding: 20px;
-  animation: fadeIn 0.3s ease-in-out;
+.adm-painel,
+.adm .content-box,
+.adm .auditoria-container {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 22px;
+    margin-bottom: 18px;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.adm .content-box h3,
+.adm .auditoria-header h2 {
+    margin: 0 0 4px;
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
 }
 
-/* --- Painel branco --- */
-.content-box {
-  background-color: var(--color-surface);
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 4px 12px var(--shadow-color-soft);
-  margin-bottom: 20px;
+.adm .section-description,
+.adm .auditoria-header p {
+    margin: 0 0 18px;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
 }
 
-.content-box h3 {
-  margin-top: 0;
-  color: var(--color-text);
-  font-size: 1.5rem;
-  margin-bottom: 8px;
+.adm .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+    margin-bottom: 18px;
+    padding: 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
 }
 
-.section-description {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 20px;
+.adm .filter-group,
+.adm .adm-campo-grupo,
+.adm .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
 }
 
-.error-message {
-  color: var(--color-danger-text);
-  font-weight: 500;
+.adm .form-group,
+.adm .adm-campo-grupo {
+    margin-bottom: 14px;
 }
 
-.placeholder-box {
-  background-color: var(--color-bg-subtle);
-  border: 2px dashed var(--color-border-strong);
-  padding: 30px;
-  text-align: center;
-  border-radius: 8px;
-  color: var(--color-text-muted);
+.adm .filter-label,
+.adm .adm-campo-grupo label,
+.adm .form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
 }
 
-/* --- Filtros --- */
-.filter-bar {
-  display: flex;
-  gap: 15px;
-  background: var(--color-surface);
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px var(--shadow-color-soft);
-  margin-bottom: 20px;
-  align-items: flex-end;
+.adm .select-input,
+.adm .date-input,
+.adm .adm-campo,
+.adm .val-motivo textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
 }
 
-.filter-group {
-  display: flex;
-  flex-direction: column;
+.adm .select-input:focus,
+.adm .date-input:focus,
+.adm .adm-campo:focus,
+.adm .val-motivo textarea:focus {
+    border-color: var(--color-primary-text);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
-.filter-label {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 5px;
-  font-weight: 500;
+.adm .select-input,
+.adm .date-input {
+    width: auto;
+    min-width: 160px;
 }
 
-.select-input,
-.date-input {
-  padding: 8px 12px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  outline: none;
+.adm-metricas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
 }
 
-.select-input:focus,
-.date-input:focus {
-  border-color: var(--color-primary-text);
+.adm-metrica {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
 }
 
-.btn-refresh {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  color: var(--color-text-secondary);
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.2s;
+.adm-metrica-ico {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
 }
 
-.btn-refresh:hover {
-  background-color: var(--color-bg-subtle);
+.adm-metrica strong {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--color-text);
 }
 
-/* --- Cards de estatística (visão geral) --- */
-.grid-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 25px;
+.adm-metrica span {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--color-text-muted);
 }
 
-.stat-card {
-  background: var(--color-surface);
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px var(--shadow-color-soft);
-  display: block;
-  align-items: center;
-  gap: 15px;
-  border-left: 4px solid var(--color-border-strong);
+.adm-composicao {
+    display: grid;
+    gap: 10px;
 }
 
-.stat-card-blue { border-left-color: var(--color-info); }
-.stat-card-green { border-left-color: var(--color-success); }
-.stat-card-yellow { border-left-color: var(--color-warning); }
-.stat-card-purple { border-left-color: var(--color-violet); }
-
-.stat-card-icon {
-  font-size: 2rem;
+.adm-linha {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 14px;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+    font-size: 14px;
 }
 
-.stat-card-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--color-text);
-  margin: 0;
+.adm-linha span {
+    color: var(--color-text-muted);
 }
 
-.stat-card-label {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  margin: 2px 0 0 0;
+.adm-linha strong {
+    color: var(--color-text);
+    font-weight: 700;
 }
 
-/* --- Tabelas --- */
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
+.adm-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
 }
 
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
+.adm-busca {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: min(100%, 320px);
+    padding: 0 12px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
 }
 
-.admin-th {
-  background-color: var(--color-bg-subtle);
-  color: var(--color-text-secondary);
-  padding: 16px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border-bottom: 2px solid var(--color-border);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
+.adm-busca:focus-within {
+    border-color: var(--color-primary-text);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
-.admin-td {
-  padding: 16px;
-  vertical-align: middle;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text);
-  font-size: 0.9rem;
+.adm-busca input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    padding: 10px 0;
+    background: transparent;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 14px;
 }
 
-.admin-table tbody tr:hover {
-  background-color: var(--color-bg-subtle);
+.adm-busca .adm-ico {
+    width: 18px;
+    height: 18px;
 }
 
-/* --- Botões de ação nas linhas da tabela --- */
-.action-buttons {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+.adm .table-responsive,
+.adm .tabela-responsive {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
 }
 
-.btn-sm {
-  padding: 8px 12px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.adm .admin-table,
+.adm .tabela-auditoria {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
 }
 
-.btn-sm:hover:not(:disabled) {
-  transform: translateY(-1px);
+.adm .admin-table th,
+.adm .admin-th,
+.adm .tabela-auditoria th {
+    padding: 12px 14px;
+    background: var(--color-bg-subtle);
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
 }
 
-.btn-sm:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.adm .admin-table td,
+.adm .admin-td,
+.adm .tabela-auditoria td {
+    padding: 14px;
+    border-bottom: 1px solid var(--color-border-soft);
+    color: var(--color-text);
+    font-size: 14px;
+    vertical-align: middle;
 }
 
-/* .btn-approve / .btn-reject (cores) estão em styles/ui/buttons.css */
-.btn-edit {
-  background-color: var(--color-info-soft);
-  color: var(--color-info-text);
+.adm .admin-table tbody tr:last-child td,
+.adm .tabela-auditoria tbody tr:last-child td {
+    border-bottom: none;
 }
 
-.btn-edit:hover {
-  background-color: var(--color-info-soft-hover);
+.adm .admin-table tbody tr:hover,
+.adm .tabela-auditoria tbody tr:hover {
+    background: var(--color-bg-subtle);
 }
 
-.btn-delete {
-  background-color: var(--color-danger-soft);
-  color: var(--color-danger-text);
+.adm .action-buttons,
+.adm-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
 }
 
-.btn-delete:hover {
-  background-color: var(--color-danger-soft-hover);
+.adm .btn,
+.adm .btn-sm,
+.adm .btn-refresh,
+.adm .btn-paginacao {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+}
+
+.adm .btn-sm,
+.adm .btn-refresh {
+    padding: 8px 14px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.adm .btn-sm:hover:not(:disabled),
+.adm .btn-refresh:hover:not(:disabled) {
+    background: var(--color-bg-subtle);
+}
+
+.adm .btn-approve {
+    background: var(--color-approve);
+    border-color: transparent;
+    color: var(--color-on-status);
+}
+
+.adm .btn-approve:hover:not(:disabled) {
+    background: var(--color-approve-dark);
+}
+
+.adm .btn-reject,
+.adm .btn-perigo {
+    background: var(--color-danger);
+    border-color: transparent;
+    color: var(--color-on-status);
+}
+
+.adm .btn-reject:hover:not(:disabled) {
+    background: var(--color-danger-dark);
+}
+
+.adm .btn-edit,
+.adm .btn-delete {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.adm .btn-delete {
+    color: var(--color-danger-text);
+    border-color: var(--color-danger-border);
+    background: var(--color-danger-soft);
+}
+
+.adm .btn-sm:disabled,
+.adm .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.adm-abas {
+    display: inline-flex;
+    gap: 4px;
+    margin-bottom: 18px;
+    padding: 4px;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-pill);
+}
+
+.adm-abas button {
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+}
+
+.adm-abas button.ativo {
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+}
+
+.adm-vazio,
+.adm .empty-state-box,
+.adm .auditoria-empty,
+.adm .auditoria-loading {
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--color-text-muted);
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+}
+
+.adm-vazio strong,
+.adm .empty-state-box strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: 1rem;
+}
+
+.adm .error-message,
+.adm .val-erro {
+    color: var(--color-danger-text);
+    font-weight: 600;
+}
+
+.adm .auditoria-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.adm .auditoria-counter {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.adm .paginacao-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.adm .btn-paginacao {
+    padding: 8px 14px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.adm .btn-paginacao:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.adm .entidade-tag,
+.adm .badge-reenviado {
+    display: inline-flex;
+    margin-left: 8px;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-text);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.adm .text-muted,
+.adm .admin-id,
+.adm .col-data {
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+.adm .motivo-rejeicao {
+    color: var(--color-danger-text);
+}
+
+.adm .resposta-locador {
+    max-width: 260px;
+    color: var(--color-text-secondary);
+}
+
+.adm .modal-content .adm-modal-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.adm .modal-content textarea.adm-campo {
+    min-height: 110px;
+    resize: vertical;
+    margin: 8px 0 4px;
+}
+
+.adm-carac-campos {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+}
+
+.adm-carac-form .btn {
+    margin-top: 4px;
+}
+
+.adm-carac-lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.adm-carac-lista li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+}
+
+.adm-carac-lista strong {
+    display: block;
+    font-family: var(--font-heading);
+}
+
+.adm-carac-lista span {
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+@media (max-width: 760px) {
+    .adm-main {
+        padding: 20px 16px 40px;
+    }
+
+    .adm-side.aberta {
+        width: 220px;
+    }
+
+    .adm-carac-campos {
+        grid-template-columns: 1fr;
+    }
 }

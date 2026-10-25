@@ -43,3 +43,258 @@
   color: var(--color-danger-text);
   font-style: italic;
 }
+
+.adm-ver {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.adm-ver:hover {
+  color: var(--color-primary-text);
+}
+
+.modal-overlay .modal-content.adm-detalhe {
+  max-width: 760px;
+  max-height: min(88vh, 920px);
+  overflow: auto;
+  padding: 22px 24px 20px;
+}
+
+.adm-detalhe-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.adm-detalhe-kicker {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.adm-detalhe-topo h3 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+
+.adm-detalhe-topo p {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.adm-detalhe section {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.adm-detalhe h4 {
+  margin: 0 0 8px;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.adm-detalhe-texto {
+  margin: 0 0 8px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.adm-detalhe-aviso {
+  margin: 0 0 12px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.adm-detalhe-fotos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.adm-detalhe-fotos img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.adm-detalhe-linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.adm-detalhe-linha span {
+  color: var(--color-text-muted);
+}
+
+.adm-detalhe-linha strong {
+  text-align: right;
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.adm-detalhe-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.adm-detalhe-chips span {
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.adm-detalhe-ambientes {
+  display: grid;
+  gap: 8px;
+}
+
+.adm-detalhe-ambientes article {
+  padding: 12px 14px;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+}
+
+.adm-detalhe-ambientes strong {
+  font-family: var(--font-heading);
+}
+
+.adm-detalhe-ambientes p,
+.adm-detalhe-ambientes small {
+  display: block;
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.adm-detalhe-docs {
+  display: grid;
+  gap: 8px;
+}
+
+.adm-detalhe-docs article {
+  padding: 12px 14px;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+}
+
+.adm-detalhe-doc-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.adm-detalhe-doc-topo strong {
+  font-family: var(--font-heading);
+  color: var(--color-text);
+}
+
+.adm-detalhe-docs p {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.adm-detalhe-docs a {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--color-primary-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.adm-detalhe .status-documento {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+}
+
+.adm-detalhe .status-pendente {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+
+.adm-detalhe .status-aprovado {
+  background: var(--color-success-soft);
+  color: var(--color-success-text);
+}
+
+.adm-detalhe .status-rejeitado,
+.adm-detalhe .status-correcao {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text);
+}
+
+.adm-detalhe .status-desconhecido {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+.adm-detalhe-acoes {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.adm-detalhe-acoes .btn {
+  font-family: var(--font-body);
+  text-decoration: none;
+}
+
+.adm-detalhe-acoes .btn-approve {
+  background: var(--color-approve);
+  color: var(--color-on-status);
+  border: none;
+}
+
+.adm-detalhe-acoes .btn-reject {
+  background: var(--color-danger);
+  color: var(--color-on-status);
+  border: none;
+}
+
+@media (max-width: 640px) {
+  .adm-detalhe-topo {
+    flex-direction: column;
+  }
+}

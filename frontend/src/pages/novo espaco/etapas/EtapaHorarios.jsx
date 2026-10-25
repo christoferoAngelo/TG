@@ -4,7 +4,7 @@ import { calcularTurnos } from "../turnos";
 
 export default function EtapaHorarios({ form, erros, bind, setCampo, setAdicional }) {
     const avisosRef = useRef(null);
-    const fracionado = form.tipoLocacao === "FRACIONADO";
+    const fracionado = form.aceitaFracionado;
 
     const { turnos, avisos } = useMemo(() => {
         if (!fracionado) return { turnos: [], avisos: [] };
@@ -27,27 +27,27 @@ export default function EtapaHorarios({ form, erros, bind, setCampo, setAdiciona
         <section className="ne-secao">
             <div className="ne-secao-cab">
                 <h2>Tipo de locação</h2>
-                <p>Período integral ocupa o dia todo. Fracionado divide o dia em turnos.</p>
+                <p>Você pode oferecer a diária, os turnos ou os dois ao mesmo tempo.</p>
             </div>
             <div className="ne-grid">
-                <div className="ne-campo ne-span-6">
+                <div className={`ne-campo ne-span-6${erros.formas ? " ne-campo--erro" : ""}`}>
                     <div className="ne-opcoes ne-opcoes--duas">
                         {[
-                            ["INTEGRAL", "Período integral", "Uma reserva usa o espaço da abertura até o fechamento."],
-                            ["FRACIONADO", "Fracionado (turnos)", "Vários eventos no mesmo dia, com intervalo para limpeza."],
-                        ].map(([valor, titulo, dica]) => (
-                            <label key={valor} className={`ne-opcao${form.tipoLocacao === valor ? " ne-opcao--ativa" : ""}`}>
+                            ["aceitaIntegral", "Diária", "Uma reserva usa o espaço da abertura até o fechamento."],
+                            ["aceitaFracionado", "Fracionada (turnos)", "Vários eventos no mesmo dia, com intervalo para limpeza."],
+                        ].map(([campo, titulo, dica]) => (
+                            <label key={campo} className={`ne-opcao${form[campo] ? " ne-opcao--ativa" : ""}`}>
                                 <input
-                                    type="radio"
-                                    name="tipoLocacao"
-                                    checked={form.tipoLocacao === valor}
-                                    onChange={() => setCampo("tipoLocacao", valor)}
+                                    type="checkbox"
+                                    checked={Boolean(form[campo])}
+                                    onChange={(evento) => setCampo(campo, evento.target.checked)}
                                 />
                                 <span className="ne-opcao-titulo">{titulo}</span>
                                 <span className="ne-opcao-dica">{dica}</span>
                             </label>
                         ))}
                     </div>
+                    {erros.formas && <small className="ne-erro">{erros.formas}</small>}
                 </div>
 
                 <Campo id="ne-horarioAbertura" label="Horário de abertura" span={3} erro={erros.horarioAbertura}>

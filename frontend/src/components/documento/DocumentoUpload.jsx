@@ -307,6 +307,7 @@ const handleSubmit = async (e) => {
                     <textarea
                         className="input"
                         rows="3"
+                        maxLength={500}
                         value={observacao}
                         disabled={enviando}
                         onChange={(e) =>

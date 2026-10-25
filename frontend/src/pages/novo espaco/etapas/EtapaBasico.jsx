@@ -59,6 +59,7 @@ export default function EtapaBasico({
                         <textarea
                             className="ne-textarea"
                             rows={4}
+                            maxLength={2000}
                             placeholder="Ex: Amplo espaço com área verde, ideal para confraternizações."
                             {...bind("descricao")}
                         />
@@ -233,6 +234,7 @@ export default function EtapaBasico({
                                             id={`ne-amb-${amb.id}-titulo`}
                                             type="text"
                                             className="ne-input"
+                                            maxLength={100}
                                             placeholder="Ex: Área da piscina"
                                             value={amb.titulo}
                                             aria-invalid={erroAmb.titulo ? "true" : undefined}
@@ -244,6 +246,7 @@ export default function EtapaBasico({
                                             id={`ne-amb-${amb.id}-descricao`}
                                             className="ne-textarea"
                                             rows={3}
+                                            maxLength={800}
                                             placeholder="Ex: Piscina de 1,4 m de profundidade."
                                             value={amb.descricao}
                                             onChange={(e) => atualizarAmbiente(amb.id, "descricao", e.target.value)}
@@ -254,6 +257,7 @@ export default function EtapaBasico({
                                         data-erro={erroAmb.fotos ? "true" : undefined}
                                     >
                                         <span className="ne-rotulo">Fotos do cômodo</span>
+                                        <p className="ne-dica">Até 8 fotos neste cômodo e 24 no anúncio. Cada imagem pode ter até 10 MB.</p>
                                         <div className="ne-fotos">
                                             {amb.fotos.map((foto) => (
                                                 <figure className="ne-foto" key={foto.id}>

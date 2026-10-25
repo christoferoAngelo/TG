@@ -302,6 +302,70 @@
     color: var(--color-text-muted);
 }
 
+.lc-pedido-ver {
+    margin-top: 8px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--color-primary-text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.lc-pedido-modal {
+    max-width: 520px;
+}
+
+.lc-pedido-ficha {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 16px;
+}
+
+.lc-pedido-ficha div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.lc-pedido-ficha dt {
+    color: var(--color-text-muted);
+    font-size: 14px;
+}
+
+.lc-pedido-ficha dd {
+    margin: 0;
+    font-weight: 700;
+    text-align: right;
+}
+
+.lc-pedido-modal h4 {
+    margin: 0 0 6px;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+}
+
+.lc-pedido-obs {
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.lc-pedido-modal .btn-approve {
+    background: var(--color-approve);
+    color: var(--color-on-status);
+    border: none;
+}
+
+.lc-pedido-modal .btn-reject {
+    background: var(--color-danger);
+    color: var(--color-on-status);
+    border: none;
+}
+
 .lc-pedido-erro {
     margin: 0;
     font-size: 13px;

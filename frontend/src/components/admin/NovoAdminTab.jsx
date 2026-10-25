@@ -173,7 +173,7 @@ export default function NovoAdminTab() {
 
   const handleDeleteClick = async (admin) => {
     if (admins.length <= 1) {
-      alert("⚠️ Operação Negada: O sistema não pode ficar sem administradores.");
+      alert("Operação negada: o sistema precisa de pelo menos um administrador.");
       return;
     }
 
@@ -200,12 +200,12 @@ export default function NovoAdminTab() {
   return (
     <div className="admin-form-container">
       {/* SEÇÃO 1: LISTA DE ADMINISTRADORES */}
-      <div className="content-box" style={{ marginBottom: '30px' }}>
-        <h3>🛡️ Administradores do Sistema</h3>
-        <p className="section-description">Gerencie as contas com privilégios de acesso administrativo.</p>
+      <div className="content-box">
+        <h3>Equipe atual</h3>
+        <p className="section-description">Contas com privilégio de administração.</p>
         
         {loadingList ? (
-          <p>⏳ Carregando lista de administradores...</p>
+          <div className="adm-vazio"><p>Carregando administradores…</p></div>
         ) : (
           <div className="table-responsive">
             <table className="admin-table">
@@ -224,18 +224,18 @@ export default function NovoAdminTab() {
                     <td className="admin-td">{adm.email}</td>
                     <td className="admin-td">{adm.telefone || 'N/I'}</td>
                     <td className="admin-td action-buttons">
-                      <button 
-                        className="btn-sm btn-edit" 
+                      <button
+                        type="button"
+                        className="btn-sm btn-edit"
                         onClick={() => handleEditClick(adm)}
-                        style={{ marginRight: '8px' }}
                       >
-                        ✏️ Editar
+                        Editar
                       </button>
                       <button 
                         className="btn-sm btn-delete" 
                         onClick={() => handleDeleteClick(adm)}
                       >
-                        🗑️ Excluir
+                        Excluir
                       </button>
                     </td>
                   </tr>
@@ -248,15 +248,15 @@ export default function NovoAdminTab() {
 
       {/* SEÇÃO 2: FORMULÁRIO DE CRIAÇÃO / EDIÇÃO */}
       <div className="content-box">
-        <h3>{isEditing ? '✏️ Editar Administrador' : '➕ Cadastrar Novo Administrador'}</h3>
+        <h3>{isEditing ? 'Editar administrador' : 'Novo administrador'}</h3>
         <p className="section-description">
-          {isEditing 
-            ? 'Atualize os dados de contato do administrador selecionado.' 
-            : 'Conceda privilégios de acesso administrativo para novos membros da equipe.'}
+          {isEditing
+            ? 'Atualize os dados de contato da conta selecionada.'
+            : 'Crie um acesso para quem vai operar este painel.'}
         </p>
         
-        {mensagem && <div className="alert-success">✨ {mensagem}</div>}
-        {erro && <div className="alert-error">⚠️ {erro}</div>}
+        {mensagem && <div className="alert-success">{mensagem}</div>}
+        {erro && <div className="alert-error">{erro}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -267,7 +267,7 @@ export default function NovoAdminTab() {
               value={formData.nome}
               onChange={handleChange}
               placeholder="Ex: Maria Silva" 
-              className="date-input" 
+              className="adm-campo" 
               required
             />
           </div>
@@ -280,7 +280,7 @@ export default function NovoAdminTab() {
               value={formData.email}
               onChange={handleChange}
               placeholder="admin@locafesta.com" 
-              className="date-input" 
+              className="adm-campo" 
               required
               disabled={isEditing}
               title={isEditing ? "Não é possível alterar o e-mail de uma conta existente." : ""}
@@ -295,12 +295,12 @@ export default function NovoAdminTab() {
               value={formData.telefone}
               onChange={handleChange}
               placeholder="(11) 99999-9999" 
-              className="date-input" 
+              className="adm-campo" 
             />
           </div>
 
           {!isEditing && (
-            <div className="form-group" style={{ marginBottom: '20px' }}>
+            <div className="form-group">
               <label className="filter-label">Senha Temporária:</label>
               <input 
                 type="password" 
@@ -308,28 +308,27 @@ export default function NovoAdminTab() {
                 value={formData.senha}
                 onChange={handleChange}
                 placeholder="Mínimo de 6 caracteres" 
-                className="date-input" 
+                className="adm-campo" 
                 required={!isEditing}
               />
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="submit" className="btn-refresh" disabled={loading}>
-              {loading 
-                ? 'Processando...' 
-                : (isEditing ? '💾 Salvar Alterações' : 'Cadastrar Administrador')
+          <div className="adm-acoes">
+            <button type="submit" className="btn btn-destaque" disabled={loading}>
+              {loading
+                ? 'Salvando…'
+                : (isEditing ? 'Salvar alterações' : 'Cadastrar administrador')
               }
             </button>
 
             {isEditing && (
-              <button 
-                type="button" 
-                className="btn-refresh" 
-                style={{ backgroundColor: '#6c757d' }} 
+              <button
+                type="button"
+                className="btn btn-cancelar"
                 onClick={cancelarEdicao}
               >
-                ❌ Cancelar Edição
+                Cancelar
               </button>
             )}
           </div>

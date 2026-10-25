@@ -9,10 +9,12 @@ export default function SalvarLista({ espaco, listas, usuarioId, onFechar, onLis
     const [nome, setNome] = useState("");
     const [erro, setErro] = useState("");
     const [ocupado, setOcupado] = useState(false);
+    const [novaAberta, setNovaAberta] = useState(false);
 
     useEffect(() => {
         setNome("");
         setErro("");
+        setNovaAberta(false);
     }, [espaco?.id]);
 
     if (!espaco) return null;
@@ -54,6 +56,7 @@ export default function SalvarLista({ espaco, listas, usuarioId, onFechar, onLis
             const criada = await criarLista(usuarioId, limpo, espaco.id);
             onListas((atual) => [...atual, criada]);
             setNome("");
+            setNovaAberta(false);
         } catch (falha) {
             setErro(falha.message);
         } finally {
@@ -95,21 +98,33 @@ export default function SalvarLista({ espaco, listas, usuarioId, onFechar, onLis
                         </ul>
                     )}
 
-                    <form className="sl-nova" onSubmit={criar}>
-                        <label htmlFor="sl-nome">Nova lista</label>
-                        <div>
-                            <input
-                                id="sl-nome"
-                                value={nome}
-                                maxLength={80}
-                                placeholder="Ex.: Chá de panela da Vivian"
-                                onChange={(evento) => setNome(evento.target.value)}
-                            />
-                            <button type="submit" className="sl-btn sl-btn--cheio" disabled={ocupado}>
-                                Criar
-                            </button>
-                        </div>
-                    </form>
+                    <div className="sl-nova">
+                        <button
+                            type="button"
+                            className="sl-btn"
+                            aria-expanded={novaAberta}
+                            onClick={() => setNovaAberta((aberta) => !aberta)}
+                        >
+                            Nova lista
+                        </button>
+                        {novaAberta && (
+                            <form onSubmit={criar}>
+                                <label htmlFor="sl-nome">Nome da lista</label>
+                                <div>
+                                    <input
+                                        id="sl-nome"
+                                        value={nome}
+                                        maxLength={80}
+                                        placeholder="Ex.: Chá de panela da Vivian"
+                                        onChange={(evento) => setNome(evento.target.value)}
+                                    />
+                                    <button type="submit" className="sl-btn sl-btn--cheio" disabled={ocupado}>
+                                        Salvar
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
                     {erro && <p className="sl-erro" role="alert">{erro}</p>}
                 </div>
             )}

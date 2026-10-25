@@ -5,6 +5,7 @@ import com.eva.locafesta.espaco.EspacoRepository;
 import com.eva.locafesta.event.AuditoriaEvent;
 import com.eva.locafesta.usuario.Usuario;
 import com.eva.locafesta.usuario.UsuarioRepository;
+import com.eva.locafesta.notificacao.NotificacaoService;
 import com.eva.locafesta.usuario.UsuarioService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ public class DocumentoService {
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private NotificacaoService notificacaoService;
 
 
     // =========================================================
@@ -75,6 +79,10 @@ public class DocumentoService {
             throw erro(HttpStatus.BAD_REQUEST, "O endereço do arquivo é inválido.");
         }
 
+        String observacao = dto.getObservacao();
+        if (observacao != null && observacao.trim().length() > 500) {
+            throw erro(HttpStatus.BAD_REQUEST, "A observação deve ter no máximo 500 caracteres.");
+        }
         String nome = dto.getNomeArquivo();
         if (nome != null && nome.length() > NOME_ARQUIVO_MAX) {
             throw erro(HttpStatus.BAD_REQUEST,
@@ -303,6 +311,23 @@ public class DocumentoService {
                         documento.getId().toString(),
                         detalhes
                 )
+        );
+
+        Long donoId = null;
+        String alvo = documento.getTipoDocumento() == null ? "enviado" : documento.getTipoDocumento().replace('_', ' ').toLowerCase();
+        if (documento.getUsuario() != null) {
+            donoId = documento.getUsuario().getId();
+        } else if (documento.getEspaco() != null
+                && documento.getEspaco().getLocador() != null
+                && documento.getEspaco().getLocador().getUsuario() != null) {
+            donoId = documento.getEspaco().getLocador().getUsuario().getId();
+            alvo = alvo + " do espaço " + documento.getEspaco().getTitulo();
+        }
+        notificacaoService.avisar(
+                donoId,
+                null,
+                "Documento aprovado",
+                "O documento " + alvo + " foi aprovado."
         );
 
         return new DocumentoDTO(salvo);

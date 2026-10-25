@@ -103,8 +103,63 @@
 }
 
 .fv-apagar {
-    color: var(--color-danger-text);
-    border-color: var(--color-danger-border);
+    background: var(--color-danger);
+    border-color: transparent;
+    color: var(--color-on-status);
+}
+
+.fv-apagar:hover {
+    background: var(--color-danger-dark);
+}
+
+.fv-confirma {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: var(--color-overlay);
+}
+
+.fv-confirma article {
+    width: min(100%, 420px);
+    padding: 22px;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.fv-confirma h2 {
+    margin: 0 0 8px;
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+}
+
+.fv-confirma p {
+    margin: 0 0 18px;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+}
+
+.fv-confirma div {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.fv-confirma button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    cursor: pointer;
 }
 
 .fv-pastas {
@@ -203,8 +258,8 @@
 
 .fv-toast {
     position: fixed;
-    bottom: 24px;
-    left: 50%;
+    bottom: 28px;
+    left: calc(50vw + var(--sidebar-largura, 0px) / 2);
     z-index: 60;
     transform: translateX(-50%);
     margin: 0;
@@ -213,6 +268,7 @@
     background: var(--color-text);
     color: var(--color-bg);
     font-weight: 700;
+    text-align: center;
     box-shadow: var(--shadow-md);
 }
 

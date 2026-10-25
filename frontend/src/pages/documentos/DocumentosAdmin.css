@@ -1,29 +1,70 @@
-.val-motivo {
+.documentos-admin {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    max-width: 520px;
-    margin: 0 0 16px;
-    padding: 16px;
+    gap: 16px;
+    font-family: var(--font-body);
+    color: var(--color-text);
+}
+
+.documentos-admin .adm-topo h1 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.documentos-admin .adm-topo p,
+.documentos-admin .adm-vazio p {
+    margin: 6px 0 0;
+    color: var(--color-text-muted);
+}
+
+.documentos-admin .adm-vazio {
+    padding: 36px 20px;
+    text-align: center;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
 }
 
-.val-motivo p,
-.val-erro {
+.documentos-admin .adm-vazio strong {
+    display: block;
+    font-family: var(--font-heading);
+    color: var(--color-text);
+}
+
+.documentos-lista {
+    display: grid;
+    gap: 12px;
+}
+
+.documentos-admin .val-motivo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 560px;
+    padding: 18px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.documentos-admin .val-motivo p,
+.documentos-admin .val-erro {
     margin: 0;
 }
 
-.val-motivo label {
-    font-size: 14px;
+.documentos-admin .val-motivo label {
+    font-size: 13px;
     font-weight: 700;
 }
 
-.val-motivo textarea {
+.documentos-admin .val-motivo textarea {
     width: 100%;
+    box-sizing: border-box;
     padding: 10px 12px;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-md);
     font-family: var(--font-body);
     color: var(--color-text);
@@ -31,23 +72,133 @@
     resize: vertical;
 }
 
-.val-motivo div {
+.documentos-admin .val-motivo textarea:focus {
+    outline: none;
+    border-color: var(--color-primary-text);
+    box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.documentos-admin .val-erro {
+    color: var(--color-danger-text);
+    font-weight: 600;
+}
+
+.documentos-admin .adm-acoes {
     display: flex;
     gap: 8px;
 }
 
-.val-motivo button {
-    border: 1px solid var(--color-border);
+.documentos-admin .documento-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 18px;
     background: var(--color-surface);
-    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-warning);
     border-radius: var(--radius-md);
-    padding: 8px 14px;
-    font-family: var(--font-body);
+}
+
+.documentos-admin .documento-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.documentos-admin .documento-card-header h3 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1rem;
     font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+}
+
+.documentos-admin .documento-card-categoria {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.documentos-admin .status-documento {
+    display: inline-flex;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-radius: var(--radius-pill);
+}
+
+.documentos-admin .status-pendente {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+}
+
+.documentos-admin .status-aprovado {
+    background: var(--color-success-soft);
+    color: var(--color-success-text);
+}
+
+.documentos-admin .status-rejeitado,
+.documentos-admin .status-correcao {
+    background: var(--color-danger-soft);
+    color: var(--color-danger-text);
+}
+
+.documentos-admin .documento-card-body p {
+    margin: 0 0 4px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.documentos-admin .documento-card-body strong {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.documentos-admin .documento-motivo {
+    margin-top: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--color-danger-text);
+    background: var(--color-danger-soft);
+    border-left: 3px solid var(--color-danger);
+    border-radius: var(--radius-sm);
+}
+
+.documentos-admin .documento-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border-soft);
+}
+
+.documentos-admin .documento-card-actions .btn {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 16px;
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
     cursor: pointer;
 }
 
-.val-erro {
-    color: var(--color-danger-text);
-    font-weight: 600;
+.documentos-admin .documento-card-actions .btn-destaque {
+    background: var(--color-primary);
+    border-color: transparent;
+    color: var(--color-on-primary);
+}
+
+.documentos-admin .documento-card-actions .btn-perigo {
+    background: var(--color-danger);
+    border-color: transparent;
+    color: var(--color-on-status);
 }

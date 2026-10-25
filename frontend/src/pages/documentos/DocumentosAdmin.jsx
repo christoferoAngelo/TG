@@ -12,7 +12,7 @@ import {
 import "./DocumentosAdmin.css";
 
 
-export default function DocumentosAdmin() {
+export default function DocumentosAdmin({ embutido = false }) {
 
     const [documentos, setDocumentos] = useState([]);
     const [carregando, setCarregando] = useState(true);
@@ -220,46 +220,28 @@ export default function DocumentosAdmin() {
 
     return (
         <div className="documentos-admin">
-
-            <header>
-
-                <h2>
-                    Análise de documentos
-                </h2>
-
-                <p>
-                    Revise os documentos enviados
-                    pelos usuários e pelos espaços.
-                </p>
-
-            </header>
-
+            {!embutido && (
+                <header className="adm-topo">
+                    <h1>Documentos</h1>
+                    <p>Revise os arquivos enviados por pessoas e espaços.</p>
+                </header>
+            )}
 
             {carregando ? (
-
-                <p>
-                    Carregando documentos pendentes...
-                </p>
-
-            ) : documentos.length === 0 ? (
-
-                <div>
-                    <h3>
-                        Tudo certo!
-                    </h3>
-
-                    <p>
-                        Não existem documentos pendentes
-                        para análise.
-                    </p>
+                <div className="adm-vazio">
+                    <p>Carregando documentos pendentes…</p>
                 </div>
-
+            ) : documentos.length === 0 ? (
+                <div className="adm-vazio">
+                    <strong>Nenhum documento pendente</strong>
+                    <p>A fila de análise está vazia.</p>
+                </div>
             ) : (
                 <>
                     {alvo && (
                         <form className="val-motivo" onSubmit={confirmarMotivo}>
                             <p>
-                                {acao === "rejeitar" ? "Rejeitar" : "Pedir correção de"}{" "}
+                                {acao === "rejeitar" ? "Recusar" : "Pedir correção de"}{" "}
                                 <strong>{alvo.tipoDocumento}</strong>
                             </p>
                             <label htmlFor="val-motivo">Motivo</label>
@@ -267,46 +249,35 @@ export default function DocumentosAdmin() {
                                 id="val-motivo"
                                 value={motivo}
                                 maxLength={500}
+                                maxLength={500}
                                 rows={3}
                                 onChange={(evento) => setMotivo(evento.target.value)}
                             />
                             {erro && <p className="val-erro" role="alert">{erro}</p>}
-                            <div>
-                                <button type="submit" disabled={processando}>
-                                    {processando ? "Salvando…" : "Confirmar"}
-                                </button>
-                                <button type="button" onClick={() => setAlvo(null)} disabled={processando}>
+                            <div className="adm-acoes">
+                                <button type="button" className="btn btn-cancelar" onClick={() => setAlvo(null)} disabled={processando}>
                                     Cancelar
+                                </button>
+                                <button type="submit" className="btn btn-destaque" disabled={processando}>
+                                    {processando ? "Salvando…" : "Confirmar"}
                                 </button>
                             </div>
                         </form>
                     )}
-                <div className="documentos-lista">
-
-                    {documentos.map((documento) => (
-
-                        <DocumentoCard
-                            key={documento.id}
-                            documento={documento}
-                            modoAdmin
-                            onAprovar={handleAprovar}
-                            onRejeitar={(documento) => abrirMotivo(documento, "rejeitar")}
-                            onCorrecao={(documento) => abrirMotivo(documento, "correcao")}
-                        />
-
-                    ))}
-
-                </div>
+                    <div className="documentos-lista">
+                        {documentos.map((documento) => (
+                            <DocumentoCard
+                                key={documento.id}
+                                documento={documento}
+                                modoAdmin
+                                onAprovar={handleAprovar}
+                                onRejeitar={(item) => abrirMotivo(item, "rejeitar")}
+                                onCorrecao={(item) => abrirMotivo(item, "correcao")}
+                            />
+                        ))}
+                    </div>
                 </>
             )}
-
-
-            {processando && (
-                <p>
-                    Processando análise...
-                </p>
-            )}
-
         </div>
     );
 }

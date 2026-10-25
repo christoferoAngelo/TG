@@ -228,6 +228,7 @@ export default function EtapaDocumentos({
                             id="ne-respostaLocador"
                             className="ne-textarea"
                             rows={3}
+                            maxLength={500}
                             value={respostaLocador}
                             onChange={(e) => setRespostaLocador(e.target.value)}
                         />

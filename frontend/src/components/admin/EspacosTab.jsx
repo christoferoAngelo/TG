@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import DetalheEspacoModal from './DetalheEspacoModal';
 import './EspacosTab.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -19,6 +20,7 @@ export default function EspacosTab() {
   const [modalRejeitarAberto, setModalRejeitarAberto] = useState(false);
   const [espacoSelecionado, setEspacoSelecionado] = useState(null);
   const [motivoRejeicao, setMotivoRejeicao] = useState('');
+  const [detalhe, setDetalhe] = useState(null);
 
   // --------------------------------------------------------------------------
   // EFEITOS
@@ -49,7 +51,7 @@ export default function EspacosTab() {
   // --------------------------------------------------------------------------
   const handleAprovar = async (espaco) => {
     const confirmar = window.confirm(`Tem certeza que deseja APROVAR o espaço "${espaco.titulo}"?`);
-    if (!confirmar) return;
+    if (!confirmar) return "cancelado";
 
     setProcessandoId(espaco.id);
     setMensagem(null);
@@ -57,11 +59,13 @@ export default function EspacosTab() {
 
     try {
       await axios.patch(`${API_BASE_URL}/api/admin/espacos/${espaco.id}/aprovar`);
-      setMensagem(`✅ Espaço "${espaco.titulo}" aprovado com sucesso!`);
+      setMensagem(`Espaço "${espaco.titulo}" aprovado.`);
       carregarEspacos(statusAba);
+      return "ok";
     } catch (err) {
       console.error("Erro ao aprovar espaço:", err);
       setErro("Erro ao aprovar o espaço. Verifique se o backend está rodando.");
+      return "erro";
     } finally {
       setProcessandoId(null);
     }
@@ -69,9 +73,25 @@ export default function EspacosTab() {
 
   // Abre o modal e guarda o espaço selecionado
   const handleAbrirModalRejeitar = (espaco) => {
+    setDetalhe(null);
     setEspacoSelecionado(espaco);
     setMotivoRejeicao('');
     setModalRejeitarAberto(true);
+  };
+
+  const abrirDetalhe = async (espaco) => {
+    setDetalhe({ espaco, carregando: true, erro: null });
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/locadores/espacos/${espaco.id}`);
+      setDetalhe({ espaco: response.data, carregando: false, erro: null });
+    } catch (err) {
+      console.error("Erro ao carregar detalhes do espaço:", err);
+      setDetalhe({
+        espaco,
+        carregando: false,
+        erro: "Não foi possível atualizar os dados. Mostrando o que já estava na lista.",
+      });
+    }
   };
 
   // Executa o envio da rejeição via API ao confirmar no Modal
@@ -90,7 +110,7 @@ export default function EspacosTab() {
         motivo: motivoRejeicao.trim() 
       });
 
-      setMensagem(`❌ Espaço "${espacoSelecionado.titulo}" rejeitado.`);
+      setMensagem(`Espaço "${espacoSelecionado.titulo}" rejeitado.`);
       setModalRejeitarAberto(false);
       carregarEspacos(statusAba);
     } catch (err) {
@@ -107,43 +127,27 @@ export default function EspacosTab() {
   return (
     <div className="admin-form-container">
       <div className="content-box">
-        <h3>📋 Gestão e Análise de Espaços</h3>
-        <p className="section-description">
-          Gerencie os espaços cadastrados na plataforma.
-        </p>
-
-        {/* NAVEGAÇÃO POR ABAS */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-          <button 
-            className={`btn-sm ${statusAba === 'PENDENTE' ? 'btn-approve' : ''}`}
-            onClick={() => setStatusAba('PENDENTE')}
-          >
-            ⏳ Pendentes
+        <div className="adm-abas" role="tablist" aria-label="Situação dos espaços">
+          <button type="button" className={statusAba === 'PENDENTE' ? 'ativo' : ''} onClick={() => setStatusAba('PENDENTE')}>
+            Pendentes
           </button>
-          <button 
-            className={`btn-sm ${statusAba === 'APROVADO' ? 'btn-approve' : ''}`}
-            onClick={() => setStatusAba('APROVADO')}
-          >
-            ✔️ Aprovados
+          <button type="button" className={statusAba === 'APROVADO' ? 'ativo' : ''} onClick={() => setStatusAba('APROVADO')}>
+            Aprovados
           </button>
-          <button 
-            className={`btn-sm ${statusAba === 'REJEITADO' ? 'btn-reject' : ''}`}
-            onClick={() => setStatusAba('REJEITADO')}
-          >
-            ✖️ Rejeitados
+          <button type="button" className={statusAba === 'REJEITADO' ? 'ativo' : ''} onClick={() => setStatusAba('REJEITADO')}>
+            Recusados
           </button>
         </div>
 
-        {/* ALERTAS */}
         {mensagem && <div className="alert-success">{mensagem}</div>}
-        {erro && <div className="alert-error">⚠️ {erro}</div>}
+        {erro && <div className="alert-error">{erro}</div>}
 
-        {/* TABELA DE ESPAÇOS */}
         {loading ? (
-          <p>⏳ Buscando espaços ({statusAba.toLowerCase()})...</p>
+          <div className="adm-vazio"><p>Buscando espaços…</p></div>
         ) : espacos.length === 0 ? (
           <div className="empty-state-box">
-            <p>🎉 Nenhum espaço encontrado na categoria <strong>{statusAba}</strong>.</p>
+            <strong>Nenhum espaço nesta lista</strong>
+            <p>Não há anúncios com a situação {statusAba.toLowerCase()}.</p>
           </div>
         ) : (
           <div className="table-responsive">
@@ -165,11 +169,13 @@ export default function EspacosTab() {
     {espacos.map((espaco) => (
       <tr key={espaco.id}>
         <td className="admin-td">
-          <strong>{espaco.titulo}</strong>
+          <button type="button" className="adm-ver" onClick={() => abrirDetalhe(espaco)}>
+            {espaco.titulo}
+          </button>
           
           {/* Badge limpa usando a classe .badge-reenviado */}
           {espaco.reenviado && (
-            <span className="badge-reenviado">🔄 Reenviado</span>
+            <span className="badge-reenviado">Reenviado</span>
           )}
           
           <br/>
@@ -201,13 +207,16 @@ export default function EspacosTab() {
         )}
 
         <td className="admin-td action-buttons">
+          <button type="button" className="btn-sm" onClick={() => abrirDetalhe(espaco)}>
+            Ver detalhes
+          </button>
           {statusAba !== 'APROVADO' && (
             <button 
               className="btn-sm btn-approve" 
               onClick={() => handleAprovar(espaco)}
               disabled={processandoId === espaco.id}
             >
-              {processandoId === espaco.id ? '⏳...' : '✔️ Aprovar'}
+              {processandoId === espaco.id ? 'Salvando…' : 'Aprovar'}
             </button>
           )}
 
@@ -217,7 +226,7 @@ export default function EspacosTab() {
               onClick={() => handleAbrirModalRejeitar(espaco)}
               disabled={processandoId === espaco.id}
             >
-              {processandoId === espaco.id ? '⏳...' : '✖️ Rejeitar'}
+              {processandoId === espaco.id ? 'Salvando…' : 'Recusar'}
             </button>
           )}
         </td>
@@ -229,6 +238,21 @@ export default function EspacosTab() {
         )}
       </div>
 
+      {detalhe && (
+        <DetalheEspacoModal
+          espaco={detalhe.espaco}
+          carregando={detalhe.carregando}
+          erro={detalhe.erro}
+          processando={processandoId === detalhe.espaco?.id}
+          onFechar={() => setDetalhe(null)}
+          onAprovar={async (espaco) => {
+            const resultado = await handleAprovar(espaco);
+            if (resultado !== "cancelado") setDetalhe(null);
+          }}
+          onRecusar={handleAbrirModalRejeitar}
+        />
+      )}
+
       {/* MODAL DE REJEIÇÃO */}
       {modalRejeitarAberto && (
         <div className="modal-overlay">
@@ -237,27 +261,30 @@ export default function EspacosTab() {
             <p>Informe o motivo da rejeição do espaço <strong>"{espacoSelecionado?.titulo}"</strong>:</p>
             
             <textarea
+              className="adm-campo"
               value={motivoRejeicao}
               onChange={(e) => setMotivoRejeicao(e.target.value)}
-              placeholder="Digite o motivo aqui..."
+              maxLength={500}
+              placeholder="Descreva o que precisa mudar"
               rows={4}
-              style={{ width: '100%', marginTop: '10px', marginBottom: '15px' }}
             />
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button 
-                className="btn-sm" 
+            <div className="adm-modal-acoes">
+              <button
+                type="button"
+                className="btn btn-cancelar"
                 onClick={() => setModalRejeitarAberto(false)}
                 disabled={processandoId !== null}
               >
                 Cancelar
               </button>
-              <button 
-                className="btn-sm btn-reject" 
+              <button
+                type="button"
+                className="btn btn-reject"
                 onClick={handleConfirmarRejeicao}
                 disabled={processandoId !== null}
               >
-                {processandoId !== null ? 'Salvando...' : 'Confirmar Rejeição'}
+                {processandoId !== null ? 'Salvando…' : 'Confirmar recusa'}
               </button>
             </div>
           </div>

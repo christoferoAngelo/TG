@@ -51,7 +51,7 @@ export default function Dashboard() {
     // O que a pessoa já tem
     const ehLocatario = Boolean(usuarioLogado?.isLocatario || perfilLocatario);
     const ehLocador = Boolean(usuarioLogado?.isLocador || usuarioLogado?.locador || perfilLocador);
-    const ehAdmin = Boolean(usuarioLogado?.admin);
+    const ehAdmin = Boolean(usuarioLogado?.admin || usuarioLogado?.isAdmin);
 
     const temTelefone = Boolean(usuarioLogado?.telefone && usuarioLogado.telefone.trim() !== "");
     const temEndereco = Boolean(usuarioLogado?.endereco?.cep);

@@ -40,7 +40,9 @@
     font-size: 13px;
 }
 
-.sl-nova label {
+.sl-nova form {
+    margin-top: 12px;
+}
     display: block;
     margin-bottom: 8px;
     font-size: 14px;

@@ -33,13 +33,10 @@ function dataMinimaISO(dias) {
     return `${d.getFullYear()}-${mes}-${dia}`;
 }
 
-function textoRegrasVisivel(texto) {
-    if (!texto) return "";
-    return texto
-        .split(/\n\n/)
-        .filter((parte) => !parte.trim().startsWith("Antecedência mínima:"))
-        .join("\n\n")
-        .trim();
+function comPonto(texto) {
+    const limpo = String(texto || "").trim().replace(/\s+/g, " ");
+    if (!limpo) return "";
+    return /[.!?…]$/.test(limpo) ? limpo : `${limpo}.`;
 }
 
 function formatarISO(iso) {
@@ -229,7 +226,16 @@ export default function DetalhesEspaco() {
                 }
                 return res.json();
             })
-            .then((d) => ativo && setDisp(d))
+            .then((d) => {
+                if (!ativo) return;
+                setDisp(d);
+                const livres = (d?.periodos || []).filter((periodo) => periodo.disponivel);
+                const personalizado = espaco?.permiteHorarioPersonalizado === true;
+                const opcoes = livres.length + (personalizado ? 1 : 0);
+                if (opcoes === 1) {
+                    setEscolha(livres.length === 1 ? chavePeriodo(livres[0]) : "PERSONALIZADO");
+                }
+            })
             .catch((e) => {
                 if (!ativo) return;
                 setDisp(null);
@@ -240,7 +246,7 @@ export default function DetalhesEspaco() {
         return () => {
             ativo = false;
         };
-    }, [id, data, recarga, dataMinima, antecedenciaDias]);
+    }, [id, data, recarga, dataMinima, antecedenciaDias, espaco?.permiteHorarioPersonalizado]);
 
     /* ---------- fotos ---------- */
 
@@ -568,12 +574,37 @@ export default function DetalhesEspaco() {
                                 )}
                             </dl>
 
-                            {textoRegrasVisivel(espaco.restricoesHorario) && (
-                                <div className="dt-aviso">
-                                    <strong>Regras e restrições</strong>
-                                    <p>{textoRegrasVisivel(espaco.restricoesHorario)}</p>
-                                </div>
-                            )}
+                            {(() => {
+                                const regras = interpretarRegras(espaco.restricoesHorario);
+                                const acrescimos = Object.entries(regras.adicionais || {});
+                                const blocos = [
+                                    regras.tiposEvento.length > 0 && {
+                                        titulo: "Eventos aceitos",
+                                        texto: regras.tiposEvento.map(comPonto).join(" "),
+                                    },
+                                    regras.regrasSom && { titulo: "Regras gerais e de som", texto: comPonto(regras.regrasSom) },
+                                    regras.regrasLimpeza && { titulo: "Limpeza e danos", texto: comPonto(regras.regrasLimpeza) },
+                                    regras.regrasAcesso && { titulo: "Segurança e acesso", texto: comPonto(regras.regrasAcesso) },
+                                    acrescimos.length > 0 && {
+                                        titulo: "Acréscimos por turno",
+                                        texto: acrescimos
+                                            .map(([nome, valor]) => `${nome}: ${moeda(valor)}.`)
+                                            .join(" "),
+                                    },
+                                ].filter(Boolean);
+                                if (blocos.length === 0) return null;
+                                return (
+                                    <div className="dt-regras">
+                                        <h2>Regras e restrições</h2>
+                                        {blocos.map((bloco) => (
+                                            <section key={bloco.titulo}>
+                                                <h3>{bloco.titulo}</h3>
+                                                <p>{bloco.texto}</p>
+                                            </section>
+                                        ))}
+                                    </div>
+                                );
+                            })()}
                         </section>
 
                         {/* ---------- Cômodos ---------- */}
@@ -817,7 +848,7 @@ export default function DetalhesEspaco() {
 
                             <div className="dt-campo">
                                 <label htmlFor="dt-obs">
-                                    Tipo de evento <span className="dt-opcional">(opcional)</span>
+                                    Observações <span className="dt-opcional">(opcional)</span>
                                 </label>
                                 <textarea
                                     id="dt-obs"

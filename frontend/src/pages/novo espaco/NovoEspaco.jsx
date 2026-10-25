@@ -17,6 +17,8 @@ const ROTA_PAINEL = "/perfil_locador";
 
 const API = "http://localhost:8080/api";
 const MAX_FOTO_MB = 10;
+const MAX_FOTOS_AMBIENTE = 8;
+const MAX_FOTOS_ESPACO = 24;
 
 const ESTADO_INICIAL = {
     titulo: "",
@@ -30,7 +32,8 @@ const ESTADO_INICIAL = {
     aprovacaoInstantanea: false,
     antecedenciaMinimaDias: "0",
     prazoCancelamentoDias: "2",
-    tipoLocacao: "INTEGRAL",
+    aceitaIntegral: true,
+    aceitaFracionado: false,
     duracaoMaxHoras: "",
     intervaloLimpezaMin: "",
     regrasSom: "",
@@ -96,12 +99,11 @@ async function enviarParaCloudinary(arquivo) {
     return data.secure_url;
 }
 
-function tipoLocacaoDe(espaco) {
+function formasDe(espaco) {
     const integral = espaco.permitePeriodoIntegral !== false;
     const fracionado = Boolean(espaco.permiteMeioPeriodo);
-    if (fracionado && !integral) return "FRACIONADO";
-    if (fracionado && espaco.duracaoMaxHoras != null && Number(espaco.duracaoMaxHoras) > 0) return "FRACIONADO";
-    return "INTEGRAL";
+    const fracionadoReal = fracionado && (espaco.duracaoMaxHoras != null || !integral);
+    return { aceitaIntegral: integral, aceitaFracionado: fracionadoReal };
 }
 
 function temErros(erros) {
@@ -175,9 +177,9 @@ export default function NovoEspaco() {
 
                 const abre = formatarHora(e.horarioAbertura);
                 const fecha = formatarHora(e.horarioFechamento);
-                const tipoLocacao = tipoLocacaoDe(e);
+                const formas = formasDe(e);
                 const regras = interpretarRegras(e.restricoesHorario);
-                const valorBase = tipoLocacao === "FRACIONADO"
+                const valorBase = formas.aceitaFracionado && !formas.aceitaIntegral
                     ? (e.valorMeioPeriodo ?? e.valorDiaria)
                     : e.valorDiaria;
 
@@ -194,7 +196,8 @@ export default function NovoEspaco() {
                     aprovacaoInstantanea: Boolean(e.aprovacaoInstantanea),
                     antecedenciaMinimaDias: String(antecedenciaSalva(e)),
                     prazoCancelamentoDias: e.prazoCancelamentoDias == null ? "2" : String(e.prazoCancelamentoDias),
-                    tipoLocacao,
+                    aceitaIntegral: formas.aceitaIntegral,
+                    aceitaFracionado: formas.aceitaFracionado,
                     duracaoMaxHoras: e.duracaoMaxHoras == null ? "" : String(e.duracaoMaxHoras),
                     intervaloLimpezaMin: String(e.intervaloLimpezaMin ?? 0),
                     regrasSom: regras.regrasSom,
@@ -254,9 +257,10 @@ export default function NovoEspaco() {
         setForm((prev) => ({ ...prev, [campo]: valor }));
         limparErro(campo);
         if (campo === "horarioAbertura") limparErro("horarioFechamento");
-        if (campo === "tipoLocacao") {
+        if (campo === "aceitaFracionado" || campo === "aceitaIntegral") {
             limparErro("duracaoMaxHoras");
             limparErro("intervaloLimpezaMin");
+            limparErro("formas");
         }
     };
 
@@ -375,15 +379,22 @@ export default function NovoEspaco() {
         const limite = MAX_FOTO_MB * 1024 * 1024;
         const validos = arquivos.filter((f) => f.type.startsWith("image/") && f.size <= limite);
         const recusados = arquivos.length - validos.length;
+        const ambiente = ambientes.find((item) => item.id === ambId);
+        const usadas = ambientes.reduce((soma, item) => soma + item.fotos.length, 0);
+        const vagaAmbiente = Math.max(0, MAX_FOTOS_AMBIENTE - (ambiente?.fotos.length || 0));
+        const vagaTotal = Math.max(0, MAX_FOTOS_ESPACO - usadas);
+        const aceitas = validos.slice(0, Math.min(vagaAmbiente, vagaTotal));
+        const excedeu = validos.length - aceitas.length;
 
-        setAvisoFotos(
-            recusados > 0
-                ? `${recusados} arquivo(s) ignorado(s). Use imagens de até ${MAX_FOTO_MB} MB.`
-                : ""
-        );
-        if (validos.length === 0) return;
+        const avisos = [];
+        if (recusados > 0) avisos.push(`Use imagens de até ${MAX_FOTO_MB} MB.`);
+        if (excedeu > 0) {
+            avisos.push(`Cada cômodo aceita até ${MAX_FOTOS_AMBIENTE} fotos, e o anúncio até ${MAX_FOTOS_ESPACO}.`);
+        }
+        setAvisoFotos(avisos.join(" "));
+        if (aceitas.length === 0) return;
 
-        const novas = validos.map((file) => ({ id: novoId(), file, preview: URL.createObjectURL(file) }));
+        const novas = aceitas.map((file) => ({ id: novoId(), file, preview: URL.createObjectURL(file) }));
         setAmbientes((prev) =>
             prev.map((a) => (a.id === ambId ? { ...a, fotos: [...a.fotos, ...novas] } : a))
         );
@@ -485,7 +496,7 @@ export default function NovoEspaco() {
     };
 
     const turnosAtuais = () => {
-        if (form.tipoLocacao !== "FRACIONADO") return [];
+        if (!form.aceitaFracionado) return [];
         return calcularTurnos({
             abertura: form.horarioAbertura,
             fechamento: form.horarioFechamento,
@@ -538,7 +549,7 @@ export default function NovoEspaco() {
             return;
         }
 
-        const fracionado = form.tipoLocacao === "FRACIONADO";
+        const fracionado = form.aceitaFracionado;
         const valorBase = Number(form.valorDiaria);
         const preenchidos = ambientes.filter((a) => a.titulo.trim() || a.descricao.trim() || a.fotos.length > 0);
 
@@ -588,8 +599,8 @@ export default function NovoEspaco() {
                     horarioAbertura: form.horarioAbertura,
                     horarioFechamento: form.horarioFechamento,
                     fechaNoDiaSeguinte: form.fechaNoDiaSeguinte,
-                    permiteMeioPeriodo: fracionado,
-                    permitePeriodoIntegral: !fracionado,
+                    permiteMeioPeriodo: form.aceitaFracionado,
+                    permitePeriodoIntegral: form.aceitaIntegral,
                     permiteHorarioPersonalizado: false,
                     aprovacaoInstantanea: Boolean(form.aprovacaoInstantanea),
                     antecedenciaMinimaDias: form.antecedenciaMinimaDias === ""
