@@ -360,6 +360,11 @@ public void excluirUsuario(Long idUsuarioParaExcluir) {
             .orElseThrow(() ->
                     new EntityNotFoundException("Usuário não encontrado."));
 
+    if (usuario.getEmail() != null
+            && usuario.getEmail().equalsIgnoreCase(com.eva.locafesta.core.AdminInicializador.MASTER_EMAIL)) {
+        throw new IllegalStateException("O administrador master não pode ser excluído.");
+    }
+
     // Guarda as informações antes de excluir
     Long idExcluido = usuario.getId();
     String nomeExcluido = usuario.getNome();

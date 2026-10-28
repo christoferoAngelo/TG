@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import GlideSelect from "../../../components/bits/GlideSelect";
+import BotaoImagem from "../../../components/ui/BotaoImagem";
 import Campo from "./Campo";
 
 export const TIPOS_VINCULO = [
@@ -118,12 +119,13 @@ export default function EtapaDocumentos({
                         erro={erros.documentoArquivo}
                         dica="PDF ou imagem. O envio ao Cloudinary acontece ao concluir."
                     >
-                        <input
+                        <BotaoImagem
                             id="ne-documento-arquivo"
-                            type="file"
-                            className="ne-input"
                             accept="image/*,.pdf,application/pdf"
-                            aria-invalid={erros.documentoArquivo ? "true" : undefined}
+                            nomeArquivo={documento.nomeArquivo || ""}
+                            rotulo="Adicionar arquivo"
+                            rotuloTroca="Trocar arquivo"
+                            dica="PDF ou imagem"
                             onChange={(e) => {
                                 const arquivo = e.target.files?.[0] || null;
                                 setDocumento((prev) => ({
@@ -133,7 +135,6 @@ export default function EtapaDocumentos({
                                 }));
                             }}
                         />
-                        {documento.nomeArquivo && <small className="ne-dica">{documento.nomeArquivo}</small>}
                     </Campo>
                 </div>
 
@@ -160,12 +161,13 @@ export default function EtapaDocumentos({
                             />
                         </Campo>
                         <Campo id="ne-seguranca-arquivo" label="Arquivo de segurança" opcional erro={erros.segurancaArquivo}>
-                            <input
+                            <BotaoImagem
                                 id="ne-seguranca-arquivo"
-                                type="file"
-                                className="ne-input"
                                 accept="image/*,.pdf,application/pdf"
-                                aria-invalid={erros.segurancaArquivo ? "true" : undefined}
+                                nomeArquivo={seguranca.nomeArquivo || ""}
+                                rotulo="Adicionar arquivo"
+                                rotuloTroca="Trocar arquivo"
+                                dica="PDF ou imagem"
                                 onChange={(e) => {
                                     const arquivo = e.target.files?.[0] || null;
                                     setSeguranca((prev) => ({
@@ -175,7 +177,6 @@ export default function EtapaDocumentos({
                                     }));
                                 }}
                             />
-                            {seguranca.nomeArquivo && <small className="ne-dica">{seguranca.nomeArquivo}</small>}
                         </Campo>
                     </div>
                 )}

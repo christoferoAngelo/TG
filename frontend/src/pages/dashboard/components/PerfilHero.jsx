@@ -1,4 +1,5 @@
 import React from "react";
+import BotaoImagem from "../../../components/ui/BotaoImagem";
 
 const iniciaisDe = (nome = "") =>
     nome
@@ -21,19 +22,21 @@ export default function PerfilHero({ nome, email, fotoUrl, tipos, feitos, total,
                 <div className="pf-avatar" aria-hidden="true">
                     {fotoUrl ? <img src={fotoUrl} alt="" /> : (iniciaisDe(nome) || "?")}
                 </div>
-                <label className="pf-foto-btn">
-                    {enviandoFoto ? "Enviando…" : "Alterar foto"}
-                    <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        disabled={enviandoFoto}
-                        onChange={(evento) => {
-                            const arquivo = evento.target.files?.[0];
-                            evento.target.value = "";
-                            if (arquivo) onFoto?.(arquivo);
-                        }}
-                    />
-                </label>
+                <BotaoImagem
+                    className="pf-foto-upload"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={enviandoFoto}
+                    preview={fotoUrl || ""}
+                    compacto
+                    rotulo={enviandoFoto ? "Enviando…" : "Adicionar foto"}
+                    rotuloTroca={enviandoFoto ? "Enviando…" : "Trocar foto"}
+                    dica="JPG, PNG ou WEBP"
+                    onChange={(evento) => {
+                        const arquivo = evento.target.files?.[0];
+                        evento.target.value = "";
+                        if (arquivo) onFoto?.(arquivo);
+                    }}
+                />
                 {erroFoto && <p className="pf-foto-erro" role="alert">{erroFoto}</p>}
             </div>
 

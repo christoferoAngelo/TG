@@ -24,10 +24,14 @@ export default function NovoAdminTab() {
   const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState(null);
   const [erro, setErro] = useState(null);
+  const [pendenteExcluir, setPendenteExcluir] = useState(null);
   
   // Controle do modo de Edição
   const [isEditing, setIsEditing] = useState(false);
   const [adminEmEdicao, setAdminEmEdicao] = useState(null);
+
+  const ADMIN_MASTER = 'locafesta.suporte@gmail.com';
+  const ehMaster = (admin) => (admin?.email || '').toLowerCase() === ADMIN_MASTER;
 
   // --------------------------------------------------------------------------
   // FUNÇÃO AUXILIAR DE AUTENTICAÇÃO (AGUARDA O FIREBASE INICIALIZAR)
@@ -171,26 +175,34 @@ export default function NovoAdminTab() {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
-  const handleDeleteClick = async (admin) => {
-    if (admins.length <= 1) {
-      alert("Operação negada: o sistema precisa de pelo menos um administrador.");
+  const handleDeleteClick = (admin) => {
+    setMensagem(null);
+    setErro(null);
+    if (ehMaster(admin)) {
+      setErro('O administrador master não pode ser excluído.');
       return;
     }
+    if (admins.length <= 1) {
+      setErro('O sistema precisa de pelo menos um administrador.');
+      return;
+    }
+    setPendenteExcluir(admin);
+  };
 
-    const confirmar = window.confirm(`Tem certeza que deseja excluir o administrador "${admin.nome || admin.email}"?`);
-    if (!confirmar) return;
-
+  const confirmarExclusao = async () => {
+    if (!pendenteExcluir) return;
     try {
       const config = await obterConfigComToken();
-      const id = admin.id || admin.firebaseUid;
-      
+      const id = pendenteExcluir.id || pendenteExcluir.firebaseUid;
       await axios.delete(`${API_BASE_URL}/api/users/${id}`, config);
-      
-      setMensagem("Administrador excluído com sucesso!");
+      setMensagem('Administrador excluído com sucesso.');
       carregarAdmins();
     } catch (err) {
-      console.error("Erro ao excluir administrador:", err);
-      setErro("Erro ao excluir administrador. Verifique o console.");
+      console.error('Erro ao excluir administrador:', err);
+      const msg = err.response?.data;
+      setErro(typeof msg === 'string' && msg ? msg : 'Erro ao excluir administrador.');
+    } finally {
+      setPendenteExcluir(null);
     }
   };
 
@@ -204,6 +216,9 @@ export default function NovoAdminTab() {
         <h3>Equipe atual</h3>
         <p className="section-description">Contas com privilégio de administração.</p>
         
+        {mensagem && <div className="adm-sucesso" role="status">{mensagem}</div>}
+        {erro && <div className="error-message" role="alert">{erro}</div>}
+
         {loadingList ? (
           <div className="adm-vazio"><p>Carregando administradores…</p></div>
         ) : (
@@ -231,12 +246,15 @@ export default function NovoAdminTab() {
                       >
                         Editar
                       </button>
-                      <button 
-                        className="btn-sm btn-delete" 
-                        onClick={() => handleDeleteClick(adm)}
-                      >
-                        Excluir
-                      </button>
+                      {!ehMaster(adm) && (
+                        <button
+                          type="button"
+                          className="btn-sm btn-delete"
+                          onClick={() => handleDeleteClick(adm)}
+                        >
+                          Excluir
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -255,8 +273,8 @@ export default function NovoAdminTab() {
             : 'Crie um acesso para quem vai operar este painel.'}
         </p>
         
-        {mensagem && <div className="alert-success">{mensagem}</div>}
-        {erro && <div className="alert-error">{erro}</div>}
+        {mensagem && <div className="adm-sucesso" role="status">{mensagem}</div>}
+        {erro && <div className="error-message" role="alert">{erro}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -334,6 +352,19 @@ export default function NovoAdminTab() {
           </div>
         </form>
       </div>
+
+      {pendenteExcluir && (
+        <div className="adm-confirm" role="dialog" aria-modal="true">
+          <div className="adm-confirm-caixa">
+            <h4>Excluir administrador?</h4>
+            <p>Remover “{pendenteExcluir.nome || pendenteExcluir.email}” da equipe.</p>
+            <div className="adm-confirm-acoes">
+              <button type="button" className="btn" onClick={() => setPendenteExcluir(null)}>Cancelar</button>
+              <button type="button" className="btn btn-delete" onClick={confirmarExclusao}>Excluir</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

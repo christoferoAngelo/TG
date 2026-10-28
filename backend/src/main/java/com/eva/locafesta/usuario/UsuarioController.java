@@ -108,8 +108,12 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluirUsuario(@PathVariable Long id) {
-        usuarioService.excluirUsuario(id);
-        return ResponseEntity.noContent().build(); 
+    public ResponseEntity<?> excluirUsuario(@PathVariable Long id) {
+        try {
+            usuarioService.excluirUsuario(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalStateException erro) {
+            return ResponseEntity.badRequest().body(erro.getMessage());
+        }
     }
 }

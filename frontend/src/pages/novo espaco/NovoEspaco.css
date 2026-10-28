@@ -443,36 +443,19 @@
     opacity: 1;
 }
 
-.ne-foto-add {
-    position: relative;
+.ne-foto-add-btn {
+    min-height: 100%;
     aspect-ratio: 4 / 3;
-    display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    gap: 2px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-text-muted);
-    border: 1.5px dashed var(--color-border);
-    border-radius: 10px;
-    cursor: pointer;
     text-align: center;
-    transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-.ne-foto-add:hover,
-.ne-foto-add:focus-within {
-    border-color: var(--color-text);
-    color: var(--color-text);
+.ne-foto-add-btn .btn-imagem__textos {
+    align-items: center;
 }
 
-.ne-foto-add-mais {
-    font-size: 22px;
-    line-height: 1;
-}
-
-.ne-fotos.ne-campo--erro .ne-foto-add {
+.ne-fotos.ne-campo--erro .ne-foto-add-btn {
     border-color: var(--color-danger, #b3261e);
     color: var(--color-danger, #b3261e);
 }

@@ -36,7 +36,6 @@ public class Usuario {
     @CreationTimestamp
     @Column(name = "data_cadastro", updatable = false)
     private LocalDateTime dataCadastro;
-    
     @Column(name = "data_ativo")
     private LocalDateTime dataAtivo;
 

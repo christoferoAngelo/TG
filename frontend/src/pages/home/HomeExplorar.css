@@ -233,6 +233,28 @@
     position: relative;
 }
 
+.hm-entrar {
+    height: 40px;
+    padding: 0 18px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.hm-entrar:hover {
+    background: var(--color-primary-dark);
+}
+
+.hm-entrar:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}
+
 .hm-perfil-botao {
     display: flex;
     align-items: center;
@@ -833,22 +855,50 @@
     font-weight: 600;
 }
 
+.hm-filtro-busca {
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
 .hm-comodidades {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 2px;
 }
 
-.hm-comodidades label {
+.hm-comodidade {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
+    background: var(--color-surface);
     font-size: 14px;
     font-weight: 600;
+    opacity: 0.45;
+    transition: opacity 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.hm-comodidade:hover {
+    opacity: 0.75;
+}
+
+.hm-comodidade--ativa {
+    opacity: 1;
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+}
+
+.hm-comodidade-ico {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex: 0 0 auto;
 }
 
 .hm-modal-rodape {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import GlideSelect from "../bits/GlideSelect";
+import BotaoImagem from "../ui/BotaoImagem";
 
 const API_URL = "http://localhost:8080";
 
@@ -225,19 +226,14 @@ function EnviarDocumento({
 
 
                 <div>
-
-                    <label>
-                        Imagem do documento
-                    </label>
-
-                    <input
-                        type="file"
+                    <label>Imagem do documento</label>
+                    <BotaoImagem
                         accept="image/*"
-                        onChange={(e) =>
-                            setArquivo(e.target.files[0])
-                        }
+                        nomeArquivo={arquivo?.name || ""}
+                        rotulo="Adicionar imagem"
+                        rotuloTroca="Trocar imagem"
+                        onChange={(e) => setArquivo(e.target.files?.[0] || null)}
                     />
-
                 </div>
 
 

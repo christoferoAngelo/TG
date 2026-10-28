@@ -1,18 +1,29 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Slider } from "../../../components/base/slider/slider";
 import GlideSelect from "../../../components/bits/GlideSelect";
 import SpringCheck from "../../../components/bits/SpringCheck";
 
 export default function ModalFiltros({ aberto, filtros, comodidades, onChange, onLimpar, onFechar }) {
+    const [buscaComodidade, setBuscaComodidade] = useState("");
+
     useEffect(() => {
-        if (!aberto) return undefined;
+        if (!aberto) {
+            setBuscaComodidade("");
+            return undefined;
+        }
         const tecla = (evento) => {
             if (evento.key === "Escape") onFechar();
         };
         document.addEventListener("keydown", tecla);
         return () => document.removeEventListener("keydown", tecla);
     }, [aberto, onFechar]);
+
+    const comodidadesFiltradas = useMemo(() => {
+        const termo = buscaComodidade.trim().toLowerCase();
+        if (!termo) return comodidades;
+        return comodidades.filter((item) => String(item.nome || "").toLowerCase().includes(termo));
+    }, [comodidades, buscaComodidade]);
 
     if (!aberto) return null;
 
@@ -107,25 +118,51 @@ export default function ModalFiltros({ aberto, filtros, comodidades, onChange, o
                     <fieldset>
                         <legend>Comodidades</legend>
                         {comodidades.length === 0 ? (
-                            <p className="hm-filtro-vazio">Nenhuma comodidade cadastrada nos espaços desta busca.</p>
+                            <p className="hm-filtro-vazio">Nenhuma característica cadastrada ainda.</p>
                         ) : (
-                            <div className="hm-comodidades">
-                                {comodidades.map((item) => (
-                                    <SpringCheck
-                                        key={item.id || item.nome}
-                                        label={item.nome}
-                                        checked={filtros.comodidades.includes(item.nome)}
-                                        onChange={() => alternarComodidade(item.nome)}
-                                        color="#130501"
-                                        fillColor="#FECB5A"
-                                        checkColor="#130501"
-                                        boxSize={20}
-                                        fontSize={14}
-                                        doneOpacity={1}
-                                        strikeLag={1}
+                            <>
+                                <label className="hm-filtro-linha hm-filtro-busca">
+                                    Buscar comodidade
+                                    <input
+                                        type="search"
+                                        value={buscaComodidade}
+                                        onChange={(evento) => setBuscaComodidade(evento.target.value)}
+                                        placeholder="Ex.: piscina, buffet…"
+                                        autoComplete="off"
                                     />
-                                ))}
-                            </div>
+                                </label>
+                                {comodidadesFiltradas.length === 0 ? (
+                                    <p className="hm-filtro-vazio">Nenhuma comodidade com esse nome.</p>
+                                ) : (
+                                    <div className="hm-comodidades">
+                                        {comodidadesFiltradas.map((item) => {
+                                            const ativa = filtros.comodidades.includes(item.nome);
+                                            return (
+                                                <div
+                                                    key={item.id || item.nome}
+                                                    className={`hm-comodidade${ativa ? " hm-comodidade--ativa" : ""}`}
+                                                >
+                                                    {item.icone ? (
+                                                        <img src={item.icone} alt="" className="hm-comodidade-ico" />
+                                                    ) : null}
+                                                    <SpringCheck
+                                                        label={item.nome}
+                                                        checked={ativa}
+                                                        onChange={() => alternarComodidade(item.nome)}
+                                                        color="#130501"
+                                                        fillColor="#FECB5A"
+                                                        checkColor="#130501"
+                                                        boxSize={20}
+                                                        fontSize={14}
+                                                        doneOpacity={1}
+                                                        strike="none"
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </>
                         )}
                     </fieldset>
                 </div>

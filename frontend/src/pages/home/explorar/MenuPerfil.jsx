@@ -50,6 +50,16 @@ export default function MenuPerfil() {
         navigate("/home");
     };
 
+    if (!usuarioLogado) {
+        return (
+            <div className="hm-perfil" ref={caixaRef}>
+                <button type="button" className="hm-entrar" onClick={() => ir("/login")}>
+                    Entrar
+                </button>
+            </div>
+        );
+    }
+
     return (
         <div className="hm-perfil" ref={caixaRef}>
             <button
@@ -57,40 +67,31 @@ export default function MenuPerfil() {
                 className="hm-perfil-botao"
                 aria-expanded={aberto}
                 aria-haspopup="menu"
+                aria-label={`Menu de ${nome}`}
                 onClick={() => setAberto((atual) => !atual)}
             >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M5 7.5h14M5 12h14M5 16.5h14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
                 <span className="hm-avatar" aria-hidden="true">
-                    {usuarioLogado?.fotoUrl ? <img src={usuarioLogado.fotoUrl} alt="" /> : (usuarioLogado ? inicial : "")}
+                    {usuarioLogado.fotoUrl ? <img src={usuarioLogado.fotoUrl} alt="" /> : inicial}
                 </span>
-                <span className="hm-sr">{usuarioLogado ? `Menu de ${nome}` : "Menu da conta"}</span>
             </button>
 
             {aberto && (
                 <div className="hm-perfil-menu" role="menu">
                     <p className="hm-perfil-idioma">Português (Brasil)</p>
-                    {usuarioLogado ? (
-                        <>
-                            <button type="button" role="menuitem" onClick={() => ir("/favoritos")}>Favoritos</button>
-                            <button type="button" role="menuitem" onClick={() => ir("/perfil")}>Meu perfil</button>
-                            <button type="button" role="menuitem" onClick={() => ir("/minhas-reservas")}>Minhas reservas</button>
-                            <button
-                                type="button"
-                                role="menuitem"
-                                onClick={() => ir(locador ? "/perfil_locador" : "/cadastro-locador")}
-                            >
-                                {locador ? "Painel de anúncios" : "Anunciar um espaço"}
-                            </button>
-                            <button type="button" role="menuitem" onClick={sair}>Sair</button>
-                        </>
-                    ) : (
-                        <>
-                            <button type="button" role="menuitem" onClick={() => ir("/login")}>Entrar</button>
-                            <button type="button" role="menuitem" onClick={() => ir("/login")}>Anunciar um espaço</button>
-                        </>
-                    )}
+                    <button type="button" role="menuitem" onClick={() => ir("/favoritos")}>Favoritos</button>
+                    <button type="button" role="menuitem" onClick={() => ir("/perfil")}>Meu perfil</button>
+                    <button type="button" role="menuitem" onClick={() => ir("/minhas-reservas")}>Minhas reservas</button>
+                    <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => ir(locador ? "/perfil_locador" : "/cadastro-locador")}
+                    >
+                        {locador ? "Painel de anúncios" : "Anunciar um espaço"}
+                    </button>
+                    <button type="button" role="menuitem" onClick={sair}>Sair</button>
                 </div>
             )}
         </div>

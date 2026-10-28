@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Campo from "./Campo";
+import BotaoImagem from "../../../components/ui/BotaoImagem";
 import { TIPOS_EVENTO } from "../tiposEvento";
 
 const COMISSAO = 0.1;
@@ -272,20 +273,19 @@ export default function EtapaBasico({
                                                     </button>
                                                 </figure>
                                             ))}
-                                            <label className="ne-foto-add">
-                                                <input
-                                                    type="file"
-                                                    className="ne-sr"
-                                                    accept="image/*"
-                                                    multiple
-                                                    onChange={(e) => {
-                                                        adicionarFotos(amb.id, e.target.files);
-                                                        e.target.value = "";
-                                                    }}
-                                                />
-                                                <span className="ne-foto-add-mais">+</span>
-                                                <span>Enviar fotos</span>
-                                            </label>
+                                            <BotaoImagem
+                                                className="ne-foto-add-btn"
+                                                accept="image/*"
+                                                multiple
+                                                compacto
+                                                rotulo="Adicionar fotos"
+                                                rotuloTroca="Adicionar mais fotos"
+                                                dica="Até 8 por cômodo"
+                                                onChange={(e) => {
+                                                    adicionarFotos(amb.id, e.target.files);
+                                                    e.target.value = "";
+                                                }}
+                                            />
                                         </div>
                                         {erroAmb.fotos && <small className="ne-erro">{erroAmb.fotos}</small>}
                                     </div>

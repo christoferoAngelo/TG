@@ -54,6 +54,8 @@ export default function Auth() {
     const [aguardandoVerificacao, setAguardandoVerificacao] = useState(false);
     const [carregando, setCarregando] = useState(false);
     const [termosAbertos, setTermosAbertos] = useState(false);
+    const [mostrarSenha, setMostrarSenha] = useState(false);
+    const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
     const acaoTermos = useRef(null);
 
     const limparAvisos = () => {
@@ -495,17 +497,37 @@ export default function Auth() {
 
                         <div className="auth-campo">
                             <label htmlFor="auth-senha">Senha</label>
-                            <input
-                                id="auth-senha"
-                                type="password"
-                                className="auth-input"
-                                value={senha}
-                                onChange={alterarCampo("auth-senha", setSenha)}
-                                required
-                                autoComplete={isRegistering ? "new-password" : "current-password"}
-                                aria-invalid={erro?.campo === "auth-senha"}
-                                aria-describedby={erro?.campo === "auth-senha" ? "erro-auth-senha" : undefined}
-                            />
+                            <div className="auth-senha-caixa">
+                                <input
+                                    id="auth-senha"
+                                    type={mostrarSenha ? "text" : "password"}
+                                    className="auth-input"
+                                    value={senha}
+                                    onChange={alterarCampo("auth-senha", setSenha)}
+                                    required
+                                    autoComplete={isRegistering ? "new-password" : "current-password"}
+                                    aria-invalid={erro?.campo === "auth-senha"}
+                                    aria-describedby={erro?.campo === "auth-senha" ? "erro-auth-senha" : undefined}
+                                />
+                                <button
+                                    type="button"
+                                    className="auth-ver-senha"
+                                    onClick={() => setMostrarSenha((atual) => !atual)}
+                                    aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                                    aria-pressed={mostrarSenha}
+                                >
+                                    {mostrarSenha ? (
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M3 3l18 18M10.6 10.6a2.5 2.5 0 0 0 3.5 3.5M9.5 5.3A9.5 9.5 0 0 1 12 5c5 0 9 4.5 10 7-.4 1-1.4 2.5-2.9 3.9M6.1 6.1C4.2 7.5 2.9 9.4 2 12c1 2.5 5 7 10 7 1.5 0 2.9-.3 4.1-.8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    ) : (
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" strokeWidth="1.7" />
+                                            <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
                             <ErroDoCampo erro={erro} campo="auth-senha" />
                             {!isRegistering && (
                                 <button
@@ -522,21 +544,41 @@ export default function Auth() {
                         {isRegistering && (
                             <div className="auth-campo">
                                 <label htmlFor="auth-confirmar-senha">Confirmar senha</label>
-                                <input
-                                    id="auth-confirmar-senha"
-                                    type="password"
-                                    className="auth-input"
-                                    value={confirmarSenha}
-                                    onChange={alterarCampo("auth-confirmar-senha", setConfirmarSenha)}
-                                    required
-                                    autoComplete="new-password"
-                                    aria-invalid={erro?.campo === "auth-confirmar-senha"}
-                                    aria-describedby={
-                                        erro?.campo === "auth-confirmar-senha"
-                                            ? "erro-auth-confirmar-senha"
-                                            : undefined
-                                    }
-                                />
+                                <div className="auth-senha-caixa">
+                                    <input
+                                        id="auth-confirmar-senha"
+                                        type={mostrarConfirmarSenha ? "text" : "password"}
+                                        className="auth-input"
+                                        value={confirmarSenha}
+                                        onChange={alterarCampo("auth-confirmar-senha", setConfirmarSenha)}
+                                        required
+                                        autoComplete="new-password"
+                                        aria-invalid={erro?.campo === "auth-confirmar-senha"}
+                                        aria-describedby={
+                                            erro?.campo === "auth-confirmar-senha"
+                                                ? "erro-auth-confirmar-senha"
+                                                : undefined
+                                        }
+                                    />
+                                    <button
+                                        type="button"
+                                        className="auth-ver-senha"
+                                        onClick={() => setMostrarConfirmarSenha((atual) => !atual)}
+                                        aria-label={mostrarConfirmarSenha ? "Ocultar confirmação de senha" : "Mostrar confirmação de senha"}
+                                        aria-pressed={mostrarConfirmarSenha}
+                                    >
+                                        {mostrarConfirmarSenha ? (
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M3 3l18 18M10.6 10.6a2.5 2.5 0 0 0 3.5 3.5M9.5 5.3A9.5 9.5 0 0 1 12 5c5 0 9 4.5 10 7-.4 1-1.4 2.5-2.9 3.9M6.1 6.1C4.2 7.5 2.9 9.4 2 12c1 2.5 5 7 10 7 1.5 0 2.9-.3 4.1-.8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                        ) : (
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" strokeWidth="1.7" />
+                                                <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.7" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
                                 <ErroDoCampo erro={erro} campo="auth-confirmar-senha" />
                             </div>
                         )}

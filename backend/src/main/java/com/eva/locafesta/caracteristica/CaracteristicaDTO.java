@@ -12,7 +12,7 @@ public class CaracteristicaDTO {
     @Size(min = 2, max = 50, message = "O nome deve ter entre 2 e 50 caracteres")
     private String nome;
 
-    @Size(max = 100, message = "O ícone não pode exceder 100 caracteres")
+    @Size(max = 500, message = "O ícone não pode exceder 500 caracteres")
     private String icone;
 
     public CaracteristicaDTO() {}

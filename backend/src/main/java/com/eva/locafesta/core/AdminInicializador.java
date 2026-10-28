@@ -2,24 +2,22 @@ package com.eva.locafesta.core;
 
 import com.eva.locafesta.usuario.Usuario;
 import com.eva.locafesta.usuario.UsuarioRepository;
-import com.google.firebase.auth.AuthErrorCode;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.UserRecord;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 /**
- * Garante o administrador inicial no Firebase e no MySQL.
- * Login: admin@admin.com / senha123
+ * Garante o administrador master no MySQL.
+ * Conta Firebase já existente: locafesta.suporte@gmail.com
  */
 @Component
 public class AdminInicializador implements ApplicationRunner {
 
-    private static final String EMAIL = "admin@admin.com";
-    private static final String SENHA = "senha123";
-    private static final String NOME = "Admin";
+    public static final String MASTER_EMAIL = "locafesta.suporte@gmail.com";
+    private static final String MASTER_UID = "Vcn5kwl0vCZVI2Fcu2itwo73eOv2";
+    private static final String MASTER_NOME = "Suporte Locafesta";
 
     private final UsuarioRepository usuarioRepository;
 
@@ -28,45 +26,20 @@ public class AdminInicializador implements ApplicationRunner {
     }
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
-        String uid = garantirUsuarioFirebase();
-        garantirUsuarioLocal(uid);
-    }
-
-    private String garantirUsuarioFirebase() throws FirebaseAuthException {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        try {
-            UserRecord existente = auth.getUserByEmail(EMAIL);
-            auth.updateUser(new UserRecord.UpdateRequest(existente.getUid())
-                    .setPassword(SENHA)
-                    .setEmailVerified(true)
-                    .setDisplayName(NOME));
-            return existente.getUid();
-        } catch (FirebaseAuthException erro) {
-            if (erro.getAuthErrorCode() != AuthErrorCode.USER_NOT_FOUND) {
-                throw erro;
-            }
-        }
-
-        UserRecord criado = auth.createUser(new UserRecord.CreateRequest()
-                .setEmail(EMAIL)
-                .setPassword(SENHA)
-                .setDisplayName(NOME)
-                .setEmailVerified(true));
-        return criado.getUid();
-    }
-
-    private void garantirUsuarioLocal(String uid) {
-        Usuario usuario = usuarioRepository.findByFirebaseUid(uid)
-                .or(() -> usuarioRepository.findByEmail(EMAIL))
+    public void run(ApplicationArguments args) {
+        Usuario usuario = usuarioRepository.findByFirebaseUid(MASTER_UID)
+                .or(() -> usuarioRepository.findByEmail(MASTER_EMAIL))
                 .orElseGet(Usuario::new);
 
-        usuario.setFirebaseUid(uid);
-        usuario.setNome(NOME);
-        usuario.setEmail(EMAIL);
+        usuario.setFirebaseUid(MASTER_UID);
+        usuario.setNome(MASTER_NOME);
+        usuario.setEmail(MASTER_EMAIL);
         usuario.setAdmin(true);
         if (usuario.getStatusConta() == null || usuario.getStatusConta().isBlank()) {
             usuario.setStatusConta("ATIVO");
+        }
+        if (usuario.getDataAtivo() == null) {
+            usuario.setDataAtivo(LocalDateTime.now());
         }
         usuarioRepository.save(usuario);
     }

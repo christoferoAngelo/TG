@@ -77,6 +77,7 @@ export default function Home() {
     const [listas, setListas] = useState([]);
     const [espacoLista, setEspacoLista] = useState(null);
     const [semVaga, setSemVaga] = useState([]);
+    const [caracteristicasCatalogo, setCaracteristicasCatalogo] = useState([]);
     const ultimaBusca = useRef(0);
 
     const buscar = (termo) => {
@@ -112,6 +113,25 @@ export default function Home() {
         setCategoria(cat);
         buscar(cat !== "Todos" ? cat : termoUrl);
     }, [params]);
+
+    useEffect(() => {
+        let ativo = true;
+        fetch("http://localhost:8080/api/caracteristicas")
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data) => {
+                if (!ativo) return;
+                const lista = Array.isArray(data) ? data : [];
+                setCaracteristicasCatalogo(
+                    [...lista].sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
+                );
+            })
+            .catch(() => {
+                if (ativo) setCaracteristicasCatalogo([]);
+            });
+        return () => {
+            ativo = false;
+        };
+    }, []);
 
     const atualizarUrl = (proximo) => {
         const q = (proximo.onde ?? onde).trim();
@@ -180,7 +200,8 @@ export default function Home() {
             .filter((espaco) => !dataAplicada || !semVaga.includes(Number(espaco.id))),
         [espacos, pessoasAplicadas, filtros, dataAplicada, semVaga]
     );
-    const comodidades = useMemo(() => comodidadesDisponiveis(espacos), [espacos]);
+    const comodidadesDaBusca = useMemo(() => comodidadesDisponiveis(espacos), [espacos]);
+    const comodidades = caracteristicasCatalogo.length > 0 ? caracteristicasCatalogo : comodidadesDaBusca;
     const filtrosAtivos = filtros.precoMin || filtros.precoMax || filtros.capacidadeMin || filtros.comodidades.length > 0 || filtros.ordem !== "relevancia";
 
     const titulo = categoria !== "Todos"

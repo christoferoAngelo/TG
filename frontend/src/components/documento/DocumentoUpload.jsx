@@ -5,6 +5,7 @@ import {
 } from "../../services/documentoService";
 import { rotuloDocumento } from "./rotulosDocumento";
 import GlideSelect from "../bits/GlideSelect";
+import BotaoImagem from "../ui/BotaoImagem";
 
 
 export default function DocumentoUpload({
@@ -264,25 +265,16 @@ const handleSubmit = async (e) => {
 
 
                 <div className="input-group">
-
-                    <label>
-                        Documento / imagem
-                    </label>
-
-                    <input
+                    <label>Documento / imagem</label>
+                    <BotaoImagem
                         id="arquivo-documento"
-                        type="file"
                         accept="image/*"
-                        className="input"
                         disabled={enviando}
-                        onChange={(e) =>
-                            setArquivo(
-                                e.target.files?.[0] ||
-                                null
-                            )
-                        }
+                        nomeArquivo={arquivo?.name || ""}
+                        rotulo="Adicionar imagem"
+                        rotuloTroca="Trocar imagem"
+                        onChange={(e) => setArquivo(e.target.files?.[0] || null)}
                     />
-
                 </div>
 
 

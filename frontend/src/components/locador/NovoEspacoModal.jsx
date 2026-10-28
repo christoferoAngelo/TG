@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import BotaoImagem from "../ui/BotaoImagem";
 
 export default function NovoEspacoModal({ onClose, onSalvar, carregando, caracteristicasDisponiveis }) {
     const estadoInicial = {
@@ -177,19 +178,23 @@ export default function NovoEspacoModal({ onClose, onSalvar, carregando, caracte
                         </div>
 
                         <div className="input-group">
-                            <label>Fotos deste Cômodo:</label>
-                            <input 
-                                type="file" 
-                                multiple 
+                            <label>Fotos deste cômodo</label>
+                            <BotaoImagem
                                 accept="image/*"
-                                onChange={(e) => setNovoAmbiente({ ...novoAmbiente, arquivosImagens: Array.from(e.target.files) })} 
-                                className="input" 
+                                multiple
+                                nomeArquivo={
+                                    novoAmbiente.arquivosImagens.length > 0
+                                        ? `${novoAmbiente.arquivosImagens.length} foto(s) selecionada(s)`
+                                        : ""
+                                }
+                                rotulo="Adicionar fotos"
+                                rotuloTroca="Trocar fotos"
+                                dica="Uma ou mais imagens"
+                                onChange={(e) => setNovoAmbiente({
+                                    ...novoAmbiente,
+                                    arquivosImagens: Array.from(e.target.files || [])
+                                })}
                             />
-                            {novoAmbiente.arquivosImagens.length > 0 && (
-                                <p style={{ fontSize: "0.8rem", color: "green", marginTop: "5px" }}>
-                                    {novoAmbiente.arquivosImagens.length} foto(s) selecionada(s) para este cômodo.
-                                </p>
-                            )}
                         </div>
 
                         <button type="button" onClick={handleAdicionarAmbiente} className="btn" style={{ background: "#333", color: "#fff", width: "100%", marginTop: "5px" }}>

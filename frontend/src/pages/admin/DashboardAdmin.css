@@ -485,12 +485,27 @@
 
 .adm-carac-campos {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 12px;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 14px;
+    align-items: end;
+}
+
+.adm-campo-rotulo {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.adm-carac-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
 }
 
 .adm-carac-form .btn {
-    margin-top: 4px;
+    margin-top: 0;
 }
 
 .adm-carac-lista {
@@ -520,6 +535,77 @@
 .adm-carac-lista span {
     color: var(--color-text-muted);
     font-size: 13px;
+}
+
+.adm-sucesso {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-primary) 28%, white);
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.adm-carac-upload {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.adm-carac-preview,
+.adm-carac-ico {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+}
+
+.adm-carac-ico--vazio {
+    display: inline-block;
+}
+
+.adm-carac-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.adm-confirm {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: color-mix(in srgb, var(--palette-coffee) 55%, transparent);
+}
+
+.adm-confirm-caixa {
+    width: min(420px, 100%);
+    padding: 22px;
+    border-radius: 16px;
+    background: var(--color-bg);
+    box-shadow: var(--shadow-md);
+}
+
+.adm-confirm-caixa h4 {
+    margin: 0 0 8px;
+    font-family: var(--font-heading);
+}
+
+.adm-confirm-caixa p {
+    margin: 0 0 16px;
+    color: var(--color-text-muted);
+}
+
+.adm-confirm-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 @media (max-width: 760px) {

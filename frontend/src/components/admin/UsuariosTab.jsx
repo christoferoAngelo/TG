@@ -10,10 +10,15 @@ export default function UsuariosTab() {
   const [termoBusca, setTermoBusca] = useState('');
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
+  const [sucesso, setSucesso] = useState(null);
+  const [pendenteExcluir, setPendenteExcluir] = useState(null);
 
   // Estado para Modal de Edição
   const [usuarioEmEdicao, setUsuarioEmEdicao] = useState(null);
   const [formData, setFormData] = useState({ nome: '', email: '', tipoUsuario: 'LOCATARIO' });
+
+  const ADMIN_MASTER = 'locafesta.suporte@gmail.com';
+  const ehMaster = (usuario) => (usuario?.email || '').toLowerCase() === ADMIN_MASTER;
 
   useEffect(() => {
     carregarUsuarios();
@@ -37,18 +42,28 @@ export default function UsuariosTab() {
   // --------------------------------------------------------------------------
   // AÇÕES: EXCLUIR E EDITAR
   // --------------------------------------------------------------------------
-  const handleExcluir = async (id, nome) => {
-    if (!window.confirm(`Tem certeza que deseja remover o usuário "${nome}"?`)) {
+  const pedirExclusao = (usuario) => {
+    setErro(null);
+    setSucesso(null);
+    if (ehMaster(usuario)) {
+      setErro('O administrador master não pode ser excluído.');
       return;
     }
+    setPendenteExcluir(usuario);
+  };
 
+  const confirmarExclusao = async () => {
+    if (!pendenteExcluir) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/users/${id}`);
-      setUsuarios(prev => prev.filter(u => u.id !== id));
-      alert('Usuário removido com sucesso.');
+      await axios.delete(`${API_BASE_URL}/api/users/${pendenteExcluir.id}`);
+      setUsuarios(prev => prev.filter(u => u.id !== pendenteExcluir.id));
+      setSucesso('Usuário removido com sucesso.');
     } catch (err) {
       console.error("Erro ao excluir usuário:", err);
-      alert('Erro ao excluir usuário. Verifique se existem dependências vinculadas.');
+      const msg = err.response?.data?.message || err.response?.data || 'Erro ao excluir usuário. Verifique se existem dependências vinculadas.';
+      setErro(typeof msg === 'string' ? msg : 'Erro ao excluir usuário.');
+    } finally {
+      setPendenteExcluir(null);
     }
   };
 
@@ -76,10 +91,10 @@ export default function UsuariosTab() {
       // Atualiza a lista local com os novos dados
       setUsuarios(prev => prev.map(u => u.id === usuarioEmEdicao.id ? { ...u, ...response.data } : u));
       setUsuarioEmEdicao(null);
-      alert('Usuário atualizado com sucesso!');
+      setSucesso('Usuário atualizado com sucesso.');
     } catch (err) {
       console.error("Erro ao atualizar usuário:", err);
-      alert('Falha ao salvar as alterações do usuário.');
+      setErro('Falha ao salvar as alterações do usuário.');
     }
   };
 
@@ -106,7 +121,8 @@ export default function UsuariosTab() {
         </label>
       </div>
 
-      {erro && <p className="error-message">{erro}</p>}
+      {erro && <p className="error-message" role="alert">{erro}</p>}
+      {sucesso && <p className="adm-sucesso" role="status">{sucesso}</p>}
 
       {loading ? (
         <div className="adm-vazio"><p>Carregando usuários…</p></div>
@@ -148,9 +164,11 @@ export default function UsuariosTab() {
                         <button type="button" className="btn-sm btn-edit" onClick={() => handleAbrirEdicao(u)}>
                           Editar
                         </button>
-                        <button type="button" className="btn-sm btn-delete" onClick={() => handleExcluir(u.id, u.nome || u.email)}>
-                          Excluir
-                        </button>
+                        {!ehMaster(u) && (
+                          <button type="button" className="btn-sm btn-delete" onClick={() => pedirExclusao(u)}>
+                            Excluir
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -158,6 +176,19 @@ export default function UsuariosTab() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {pendenteExcluir && (
+        <div className="adm-confirm" role="dialog" aria-modal="true">
+          <div className="adm-confirm-caixa">
+            <h4>Excluir usuário?</h4>
+            <p>Remover “{pendenteExcluir.nome || pendenteExcluir.email}” do sistema.</p>
+            <div className="adm-confirm-acoes">
+              <button type="button" className="btn" onClick={() => setPendenteExcluir(null)}>Cancelar</button>
+              <button type="button" className="btn btn-delete" onClick={confirmarExclusao}>Excluir</button>
+            </div>
+          </div>
         </div>
       )}
 

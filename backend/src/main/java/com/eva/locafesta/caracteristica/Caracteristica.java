@@ -20,8 +20,8 @@ public class Caracteristica {
     @Column(nullable = false, unique = true, length = 50) @NotBlank
     private String nome; // Ex: "Ao Ar Livre", "Piscina", "Churrasqueira"
 
-    @Column(length = 100)
-    private String icone; // Opcional: nome do ícone no front-end (ex: "fa-swimming-pool")
+    @Column(length = 500)
+    private String icone; // URL ou caminho da imagem do ícone
 
   
 }
