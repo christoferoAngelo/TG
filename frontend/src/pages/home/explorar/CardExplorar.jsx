@@ -52,10 +52,10 @@ export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compac
                     className="hm-coracao"
                     liked={Boolean(favorito)}
                     showCount={false}
-                    size={34}
+                    size={28}
                     likedColor="#FECB5A"
-                    idleColor="#FEFBE6"
-                    pillColor="#FEFBE6"
+                    idleColor="#717171"
+                    pillColor="transparent"
                     textColor="#130501"
                     label={favorito ? "Salvo em uma lista" : "Salvar em uma lista"}
                     onChange={() => onFavoritar(espaco.id)}

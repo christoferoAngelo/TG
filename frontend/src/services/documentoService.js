@@ -143,6 +143,26 @@ export const listarDocumentosEspaco = (espacoId) =>
 export const buscarDocumento = (id) =>
     requisitar(`/${id}`, {}, "Erro ao buscar documento.");
 
+export async function cancelarDocumento(id) {
+    const token = await obterToken(false);
+    const response = await fetch(`${API_URL}/documentos/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    if (response.status === 401) {
+        const tokenNovo = await obterToken(true);
+        const retry = await fetch(`${API_URL}/documentos/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${tokenNovo}` },
+        });
+        if (!retry.ok) throw new Error(await lerMensagemDeErro(retry, "Não foi possível cancelar a análise."));
+        return;
+    }
+    if (!response.ok) {
+        throw new Error(await lerMensagemDeErro(response, "Não foi possível cancelar a análise."));
+    }
+}
+
 
 /**
  * =========================================================
@@ -151,6 +171,9 @@ export const buscarDocumento = (id) =>
  */
 export const listarDocumentosPendentes = () =>
     requisitar("/admin/pendentes", {}, "Erro ao buscar documentos pendentes.");
+
+export const listarTodosDocumentosAdmin = () =>
+    requisitar("/admin/todos", {}, "Erro ao buscar o histórico de documentos.");
 
 export const aprovarDocumento = (id) =>
     requisitar(`/admin/${id}/aprovar`, { method: "PUT" }, "Erro ao aprovar documento.");

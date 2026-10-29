@@ -54,7 +54,10 @@ export function fotosDe(espaco) {
             if (url) fotos.push({ url, ambiente: ambiente.titulo || espaco.titulo || "Espaço" });
         });
     });
-    return fotos;
+    const capa = String(espaco?.fotoCapaUrl || "").trim();
+    if (!capa) return fotos;
+    const resto = fotos.filter((foto) => foto.url !== capa);
+    return [{ url: capa, ambiente: espaco.titulo || "Capa" }, ...resto];
 }
 
 export function localDe(espaco) {

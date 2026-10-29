@@ -43,6 +43,7 @@
   position: relative;
   display: inline-block;
   box-sizing: content-box;
+  min-width: 0.55em;
   line-height: calc(1em + var(--counter-padding, 0px));
   text-align: center;
 }

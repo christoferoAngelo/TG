@@ -88,6 +88,12 @@ public class DocumentoController {
     }
 
 
+    @GetMapping("/admin/todos")
+    public ResponseEntity<List<DocumentoDTO>> listarTodos() {
+        return ResponseEntity.ok(documentoService.listarTodosAdmin());
+    }
+
+
     @GetMapping("/{id}")
     public ResponseEntity<DocumentoDTO> buscarPorId(
             @PathVariable Long id
@@ -137,5 +143,12 @@ public class DocumentoController {
                         motivo
                 )
         );
+    }
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelar(@PathVariable Long id) {
+        documentoService.cancelarDocumento(id);
+        return ResponseEntity.noContent().build();
     }
 }

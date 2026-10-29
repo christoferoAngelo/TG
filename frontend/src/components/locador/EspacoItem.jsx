@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const statusDe = (s) => (s || "").toUpperCase();
 
@@ -31,6 +32,7 @@ export default function EspacoItem({ espaco, onAlternarStatus, onEditar }) {
     const aprovacao = APROVACAO[status] || { texto: espaco.statusAprovacao || "Publicado", tom: "muted" };
     const isRejeitado = status === "REJEITADO";
     const isAtivo = espaco.ativo === true || espaco.ativo === 1;
+    const rotaDetalhe = `/espaco/${espaco.id}`;
 
     const abre = formatarHora(espaco.horarioAbertura);
     const fecha = formatarHora(espaco.horarioFechamento);
@@ -44,7 +46,11 @@ export default function EspacoItem({ espaco, onAlternarStatus, onEditar }) {
     return (
         <article className={`lc-espaco lc-espaco--${aprovacao.tom}${isAtivo ? "" : " lc-espaco--inativo"}`}>
             <div className="lc-espaco-top">
-                <h3 className="lc-espaco-titulo">{espaco.titulo}</h3>
+                <h3 className="lc-espaco-titulo">
+                    <Link to={rotaDetalhe} className="lc-espaco-link">
+                        {espaco.titulo}
+                    </Link>
+                </h3>
                 <div className="lc-badges">
                     <span className={`lc-badge lc-badge--${aprovacao.tom}`}>{aprovacao.texto}</span>
                     <span className={`lc-badge ${isAtivo ? "lc-badge--ok" : "lc-badge--muted"}`}>
@@ -87,6 +93,9 @@ export default function EspacoItem({ espaco, onAlternarStatus, onEditar }) {
             )}
 
             <div className="lc-espaco-acoes">
+                <Link to={rotaDetalhe} className="lc-btn lc-btn--ghost">
+                    Ver página
+                </Link>
                 <button
                     type="button"
                     className={`lc-btn ${isAtivo ? "lc-btn--danger-ghost" : "lc-btn--success"}`}

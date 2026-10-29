@@ -97,7 +97,8 @@ export default function SidebarLayout() {
     };
 
     return (
-        <div className={`app-layout ${retraida ? "sidebar-collapsed" : ""}`}>
+        <div className={`app-layout ${retraida ? "sidebar-collapsed" : ""}${naHome ? " app-layout--home" : ""}`}>
+            {!naHome && (
             <motion.aside
                 className={`sidebar ${retraida ? "collapsed" : ""}`}
                 initial={false}
@@ -248,6 +249,7 @@ export default function SidebarLayout() {
                     </div>
                 )}
             </motion.aside>
+            )}
 
             <main className="sidebar-content">
                 {!naHome && <HeaderHome />}

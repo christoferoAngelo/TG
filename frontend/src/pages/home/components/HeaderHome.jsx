@@ -2,32 +2,26 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import CaixaAvisos from "../../../components/notificacao/CaixaAvisos";
-import userIcon from "../../../assets/user_icon.png";
+import MenuPerfil from "../explorar/MenuPerfil";
+import "../Home.css";
+import "../HomeExplorar.css";
 
 export default function HeaderHome() {
     const navigate = useNavigate();
     const location = useLocation();
     const { usuarioLogado } = useAuth();
-    
-    const isLocador = usuarioLogado?.locador;
+
+    const isLocador = Boolean(usuarioLogado?.locador || usuarioLogado?.isLocador);
 
     const handleAnunciarClick = () => {
         if (!usuarioLogado) {
             navigate("/login", {
-                state: { fundo: { pathname: location.pathname, search: location.search, hash: location.hash } }
+                state: { fundo: { pathname: location.pathname, search: location.search, hash: location.hash } },
             });
-        } else if (isLocador) {
-            navigate("/perfil_locador");
-        } else {
-            navigate("/perfil");
+            return;
         }
+        navigate(isLocador ? "/perfil_locador" : "/cadastro-locador");
     };
-
-    const textoBotaoAnunciar = !usuarioLogado
-        ? "Anunciar Espaço"
-        : isLocador
-            ? "Painel de Anúncios"
-            : "Criar Perfil de Anunciante";
 
     return (
         <header className="header-home">
@@ -35,39 +29,27 @@ export default function HeaderHome() {
                 <h2 className="logo">LocaFesta</h2>
             </div>
 
-            <div className="nav-buttons">
-                <CaixaAvisos usuarioId={usuarioLogado?.id} />
-                <button onClick={handleAnunciarClick} className="btn-nav btn-highlight">
-                    <svg
-                        className="btn-nav-icone"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true"
+            <div className="nav-buttons header-home-acoes">
+                <button type="button" className="hm-cta-anunciar" onClick={handleAnunciarClick}>
+                    {isLocador ? "Meu negócio" : "Vou anunciar"}
+                </button>
+
+                {usuarioLogado ? <CaixaAvisos usuarioId={usuarioLogado.id} /> : null}
+
+                {usuarioLogado ? (
+                    <button
+                        type="button"
+                        className="hm-listas"
+                        aria-label="Favoritos"
+                        onClick={() => navigate("/favoritos")}
                     >
-                        <path
-                            d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19v-8.5Z"
-                            stroke="currentColor"
-                            strokeWidth="1.75"
-                            strokeLinejoin="round"
-                        />
-                    </svg>
-                    {textoBotaoAnunciar}
-                </button>
-                
-                <button 
-                    onClick={() => navigate(usuarioLogado ? "/perfil" : "/login", usuarioLogado ? undefined : {
-                        state: { fundo: { pathname: location.pathname, search: location.search, hash: location.hash } }
-                    })} 
-                    className="btn-nav"
-                >
-                    {usuarioLogado?.fotoUrl ? (
-                        <img src={usuarioLogado.fotoUrl} alt="" className="btn-nav-icone btn-nav-foto" />
-                    ) : (
-                        <img src={userIcon} alt="" className="btn-nav-icone" />
-                    )}
-                    {usuarioLogado ? "Meu Perfil" : "Entrar"}
-                </button>
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 19.4 4.8 12.6a4.2 4.2 0 0 1 6-5.9L12 7.8l1.2-1.1a4.2 4.2 0 0 1 6 5.9L12 19.4Z" />
+                        </svg>
+                    </button>
+                ) : null}
+
+                <MenuPerfil />
             </div>
         </header>
     );

@@ -119,6 +119,7 @@ export default function NovoEspaco() {
 
     const [form, setForm] = useState(ESTADO_INICIAL);
     const [ambientes, setAmbientes] = useState(() => [novoAmbiente()]);
+    const [fotoCapaId, setFotoCapaId] = useState(null);
     const [caracteristicasDisponiveis, setCaracteristicasDisponiveis] = useState([]);
     const [erros, setErros] = useState({});
     const [avisoFotos, setAvisoFotos] = useState("");
@@ -226,11 +227,27 @@ export default function NovoEspaco() {
                           }))
                         : [novoAmbiente()];
 
+                const capaUrl = String(e.fotoCapaUrl || "").trim();
+                let capaId = null;
+                if (capaUrl) {
+                    for (const amb of ambientesCarregados) {
+                        const achada = amb.fotos.find((f) => f.url === capaUrl);
+                        if (achada) {
+                            capaId = achada.id;
+                            break;
+                        }
+                    }
+                }
+                if (!capaId) {
+                    capaId = ambientesCarregados.flatMap((a) => a.fotos)[0]?.id ?? null;
+                }
+
                 const resposta = e.respostaLocador ?? "";
 
                 setEspacoOriginal(e);
                 setForm(formCarregado);
                 setAmbientes(ambientesCarregados);
+                setFotoCapaId(capaId);
                 setRespostaLocador(resposta);
                 snapshotRef.current = gerarAssinatura(formCarregado, ambientesCarregados, resposta);
             })
@@ -370,7 +387,9 @@ export default function NovoEspaco() {
 
     const removerAmbiente = (ambId) => {
         const alvo = ambientes.find((a) => a.id === ambId);
+        const idsRemovidos = new Set((alvo?.fotos || []).map((f) => f.id));
         alvo?.fotos.forEach(liberarPreview);
+        setFotoCapaId((atual) => (idsRemovidos.has(atual) ? null : atual));
         setAmbientes((prev) => (prev.length === 1 ? [novoAmbiente()] : prev.filter((a) => a.id !== ambId)));
     };
 
@@ -398,6 +417,7 @@ export default function NovoEspaco() {
         setAmbientes((prev) =>
             prev.map((a) => (a.id === ambId ? { ...a, fotos: [...a.fotos, ...novas] } : a))
         );
+        setFotoCapaId((atual) => atual || novas[0]?.id || null);
         atualizarErroFotos(ambId);
     };
 
@@ -414,6 +434,7 @@ export default function NovoEspaco() {
         });
 
     const removerFoto = (ambId, fotoId) => {
+        setFotoCapaId((atual) => (atual === fotoId ? null : atual));
         const foto = ambientes.find((a) => a.id === ambId)?.fotos.find((f) => f.id === fotoId);
         if (foto) liberarPreview(foto);
         uploadsFeitos.current.delete(fotoId);
@@ -588,10 +609,21 @@ export default function NovoEspaco() {
 
                 setProgresso(null);
 
+                const todasFotos = preenchidos.flatMap((amb, indice) =>
+                    amb.fotos.map((foto, iFoto) => ({
+                        id: foto.id,
+                        url: ambientesProcessados[indice]?.imagensUrls?.[iFoto] || foto.url || null,
+                    }))
+                );
+                const capaEscolhida = todasFotos.find((f) => f.id === fotoCapaId)?.url
+                    || todasFotos[0]?.url
+                    || null;
+
                 const payload = {
                     locadorId: usuarioLogado.id,
                     titulo: form.titulo.trim(),
                     descricao: form.descricao.trim(),
+                    fotoCapaUrl: capaEscolhida,
                     capacidadePessoas: parseInt(form.capacidadePessoas, 10),
                     valorDiaria: valorBase,
                     valorMeioPeriodo: fracionado ? valorBase : null,
@@ -780,6 +812,8 @@ export default function NovoEspaco() {
                             atualizarAmbiente={atualizarAmbiente}
                             adicionarFotos={adicionarFotos}
                             removerFoto={removerFoto}
+                            fotoCapaId={fotoCapaId}
+                            definirCapa={setFotoCapaId}
                         />
                     </Step>
                     <Step title="Horários">

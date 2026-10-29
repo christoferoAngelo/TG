@@ -146,35 +146,55 @@ export default function OverviewTab() {
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="usuarios" /></span>
           <div>
-            <strong>{loading ? "…" : <Counter value={metricas.totalUsuarios} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
+            <strong>
+              {loading ? "…" : (
+                <Counter value={metricas.totalUsuarios} locale="pt-BR" fontSize={26} textColor="var(--color-text)" intro={false} fade={0} />
+              )}
+            </strong>
             <span>Total de usuários</span>
           </div>
         </article>
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="espacos" /></span>
           <div>
-            <strong>{loading ? "…" : <Counter value={metricas.locadoresCount} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
+            <strong>
+              {loading ? "…" : (
+                <Counter value={metricas.locadoresCount} locale="pt-BR" fontSize={26} textColor="var(--color-text)" intro={false} fade={0} />
+              )}
+            </strong>
             <span>Locadores</span>
           </div>
         </article>
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="usuario" /></span>
           <div>
-            <strong>{loading ? "…" : <Counter value={metricas.locatariosCount} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
+            <strong>
+              {loading ? "…" : (
+                <Counter value={metricas.locatariosCount} locale="pt-BR" fontSize={26} textColor="var(--color-text)" intro={false} fade={0} />
+              )}
+            </strong>
             <span>Locatários</span>
           </div>
         </article>
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="novos" /></span>
           <div>
-            <strong>{loading ? "…" : <Counter value={metricas.novosNoPeriodo} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
+            <strong>
+              {loading ? "…" : (
+                <Counter value={metricas.novosNoPeriodo} locale="pt-BR" fontSize={26} textColor="var(--color-text)" intro={false} fade={0} />
+              )}
+            </strong>
             <span>Novos no período</span>
           </div>
         </article>
         <article className="adm-metrica">
           <span className="adm-metrica-ico"><IconeAdmin nome="ativos" /></span>
           <div>
-            <strong>{loading ? "…" : <Counter value={metricas.ativosNoPeriodo} locale="pt-BR" fontSize={26} textColor="var(--color-text)" />}</strong>
+            <strong>
+              {loading ? "…" : (
+                <Counter value={metricas.ativosNoPeriodo} locale="pt-BR" fontSize={26} textColor="var(--color-text)" intro={false} fade={0} />
+              )}
+            </strong>
             <span>Ativos no período</span>
           </div>
         </article>

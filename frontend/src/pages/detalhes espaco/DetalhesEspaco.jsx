@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import HeaderHome from "../home/components/HeaderHome";
 import { useAuth } from "../../contexts/AuthContext";
 import { antecedenciaSalva, interpretarRegras } from "../novo espaco/regrasTexto";
 import { calcularTurnos, formatarMinutos, paraMinutos } from "../novo espaco/turnos";
@@ -9,6 +8,7 @@ import AnimatedContent from "../../components/bits/AnimatedContent";
 import BlurText from "../../components/bits/BlurText";
 import Carousel from "../../components/bits/Carousel";
 import GradualBlur from "../../components/bits/GradualBlur";
+import PorQueDocumentos from "../../components/documento/PorQueDocumentos";
 
 const API = "http://localhost:8080/api";
 const ROTA_LOGIN = "/login";
@@ -166,10 +166,7 @@ export default function DetalhesEspaco() {
     const [enviando, setEnviando] = useState(false);
     const [erroReserva, setErroReserva] = useState("");
     const [sucesso, setSucesso] = useState(false);
-
-    const handlePesquisar = (termo) => {
-        navigate(termo ? `/home?q=${encodeURIComponent(termo)}` : "/home");
-    };
+    const [avisoPerfil, setAvisoPerfil] = useState(false);
 
     /* ---------- carga de dados ---------- */
 
@@ -349,6 +346,23 @@ export default function DetalhesEspaco() {
 
     /* ---------- reserva ---------- */
 
+    const perfilProntoParaReservar = async () => {
+        if (!usuarioLogado?.telefone?.trim() || !usuarioLogado?.endereco?.cep) return false;
+        try {
+            const locatarioRes = await fetch(`${API}/locatarios/usuario/${usuarioLogado.id}`);
+            if (!locatarioRes.ok) return false;
+            const { listarDocumentosUsuario } = await import("../../services/documentoService");
+            const docs = await listarDocumentosUsuario(usuarioLogado.id);
+            const lista = Array.isArray(docs) ? docs : [];
+            const { TIPOS_IDENTIDADE } = await import("../../components/documento/rotulosDocumento");
+            const temId = lista.some((d) => TIPOS_IDENTIDADE.includes(String(d.tipoDocumento).toUpperCase()));
+            const temComp = lista.some((d) => String(d.tipoDocumento).toUpperCase() === "COMPROVANTE_RESIDENCIA");
+            return temId && temComp;
+        } catch {
+            return false;
+        }
+    };
+
     const handleReservar = async (e) => {
         e.preventDefault();
         setErroReserva("");
@@ -359,6 +373,13 @@ export default function DetalhesEspaco() {
             });
             return;
         }
+
+        const pronto = await perfilProntoParaReservar();
+        if (!pronto) {
+            setAvisoPerfil(true);
+            return;
+        }
+
         if (!data) return setErroReserva("Escolha a data do evento.");
         if (data < dataMinima) {
             return setErroReserva(
@@ -448,7 +469,6 @@ export default function DetalhesEspaco() {
     if (carregando) {
         return (
             <div className="dt-page">
-                <HeaderHome onSearch={handlePesquisar} />
                 <div className="dt-estado">
                     <p>Carregando detalhes do espaço…</p>
                 </div>
@@ -459,7 +479,6 @@ export default function DetalhesEspaco() {
     if (!espaco) {
         return (
             <div className="dt-page">
-                <HeaderHome onSearch={handlePesquisar} />
                 <div className="dt-estado">
                     <h2>Espaço não encontrado</h2>
                     <p>Ele pode ter sido removido ou estar indisponível no momento.</p>
@@ -634,7 +653,7 @@ export default function DetalhesEspaco() {
                                                 <h3>{amb.titulo}</h3>
                                                 {amb.descricao && <p>{amb.descricao}</p>}
                                             </div>
-                                            {amb.imagensUrls?.length > 0 ? (
+                                            {amb.imagensUrls?.length > 1 ? (
                                                 <Carousel
                                                     className="dt-carrossel"
                                                     items={amb.imagensUrls.map((url, i) => (
@@ -652,13 +671,24 @@ export default function DetalhesEspaco() {
                                                     aspectRatio={1.45}
                                                     effect="slide"
                                                     arrows
-                                                    loop={amb.imagensUrls.length > 1}
+                                                    loop
                                                     draggable
                                                     indicator="dots"
                                                     theme="light"
                                                     frame={false}
                                                     radius={14}
                                                 />
+                                            ) : amb.imagensUrls?.length === 1 ? (
+                                                <div className="dt-ambiente-unica">
+                                                    <button
+                                                        type="button"
+                                                        className="dt-galeria-foto"
+                                                        onClick={() => setLightbox(fotos.inicios[idx])}
+                                                        aria-label={`Ampliar ${amb.titulo}`}
+                                                    >
+                                                        <img src={amb.imagensUrls[0]} alt={amb.titulo} />
+                                                    </button>
+                                                </div>
                                             ) : (
                                                 <p className="dt-vazio">Sem fotos para este cômodo.</p>
                                             )}
@@ -674,7 +704,12 @@ export default function DetalhesEspaco() {
                                 <h2>O que o espaço oferece</h2>
                                 <ul className="dt-tags">
                                     {espaco.caracteristicas.map((c) => (
-                                        <li key={c.id}>{c.nome}</li>
+                                        <li key={c.id} className="dt-tag">
+                                            {c.icone ? (
+                                                <img src={c.icone} alt="" className="dt-tag-ico" />
+                                            ) : null}
+                                            <span>{c.nome}</span>
+                                        </li>
                                     ))}
                                 </ul>
                             </section>
@@ -965,6 +1000,37 @@ export default function DetalhesEspaco() {
                             ›
                         </button>
                     )}
+                </div>
+            )}
+
+            {avisoPerfil && (
+                <div
+                    className="dt-aviso-perfil"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="dt-aviso-perfil-titulo"
+                    onMouseDown={() => setAvisoPerfil(false)}
+                >
+                    <div className="dt-aviso-perfil-caixa" onMouseDown={(e) => e.stopPropagation()}>
+                        <h2 id="dt-aviso-perfil-titulo">Complete seu cadastro</h2>
+                        <PorQueDocumentos
+                            variante="locatario"
+                            fraseCurta="Complete seu cadastro para continuar."
+                            botaoTexto="Por que isso?"
+                        />
+                        <div className="dt-aviso-perfil-acoes">
+                            <button type="button" className="dt-btn dt-btn--ghost" onClick={() => setAvisoPerfil(false)}>
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                className="dt-btn dt-btn--primario"
+                                onClick={() => navigate("/perfil")}
+                            >
+                                Completar perfil
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

@@ -25,28 +25,29 @@
 
 .hm-topo {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(140px, 1fr) minmax(0, auto) minmax(140px, 1fr);
     align-items: center;
-    gap: 20px;
-    padding: 14px 28px 8px;
+    gap: 16px;
+    padding: 18px 40px 12px;
 }
 
 .hm-logo {
     border: 0;
     background: none;
     padding: 0;
+    justify-self: start;
     cursor: pointer;
     font-family: var(--font-heading);
-    font-size: 1.35rem;
+    font-size: 1.55rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.04em;
     color: var(--color-primary-text);
 }
 
 .hm-pill {
     position: relative;
     justify-self: center;
-    width: min(640px, 100%);
+    width: min(720px, 100%);
 }
 
 .hm-pill-barra {
@@ -56,8 +57,13 @@
     border-radius: var(--radius-pill);
     background: var(--color-surface);
     box-shadow: var(--shadow-sm);
-    min-height: 58px;
-    padding: 4px 4px 4px 8px;
+    min-height: 64px;
+    padding: 6px 6px 6px 10px;
+    transition: box-shadow 0.2s ease;
+}
+
+.hm-pill-barra:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .hm-pill-barra--aberta {
@@ -114,8 +120,8 @@
 
 .hm-pill-buscar {
     flex: 0 0 auto;
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
     margin-left: 6px;
     border: 0;
     border-radius: 50%;
@@ -205,7 +211,25 @@
     display: flex;
     align-items: center;
     justify-self: end;
-    gap: 8px;
+    gap: 6px;
+}
+
+.hm-cta-anunciar {
+    border: 0;
+    background: transparent;
+    padding: 10px 14px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+
+.hm-cta-anunciar:hover {
+    background: var(--color-bg-subtle);
 }
 
 .hm-listas {
@@ -213,11 +237,15 @@
     height: 44px;
     display: grid;
     place-items: center;
-    border: 1px solid var(--color-border);
+    border: 0;
     border-radius: 50%;
-    background: var(--color-surface);
+    background: transparent;
     color: var(--color-text);
     cursor: pointer;
+}
+
+.hm-listas:hover {
+    background: var(--color-bg-subtle);
 }
 
 .hm-listas svg {
@@ -234,16 +262,17 @@
 }
 
 .hm-entrar {
-    height: 40px;
-    padding: 0 18px;
+    height: 48px;
+    padding: 0 26px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
     background: var(--color-primary);
     color: var(--color-on-primary);
     font-family: var(--font-body);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
+    box-shadow: var(--shadow-sm);
 }
 
 .hm-entrar:hover {
@@ -259,12 +288,18 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 6px 6px 12px;
+    padding: 7px 7px 7px 14px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
     background: var(--color-surface);
     cursor: pointer;
     color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.15s ease;
+}
+
+.hm-perfil-botao:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .hm-perfil-botao svg {
@@ -273,8 +308,8 @@
 }
 
 .hm-avatar {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: var(--color-text);
     color: var(--color-bg);
@@ -293,10 +328,10 @@
 
 .hm-perfil-menu {
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 10px);
     right: 0;
-    min-width: 220px;
-    padding: 8px;
+    min-width: 248px;
+    padding: 8px 0;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
@@ -306,19 +341,23 @@
     z-index: 6;
 }
 
-.hm-perfil-idioma {
-    margin: 0;
-    padding: 8px 12px 10px;
-    font-size: 12px;
-    color: var(--color-text-muted);
-    border-bottom: 1px solid var(--color-border);
+.hm-perfil-grupo {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 8px;
+}
+
+.hm-perfil-grupo + .hm-perfil-grupo {
+    border-top: 1px solid var(--color-border);
+    margin-top: 4px;
+    padding-top: 8px;
 }
 
 .hm-perfil-menu button {
     border: 0;
     background: none;
     text-align: left;
-    padding: 10px 12px;
+    padding: 12px 14px;
     border-radius: var(--radius-md);
     font-family: var(--font-body);
     font-size: 14px;
@@ -337,7 +376,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 12px;
-    padding: 8px 20px 8px 12px;
+    padding: 4px 40px 14px 28px;
     background: var(--color-surface);
 }
 
@@ -421,7 +460,7 @@
 }
 
 .hm-conteudo {
-    padding: 22px 28px 88px;
+    padding: 22px 63px 88px;
 }
 
 .hm-resumo {
@@ -451,7 +490,7 @@
 .hm-grade {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 32px 18px;
+    gap: 28px 16px;
 }
 
 .hm-lista {
@@ -487,10 +526,10 @@
 
 .hm-card-midia {
     position: relative;
-    border-radius: var(--radius-lg);
+    border-radius: 12px;
     overflow: hidden;
     background: var(--color-bg-muted);
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 20 / 19;
 }
 
 .hm-card--lista {
@@ -542,16 +581,32 @@
 
 .hm-coracao {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 10px;
+    right: 10px;
     z-index: 3;
     width: auto;
     height: auto;
     padding: 0;
     border: 0;
-    background: transparent;
+    background: transparent !important;
+    box-shadow: none !important;
     cursor: pointer;
-    filter: drop-shadow(0 1px 2px var(--shadow-color-strong));
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
+
+.hm-coracao .pulse-heart__pill {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.hm-coracao .pulse-heart__heart svg {
+    stroke: #ffffff;
+    stroke-width: 1.5px;
+    paint-order: stroke fill;
+}
+
+.hm-coracao[data-liked="true"] .pulse-heart__heart svg {
+    stroke: color-mix(in srgb, #FECB5A 70%, #130501);
 }
 
 .hm-seta {
@@ -599,7 +654,7 @@
 }
 
 .hm-card-texto {
-    padding-top: 10px;
+    padding-top: 8px;
 }
 
 .hm-card-linha {
@@ -611,8 +666,9 @@
 
 .hm-card-texto h3 {
     margin: 0;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
+    line-height: 1.3;
 }
 
 .hm-nota {
@@ -695,7 +751,7 @@
 
 .hm-alternar-wrap {
     position: fixed;
-    left: var(--sidebar-largura, 252px);
+    left: 0;
     right: 0;
     bottom: 22px;
     display: flex;
@@ -710,6 +766,8 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
     box-shadow: var(--shadow-md);
+    --jr-pad-x: 12px;
+    --jr-pad-y: 10px;
 }
 
 .hm-mapa {
@@ -911,8 +969,12 @@
 
 @media (max-width: 980px) {
     .hm-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .hm-topo { grid-template-columns: auto auto; }
+    .hm-topo {
+        grid-template-columns: auto auto;
+        padding: 14px 20px 10px;
+    }
     .hm-pill { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+    .hm-cta-anunciar { display: none; }
     .hm-mapa { grid-template-columns: 1fr; }
     .hm-faixa { display: flex; align-items: center; }
     .hm-cats { flex: 1; justify-content: flex-start; }
@@ -924,6 +986,11 @@
     .hm-card--lista { grid-template-columns: 1fr; }
     .hm-topo,
     .hm-conteudo { padding-left: 16px; padding-right: 16px; }
+    .hm-entrar {
+        height: 44px;
+        padding: 0 20px;
+        font-size: 14px;
+    }
     .hm-pill-parte span { display: none; }
     .hm-pill-parte { padding: 10px 12px; }
 }

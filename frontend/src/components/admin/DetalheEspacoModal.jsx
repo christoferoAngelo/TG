@@ -98,9 +98,13 @@ export default function DetalheEspacoModal({
     const regras = interpretarRegras(espaco?.restricoesHorario);
     const fotos = fotosDoEspaco(espaco);
     const caracteristicas = [...(espaco?.caracteristicas || [])]
-        .map((item) => item?.nome)
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, "pt-BR"));
+        .map((item) => ({
+            id: item?.id || item?.nome,
+            nome: item?.nome,
+            icone: item?.icone || null,
+        }))
+        .filter((item) => item.nome)
+        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
     const adicionais = Object.entries(regras.adicionais || {});
     const abertura = hora(espaco?.horarioAbertura);
     const fechamento = hora(espaco?.horarioFechamento);
@@ -253,8 +257,13 @@ export default function DetalheEspacoModal({
                     <section>
                         <h4>Comodidades</h4>
                         <div className="adm-detalhe-chips">
-                            {caracteristicas.map((nome) => (
-                                <span key={nome}>{nome}</span>
+                            {caracteristicas.map((item) => (
+                                <span key={item.id} className="adm-detalhe-chip">
+                                    {item.icone ? (
+                                        <img src={item.icone} alt="" className="adm-detalhe-chip-ico" />
+                                    ) : null}
+                                    {item.nome}
+                                </span>
                             ))}
                         </div>
                     </section>

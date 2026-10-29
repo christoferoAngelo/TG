@@ -201,7 +201,10 @@ function Counter({
         const low = Math.floor(at);
         const from = e.widths[low % 10] ?? 0;
         const to = e.widths[(low + 1) % 10] ?? from;
-        el.style.width = `${((from + (to - from) * (at - low)) * shown).toFixed(2)}px`;
+        const interpolated = from + (to - from) * (at - low);
+        // Não zerar a largura durante a animação — isso colava o número no rótulo ao lado.
+        const floor = Math.max(interpolated * 0.55, (e.em || 16) * 0.45);
+        el.style.width = `${Math.max(interpolated * Math.max(shown, 0.55), floor).toFixed(2)}px`;
       }
       if (item.blur && item.strip) {
         const radius = s.motionBlur ? clamp((Math.abs(item.vel) - 3) * 0.006, 0, 0.09) * e.em : 0;

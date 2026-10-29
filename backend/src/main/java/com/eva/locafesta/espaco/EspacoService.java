@@ -288,6 +288,7 @@ public class EspacoService {
                     dto.getPrazoCancelamentoDias() != null ? dto.getPrazoCancelamentoDias() : 2
                 )
                 .endereco(endereco)
+                .fotoCapaUrl(limparUrlCapa(dto.getFotoCapaUrl()))
                 .statusAprovacao("PENDENTE")
                 .build();
 
@@ -303,6 +304,16 @@ public class EspacoService {
 
         Espaco espacoSalvo = espacoRepository.save(espaco);
         return new EspacoDTO(espacoSalvo);
+    }
+
+    private String limparUrlCapa(String url) {
+        if (url == null) return null;
+        String limpa = url.trim();
+        if (limpa.isEmpty()) return null;
+        if (limpa.length() > 500) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A URL da capa é inválida.");
+        }
+        return limpa;
     }
 
     // UPDATE / REENVIO - Atualiza o espaço.
@@ -358,6 +369,7 @@ public class EspacoService {
         espaco.setValorHora(dto.getValorHora());
         espaco.setCapacidadePessoas(dto.getCapacidadePessoas());
         espaco.setRestricoesHorario(dto.getRestricoesHorario());
+        espaco.setFotoCapaUrl(limparUrlCapa(dto.getFotoCapaUrl()));
 
         // ---- 3. Funcionamento ----
         espaco.setHorarioAbertura(dto.getHorarioAbertura());

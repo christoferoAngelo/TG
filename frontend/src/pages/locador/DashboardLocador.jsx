@@ -53,7 +53,7 @@ function Stat({ label, valor, dica, alerta }) {
         <div className={`lc-stat${alerta ? " lc-stat--alerta" : ""}`}>
             <span className="lc-stat-label">{label}</span>
             <strong className="lc-stat-valor">
-                <Counter value={Number(valor) || 0} locale="pt-BR" fontSize={30} textColor="var(--color-text)" />
+                <Counter value={Number(valor) || 0} locale="pt-BR" fontSize={30} textColor="var(--color-text)" intro={false} />
             </strong>
             {dica && <span className="lc-stat-dica">{dica}</span>}
         </div>

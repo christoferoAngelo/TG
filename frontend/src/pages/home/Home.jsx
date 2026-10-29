@@ -229,17 +229,36 @@ export default function Home() {
                         onBuscar={pesquisar}
                     />
                     <div className="hm-acoes">
-                        <CaixaAvisos usuarioId={usuarioLogado?.id} />
                         <button
                             type="button"
-                            className="hm-listas"
-                            aria-label="Favoritos"
-                            onClick={() => navigate(usuarioLogado ? "/favoritos" : "/login", usuarioLogado ? undefined : { state: { fundo: location } })}
+                            className="hm-cta-anunciar"
+                            onClick={() => {
+                                if (!usuarioLogado) {
+                                    navigate("/login", { state: { fundo: location } });
+                                    return;
+                                }
+                                navigate(
+                                    usuarioLogado.locador || usuarioLogado.isLocador
+                                        ? "/perfil_locador"
+                                        : "/cadastro-locador"
+                                );
+                            }}
                         >
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M12 19.4 4.8 12.6a4.2 4.2 0 0 1 6-5.9L12 7.8l1.2-1.1a4.2 4.2 0 0 1 6 5.9L12 19.4Z" />
-                            </svg>
+                            {usuarioLogado?.locador || usuarioLogado?.isLocador ? "Meu negócio" : "Vou anunciar"}
                         </button>
+                        {usuarioLogado ? <CaixaAvisos usuarioId={usuarioLogado.id} /> : null}
+                        {usuarioLogado ? (
+                            <button
+                                type="button"
+                                className="hm-listas"
+                                aria-label="Favoritos"
+                                onClick={() => navigate("/favoritos")}
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 19.4 4.8 12.6a4.2 4.2 0 0 1 6-5.9L12 7.8l1.2-1.1a4.2 4.2 0 0 1 6 5.9L12 19.4Z" />
+                                </svg>
+                            </button>
+                        ) : null}
                         <MenuPerfil />
                     </div>
                 </header>
@@ -345,7 +364,8 @@ export default function Home() {
                 <JellyRadio
                     className="hm-alternar"
                     ariaLabel="Modo de visualização"
-                    size="md"
+                    size="lg"
+                    gap={12}
                     items={[
                         { value: "grade", label: "Grade" },
                         { value: "lista", label: "Lista" },

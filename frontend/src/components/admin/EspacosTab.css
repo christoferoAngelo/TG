@@ -165,13 +165,24 @@
   margin-bottom: 8px;
 }
 
-.adm-detalhe-chips span {
-  padding: 5px 10px;
+.adm-detalhe-chips span,
+.adm-detalhe-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
   border-radius: var(--radius-pill);
   background: var(--color-primary-soft);
   color: var(--color-primary-text);
   font-size: 12px;
   font-weight: 700;
+}
+
+.adm-detalhe-chip-ico {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .adm-detalhe-ambientes {

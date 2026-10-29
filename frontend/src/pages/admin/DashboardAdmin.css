@@ -103,7 +103,7 @@
 .adm .val-motivo textarea {
     width: 100%;
     box-sizing: border-box;
-    padding: 10px 12px;
+    padding: 12px 14px;
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-md);
     background: var(--color-surface);
@@ -111,6 +111,12 @@
     font-family: var(--font-body);
     font-size: 14px;
     outline: none;
+}
+
+.adm .filter-bar .glide-select__trigger {
+    min-height: 44px;
+    padding: 0 14px 0 16px;
+    gap: 10px;
 }
 
 .adm .select-input:focus,
@@ -146,18 +152,39 @@
 }
 
 .adm-metrica-ico {
-    display: grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 44px;
     height: 44px;
     flex-shrink: 0;
     border-radius: var(--radius-md);
     background: var(--color-primary-soft);
     color: var(--color-primary-text);
+    line-height: 0;
+}
+
+.adm-metrica-ico .adm-ico {
+    width: 22px;
+    height: 22px;
+    display: block;
+    flex-shrink: 0;
+    /* leve ajuste óptico: traços de ícone costumam pesar para cima no viewBox */
+    transform: translateY(1px);
+}
+
+.adm-metrica > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
 }
 
 .adm-metrica strong {
-    display: block;
+    display: flex;
+    align-items: center;
+    min-height: 1.15em;
     font-family: var(--font-heading);
     font-size: 1.6rem;
     font-weight: 800;
@@ -166,10 +193,17 @@
     color: var(--color-text);
 }
 
+.adm-metrica strong .counter {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}
+
 .adm-metrica span {
     display: block;
-    margin-top: 4px;
+    margin: 0;
     font-size: 13px;
+    line-height: 1.3;
     color: var(--color-text-muted);
 }
 
@@ -201,6 +235,52 @@
     display: flex;
     justify-content: flex-end;
     margin-bottom: 16px;
+}
+
+.adm-toolbar--usuarios {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.adm-toolbar--usuarios .adm-busca {
+    flex: 1 1 260px;
+    width: auto;
+    max-width: 420px;
+}
+
+.adm-filtros-usuarios {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.adm-filtros-usuarios label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+}
+
+.adm-filtros-usuarios select {
+    min-width: 150px;
+    padding: 9px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-text);
+    background: var(--color-surface);
+}
+
+.adm-usuarios-contador {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--color-text-muted);
 }
 
 .adm-busca {
@@ -288,10 +368,18 @@
 
 .adm .action-buttons,
 .adm-acoes {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+    justify-content: flex-start;
+    width: max-content;
+    max-width: 100%;
+}
+
+.adm td.action-buttons {
+    width: 1%;
+    white-space: nowrap;
 }
 
 .adm .btn,
@@ -600,6 +688,43 @@
 .adm-confirm-caixa p {
     margin: 0 0 16px;
     color: var(--color-text-muted);
+}
+
+.adm-confirm-caixa .adm-campo-grupo {
+    margin-top: 4px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.adm-confirm-caixa textarea.adm-campo {
+    resize: vertical;
+    min-height: 96px;
+}
+
+.adm-user-dados {
+    display: grid;
+    gap: 12px;
+    margin: 0 0 18px;
+}
+
+.adm-user-dados > div {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border-soft, var(--color-border));
+}
+
+.adm-user-dados dt {
+    margin: 0 0 2px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+}
+
+.adm-user-dados dd {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    overflow-wrap: anywhere;
 }
 
 .adm-confirm-acoes {

@@ -209,29 +209,32 @@ export default function EspacosTab() {
           </td>
         )}
 
-        <td className="admin-td action-buttons">
-          <button type="button" className="btn-sm" onClick={() => abrirDetalhe(espaco)}>
-            Ver detalhes
-          </button>
-          {statusAba !== 'APROVADO' && (
-            <button 
-              className="btn-sm btn-approve" 
-              onClick={() => handleAprovar(espaco)}
-              disabled={processandoId === espaco.id}
-            >
-              {processandoId === espaco.id ? 'Salvando…' : 'Aprovar'}
+        <td className="admin-td">
+          <div className="action-buttons">
+            <button type="button" className="btn-sm" onClick={() => abrirDetalhe(espaco)}>
+              Ver detalhes
             </button>
-          )}
-
-          {statusAba !== 'REJEITADO' && (
-            <button 
-              className="btn-sm btn-reject" 
-              onClick={() => handleAbrirModalRejeitar(espaco)}
-              disabled={processandoId === espaco.id}
-            >
-              {processandoId === espaco.id ? 'Salvando…' : 'Recusar'}
-            </button>
-          )}
+            {statusAba !== 'APROVADO' && (
+              <button
+                type="button"
+                className="btn-sm btn-approve"
+                onClick={() => handleAprovar(espaco)}
+                disabled={processandoId === espaco.id}
+              >
+                {processandoId === espaco.id ? 'Salvando…' : 'Aprovar'}
+              </button>
+            )}
+            {statusAba !== 'REJEITADO' && (
+              <button
+                type="button"
+                className="btn-sm btn-reject"
+                onClick={() => handleAbrirModalRejeitar(espaco)}
+                disabled={processandoId === espaco.id}
+              >
+                {processandoId === espaco.id ? 'Salvando…' : 'Recusar'}
+              </button>
+            )}
+          </div>
         </td>
       </tr>
     ))}

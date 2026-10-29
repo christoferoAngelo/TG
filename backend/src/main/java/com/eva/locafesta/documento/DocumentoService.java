@@ -266,6 +266,16 @@ public class DocumentoService {
     }
 
 
+    @Transactional(readOnly = true)
+    public List<DocumentoDTO> listarTodosAdmin() {
+        exigirAdmin();
+        return documentoRepository.findAll()
+                .stream()
+                .map(DocumentoDTO::new)
+                .collect(Collectors.toList());
+    }
+
+
     // =========================================================
     // ADMIN - APROVAR
     // =========================================================
@@ -468,5 +478,31 @@ public class DocumentoService {
         exigirDonoOuAdmin(donoId);
 
         return new DocumentoDTO(documento);
+    }
+
+
+    // =========================================================
+    // CANCELAR ANÁLISE (dono, enquanto não aprovado)
+    // =========================================================
+
+    @Transactional
+    public void cancelarDocumento(Long documentoId) {
+        DocumentoEntity documento = documentoRepository.findById(documentoId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Documento não encontrado.")
+                );
+
+        Long donoId = documento.getUsuario() != null
+                ? documento.getUsuario().getId()
+                : (documento.getEspaco() != null ? donoDoEspaco(documento.getEspaco()) : null);
+
+        exigirDonoOuAdmin(donoId);
+
+        String status = documento.getStatus() == null ? "" : documento.getStatus().toUpperCase();
+        if ("APROVADO".equals(status)) {
+            throw erro(HttpStatus.CONFLICT, "Documento aprovado não pode ser cancelado.");
+        }
+
+        documentoRepository.delete(documento);
     }
 }

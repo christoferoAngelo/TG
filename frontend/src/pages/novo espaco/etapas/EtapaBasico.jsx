@@ -26,6 +26,8 @@ export default function EtapaBasico({
     atualizarAmbiente,
     adicionarFotos,
     removerFoto,
+    fotoCapaId,
+    definirCapa,
 }) {
     const [buscaTipo, setBuscaTipo] = useState("");
     const valorBase = Number(form.valorDiaria);
@@ -258,10 +260,16 @@ export default function EtapaBasico({
                                         data-erro={erroAmb.fotos ? "true" : undefined}
                                     >
                                         <span className="ne-rotulo">Fotos do cômodo</span>
-                                        <p className="ne-dica">Até 8 fotos neste cômodo e 24 no anúncio. Cada imagem pode ter até 10 MB.</p>
+                                        <p className="ne-dica">
+                                            Até 8 fotos neste cômodo e 24 no anúncio. Clique em “Usar como capa” para
+                                            escolher a imagem principal do anúncio.
+                                        </p>
                                         <div className="ne-fotos">
                                             {amb.fotos.map((foto) => (
-                                                <figure className="ne-foto" key={foto.id}>
+                                                <figure
+                                                    className={`ne-foto${fotoCapaId === foto.id ? " ne-foto--capa" : ""}`}
+                                                    key={foto.id}
+                                                >
                                                     <img src={foto.preview || foto.url} alt="" />
                                                     <button
                                                         type="button"
@@ -270,6 +278,14 @@ export default function EtapaBasico({
                                                         aria-label="Remover foto"
                                                     >
                                                         ×
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="ne-foto-capa"
+                                                        onClick={() => definirCapa?.(foto.id)}
+                                                        aria-pressed={fotoCapaId === foto.id}
+                                                    >
+                                                        {fotoCapaId === foto.id ? "Capa" : "Usar como capa"}
                                                     </button>
                                                 </figure>
                                             ))}

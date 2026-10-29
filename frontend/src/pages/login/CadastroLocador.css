@@ -1,0 +1,126 @@
+.cl-page {
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 20px 48px;
+    background:
+        radial-gradient(ellipse 70% 50% at 10% 0%, color-mix(in srgb, var(--color-primary) 22%, transparent), transparent 60%),
+        radial-gradient(ellipse 50% 40% at 100% 100%, color-mix(in srgb, var(--color-border) 55%, transparent), transparent 55%),
+        var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+}
+
+.cl-card {
+    width: min(520px, 100%);
+    padding: 32px 28px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.cl-titulo {
+    margin: 0 0 8px;
+    font-family: var(--font-heading);
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-text);
+}
+
+.cl-subtitulo {
+    margin: 0 0 22px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
+.cl-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cl-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cl-campo label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.cl-campo input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 15px;
+}
+
+.cl-campo input:focus {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 1px;
+    border-color: var(--color-primary-dark);
+}
+
+.cl-erro {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.cl-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.cl-btn {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px 18px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.cl-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cl-btn--ghost {
+    background: var(--color-bg-subtle);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+.cl-btn--ghost:hover:not(:disabled) {
+    border-color: var(--color-text);
+}
+
+.cl-btn--primario {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.cl-btn--primario:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+}

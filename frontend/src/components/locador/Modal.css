@@ -160,9 +160,15 @@
     min-width: 0;
 }
 
-.mdl-campo > label {
+.mdl-campo > label,
+.mdl-campo > .mdl-rotulo {
     font-size: 14px;
     font-weight: 600;
+    color: var(--color-text);
+}
+
+.mdl-botao-arquivo {
+    width: 100%;
 }
 
 .mdl-opcional {

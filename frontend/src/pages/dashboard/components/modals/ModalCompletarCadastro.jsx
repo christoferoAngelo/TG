@@ -8,6 +8,12 @@ import {
     mascararCpf,
     mascararTelefone,
 } from "../../../../services/documentos";
+import {
+    criarDocumentoUsuario,
+    uploadDocumentoCloudinary,
+} from "../../../../services/documentoService";
+import { ladosIdentidade } from "../../../../components/documento/rotulosDocumento";
+import BotaoImagem from "../../../../components/ui/BotaoImagem";
 
 const API = "http://localhost:8080/api";
 
@@ -43,7 +49,14 @@ async function lerErro(response, padrao) {
  *  - onAtualizado({ novoPerfilLocatario }): chamado após salvar algo (atualiza a tela)
  *  - onClose: fecha o modal
  */
-export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario, foco, onAtualizado, onClose }) {
+export default function ModalCompletarCadastro({
+    usuarioLogado,
+    perfilLocatario,
+    foco,
+    onAtualizado,
+    onClose,
+    onDocsEnviados,
+}) {
     const telefoneOriginal = usuarioLogado?.telefone || "";
     const enderecoOriginal = enderecoInicial(usuarioLogado?.endereco);
     const cpfJaCadastrado = Boolean(perfilLocatario);
@@ -51,6 +64,10 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
     const [telefone, setTelefone] = useState(mascararTelefone(telefoneOriginal));
     const [cpf, setCpf] = useState("");
     const [endereco, setEndereco] = useState(enderecoOriginal);
+    const [tipoId, setTipoId] = useState("CNH");
+    const [arquivoId, setArquivoId] = useState(null);
+    const [arquivoIdVerso, setArquivoIdVerso] = useState(null);
+    const [arquivoComprovante, setArquivoComprovante] = useState(null);
     const [erros, setErros] = useState({});
     const [erroGeral, setErroGeral] = useState("");
     const [buscandoCep, setBuscandoCep] = useState(false);
@@ -122,7 +139,13 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
     const cpfPreenchido = !cpfJaCadastrado && apenasDigitos(cpf).length > 0;
     const enderecoPreenchido = CAMPOS_ENDERECO.some((c) => String(endereco[c]).trim() !== "");
     const enderecoAlterado = Object.keys(endereco).some((c) => endereco[c] !== enderecoOriginal[c]);
-    const temAlgoParaSalvar = telefoneAlterado || cpfPreenchido || (enderecoPreenchido && enderecoAlterado);
+    const temAlgoParaSalvar =
+        telefoneAlterado
+        || cpfPreenchido
+        || (enderecoPreenchido && enderecoAlterado)
+        || Boolean(arquivoId)
+        || Boolean(arquivoIdVerso)
+        || Boolean(arquivoComprovante);
 
     /* ---------- validação ---------- */
 
@@ -218,6 +241,32 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                 });
                 if (!res.ok) throw new Error(`Endereço: ${await lerErro(res, "não foi possível salvar.")}`);
                 salvouAlgo = true;
+            }
+
+            const enviarDoc = async (tipoDocumento, arquivo) => {
+                const upload = await uploadDocumentoCloudinary(arquivo);
+                await criarDocumentoUsuario(usuarioLogado.id, {
+                    tipoDocumento,
+                    nomeArquivo: upload.nomeArquivo,
+                    arquivoUrl: upload.url,
+                });
+            };
+
+            const lados = ladosIdentidade(tipoId);
+            if (arquivoId) {
+                await enviarDoc(lados.frente, arquivoId);
+                salvouAlgo = true;
+            }
+            if (arquivoIdVerso) {
+                await enviarDoc(lados.verso, arquivoIdVerso);
+                salvouAlgo = true;
+            }
+            if (arquivoComprovante) {
+                await enviarDoc("COMPROVANTE_RESIDENCIA", arquivoComprovante);
+                salvouAlgo = true;
+            }
+            if (arquivoId || arquivoIdVerso || arquivoComprovante) {
+                onDocsEnviados?.();
             }
 
             await onAtualizado?.({ novoPerfilLocatario });
@@ -325,6 +374,52 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             </>
                         )}
                     </div>
+
+                    <div className="mdl-campo">
+                        <label htmlFor="cc-tipo-id">Documento de identidade (frente e verso)</label>
+                        <select
+                            id="cc-tipo-id"
+                            className="mdl-input"
+                            value={tipoId}
+                            onChange={(e) => {
+                                setTipoId(e.target.value);
+                                setArquivoId(null);
+                                setArquivoIdVerso(null);
+                            }}
+                        >
+                            <option value="RG">RG (frente e verso)</option>
+                            <option value="CIN">CIN (frente e verso)</option>
+                            <option value="CNH">CNH (frente e verso)</option>
+                        </select>
+                    </div>
+                    <div className="mdl-campo">
+                        <span className="mdl-rotulo" id="cc-arquivo-id-label">Foto da frente do {tipoId}</span>
+                        <BotaoImagem
+                            id="cc-arquivo-id"
+                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                            compacto
+                            rotulo={`Enviar frente do ${tipoId}`}
+                            rotuloTroca="Trocar arquivo"
+                            dica="JPG, PNG, WEBP ou PDF"
+                            nomeArquivo={arquivoId?.name}
+                            onChange={(e) => setArquivoId(e.target.files?.[0] || null)}
+                            className="mdl-botao-arquivo"
+                        />
+                    </div>
+                    <div className="mdl-campo">
+                        <span className="mdl-rotulo" id="cc-arquivo-id-verso-label">Foto do verso do {tipoId}</span>
+                        <BotaoImagem
+                            id="cc-arquivo-id-verso"
+                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                            compacto
+                            rotulo={`Enviar verso do ${tipoId}`}
+                            rotuloTroca="Trocar arquivo"
+                            dica="JPG, PNG, WEBP ou PDF"
+                            nomeArquivo={arquivoIdVerso?.name}
+                            onChange={(e) => setArquivoIdVerso(e.target.files?.[0] || null)}
+                            className="mdl-botao-arquivo"
+                        />
+                    </div>
                 </section>
 
                 {/* ---------- Endereço ---------- */}
@@ -424,6 +519,21 @@ export default function ModalCompletarCadastro({ usuarioLogado, perfilLocatario,
                             />
                             {erros.end_estado && <small className="mdl-erro">{erros.end_estado}</small>}
                         </div>
+                    </div>
+
+                    <div className="mdl-campo">
+                        <span className="mdl-rotulo" id="cc-comprovante-label">Comprovante de endereço (no seu nome)</span>
+                        <BotaoImagem
+                            id="cc-comprovante"
+                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                            compacto
+                            rotulo="Enviar comprovante"
+                            rotuloTroca="Trocar comprovante"
+                            dica="JPG, PNG, WEBP ou PDF"
+                            nomeArquivo={arquivoComprovante?.name}
+                            onChange={(e) => setArquivoComprovante(e.target.files?.[0] || null)}
+                            className="mdl-botao-arquivo"
+                        />
                     </div>
                 </section>
             </form>

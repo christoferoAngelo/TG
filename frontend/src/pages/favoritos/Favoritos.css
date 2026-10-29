@@ -39,6 +39,18 @@
     max-width: 420px;
 }
 
+.fv-nova {
+    width: min(420px, 100%);
+    margin-left: auto;
+    margin-right: auto;
+    align-items: stretch;
+}
+
+.fv-nova > .fv-criar {
+    width: 100%;
+    justify-content: center;
+}
+
 .fv-renomear {
     flex-direction: row;
     align-items: center;
@@ -257,7 +269,7 @@
 }
 
 .fv-toast.swipe-toast {
-    left: calc(50vw + var(--sidebar-largura, 0px) / 2);
+    left: 50vw;
     right: auto;
     bottom: 28px;
     translate: -50% 0;

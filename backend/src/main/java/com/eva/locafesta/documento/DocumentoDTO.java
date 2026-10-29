@@ -19,7 +19,13 @@ public class DocumentoDTO {
 
     private Long usuarioId;
 
+    private String usuarioNome;
+
+    private String usuarioEmail;
+
     private Long espacoId;
+
+    private String espacoTitulo;
 
     private String nomeArquivo;
 
@@ -45,10 +51,21 @@ public class DocumentoDTO {
 
         if (documento.getUsuario() != null) {
             this.usuarioId = documento.getUsuario().getId();
+            this.usuarioNome = documento.getUsuario().getNome();
+            this.usuarioEmail = documento.getUsuario().getEmail();
         }
 
         if (documento.getEspaco() != null) {
             this.espacoId = documento.getEspaco().getId();
+            this.espacoTitulo = documento.getEspaco().getTitulo();
+            if (this.usuarioId == null
+                    && documento.getEspaco().getLocador() != null
+                    && documento.getEspaco().getLocador().getUsuario() != null) {
+                var dono = documento.getEspaco().getLocador().getUsuario();
+                this.usuarioId = dono.getId();
+                this.usuarioNome = dono.getNome();
+                this.usuarioEmail = dono.getEmail();
+            }
         }
 
         this.nomeArquivo = documento.getNomeArquivo();

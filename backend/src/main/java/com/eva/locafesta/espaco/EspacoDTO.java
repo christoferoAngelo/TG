@@ -72,6 +72,8 @@ public void setFechaNoDiaSeguinte(Boolean fechaNoDiaSeguinte) {
     // Lista de ambientes/cômodos (Nova estrutura estilo Airbnb)
     private List<EspacoAmbienteDTO> ambientes;
 
+    private String fotoCapaUrl;
+
     private Double notaMedia;
     private Integer quantidadeAvaliacoes;
 
@@ -110,6 +112,8 @@ public void setFechaNoDiaSeguinte(Boolean fechaNoDiaSeguinte) {
                 .map(EspacoAmbienteDTO::new)
                 .collect(Collectors.toList());
         }
+
+        this.fotoCapaUrl = espaco.getFotoCapaUrl();
 
         this.horarioAbertura = espaco.getHorarioAbertura();
         this.horarioFechamento = espaco.getHorarioFechamento();

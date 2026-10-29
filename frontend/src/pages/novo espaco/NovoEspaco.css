@@ -5,18 +5,18 @@
    ========================================================================== */
 
 /*
-   A página fica dentro de .sidebar-content, que já ocupa a altura da janela
+   A página fica dentro de .app-shell-content, que já ocupa a altura da janela
    e ainda inclui o cabeçalho. min-height: 100vh aqui somava outra tela inteira
    e deixava rolar no vazio. O conteúdo passa a preencher só o que sobra
    abaixo do cabeçalho e rola dentro de si.
 */
-.sidebar-content:has(> .ne-page) {
+.app-shell-content:has(> .ne-page) {
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
-.sidebar-content:has(> .ne-page) > .header-home {
+.app-shell:has(> .app-shell-content > .ne-page) > .header-home {
     flex-shrink: 0;
 }
 
@@ -410,6 +410,31 @@
     border-radius: 10px;
     overflow: hidden;
     background: var(--color-bg);
+}
+
+.ne-foto--capa {
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.ne-foto-capa {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    padding: 6px 8px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    cursor: pointer;
+}
+
+.ne-foto--capa .ne-foto-capa {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
 }
 
 .ne-foto img {

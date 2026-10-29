@@ -1,0 +1,32 @@
+.app-shell {
+    --sidebar-largura: 0px;
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+}
+
+.app-shell-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--color-bg);
+}
+
+.app-shell:has(> .app-shell-content > .ne-page) {
+    overflow: hidden;
+}
+
+.app-shell:has(> .app-shell-content > .ne-page) > .header-home {
+    flex-shrink: 0;
+}
+
+.app-shell-content:has(> .ne-page) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}

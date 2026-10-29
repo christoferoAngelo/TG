@@ -1,5 +1,4 @@
-import React from "react";
-import BotaoImagem from "../../../components/ui/BotaoImagem";
+import React, { useEffect, useRef, useState } from "react";
 
 const iniciaisDe = (nome = "") =>
     nome
@@ -10,33 +9,95 @@ const iniciaisDe = (nome = "") =>
         .join("");
 
 /**
- * Bloco grande no topo: nome da pessoa, tipos de conta que ela tem
- * e o andamento do cadastro.
+ * Bloco grande no topo: nome, tipos de conta e andamento do cadastro.
+ * A foto abre um menu ao clicar (adicionar / alterar / remover).
  */
-export default function PerfilHero({ nome, email, fotoUrl, tipos, feitos, total, onCompletar, onFoto, enviandoFoto, erroFoto }) {
+export default function PerfilHero({
+    nome,
+    email,
+    fotoUrl,
+    tipos,
+    feitos,
+    total,
+    onCompletar,
+    onFoto,
+    onRemoverFoto,
+    enviandoFoto,
+    erroFoto,
+}) {
     const completo = feitos === total;
+    const [menuAberto, setMenuAberto] = useState(false);
+    const caixaRef = useRef(null);
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        if (!menuAberto) return undefined;
+        const fechar = (evento) => {
+            if (!caixaRef.current?.contains(evento.target)) setMenuAberto(false);
+        };
+        const tecla = (evento) => {
+            if (evento.key === "Escape") setMenuAberto(false);
+        };
+        document.addEventListener("mousedown", fechar);
+        document.addEventListener("keydown", tecla);
+        return () => {
+            document.removeEventListener("mousedown", fechar);
+            document.removeEventListener("keydown", tecla);
+        };
+    }, [menuAberto]);
+
+    const escolherArquivo = () => {
+        setMenuAberto(false);
+        inputRef.current?.click();
+    };
 
     return (
         <section className="pf-hero" aria-label="Resumo da conta">
-            <div className="pf-foto">
-                <div className="pf-avatar" aria-hidden="true">
-                    {fotoUrl ? <img src={fotoUrl} alt="" /> : (iniciaisDe(nome) || "?")}
-                </div>
-                <BotaoImagem
-                    className="pf-foto-upload"
-                    accept="image/jpeg,image/png,image/webp"
+            <div className="pf-foto" ref={caixaRef}>
+                <button
+                    type="button"
+                    className="pf-avatar pf-avatar--botao"
+                    aria-label={fotoUrl ? "Opções da foto de perfil" : "Adicionar foto de perfil"}
+                    aria-expanded={menuAberto}
+                    aria-haspopup="menu"
                     disabled={enviandoFoto}
-                    preview={fotoUrl || ""}
-                    compacto
-                    rotulo={enviandoFoto ? "Enviando…" : "Adicionar foto"}
-                    rotuloTroca={enviandoFoto ? "Enviando…" : "Trocar foto"}
-                    dica="JPG, PNG ou WEBP"
+                    onClick={() => setMenuAberto((atual) => !atual)}
+                >
+                    {fotoUrl ? <img src={fotoUrl} alt="" /> : (iniciaisDe(nome) || "?")}
+                </button>
+
+                <input
+                    ref={inputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    hidden
                     onChange={(evento) => {
                         const arquivo = evento.target.files?.[0];
                         evento.target.value = "";
                         if (arquivo) onFoto?.(arquivo);
                     }}
                 />
+
+                {menuAberto && (
+                    <div className="pf-foto-menu" role="menu">
+                        <button type="button" role="menuitem" onClick={escolherArquivo}>
+                            {fotoUrl ? "Alterar foto" : "Adicionar foto"}
+                        </button>
+                        {fotoUrl && (
+                            <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                    setMenuAberto(false);
+                                    onRemoverFoto?.();
+                                }}
+                            >
+                                Remover foto
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 {erroFoto && <p className="pf-foto-erro" role="alert">{erroFoto}</p>}
             </div>
 
@@ -69,7 +130,7 @@ export default function PerfilHero({ nome, email, fotoUrl, tipos, feitos, total,
                             aria-valuemax={total}
                             aria-valuenow={feitos}
                         >
-                            <span style={{ width: `${(feitos / total) * 100}%` }} />
+                            <span style={{ width: `${(feitos / Math.max(total, 1)) * 100}%` }} />
                         </div>
                         <button type="button" className="pf-btn pf-btn--primario" onClick={onCompletar}>
                             Completar cadastro

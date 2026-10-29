@@ -30,6 +30,10 @@
     --sidebar-largura: 76px;
 }
 
+.app-layout--home {
+    --sidebar-largura: 0px;
+}
+
 .sidebar.collapsed {
     width: 76px;
     padding: 20px 10px;

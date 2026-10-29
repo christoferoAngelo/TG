@@ -137,6 +137,10 @@ public class Espaco {
     @Builder.Default
     private Set<Caracteristica> caracteristicas = new HashSet<>();
 
+    // Foto de capa do anúncio (URL). Se vazia, a listagem usa a primeira foto dos ambientes.
+    @Column(name = "foto_capa_url", length = 500)
+    private String fotoCapaUrl;
+
     // Ambientes e imagens
     @OneToMany(
         mappedBy = "espaco",

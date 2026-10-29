@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import "./Dashboard.css"; // mantido: outras telas (ex.: Minhas Reservas) ainda usam estas classes
+import "./Dashboard.css";
 import "./Perfil.css";
 
 import PerfilHero from "./components/PerfilHero";
 import ChecklistCadastro from "./components/ChecklistCadastro";
 import AtalhosPerfil from "./components/AtalhosPerfil";
 import DadosPessoais from "./components/DadosPessoais";
+import DocumentosPerfil from "./components/DocumentosPerfil";
 import ModalCompletarCadastro from "./components/modals/ModalCompletarCadastro";
 import { cpfOculto } from "../../services/documentos";
 import { uploadDocumentoCloudinary } from "../../services/documentoService";
+import { ehDocumentoIdentidade, TIPO_COMPROVANTE } from "../../components/documento/rotulosDocumento";
 
 const API = "http://localhost:8080/api";
 
@@ -28,12 +30,12 @@ export default function Dashboard() {
 
     const [perfilLocador, setPerfilLocador] = useState(null);
     const [perfilLocatario, setPerfilLocatario] = useState(null);
-    // null = fechado; { foco } = aberto (foco: "telefone" | "cpf" | "endereco" | null)
     const [modal, setModal] = useState(null);
     const [enviandoFoto, setEnviandoFoto] = useState(false);
     const [erroFoto, setErroFoto] = useState("");
+    const [docs, setDocs] = useState([]);
+    const [docsVersao, setDocsVersao] = useState(0);
 
-    // Consulta na API se o usuário já tem conta de Locador ou Locatário criada
     useEffect(() => {
         if (!usuarioLogado?.id) return;
 
@@ -48,7 +50,6 @@ export default function Dashboard() {
             .catch(() => setPerfilLocatario(null));
     }, [usuarioLogado]);
 
-    // O que a pessoa já tem
     const ehLocatario = Boolean(usuarioLogado?.isLocatario || perfilLocatario);
     const ehLocador = Boolean(usuarioLogado?.isLocador || usuarioLogado?.locador || perfilLocador);
     const ehAdmin = Boolean(usuarioLogado?.admin || usuarioLogado?.isAdmin);
@@ -57,6 +58,9 @@ export default function Dashboard() {
     const temEndereco = Boolean(usuarioLogado?.endereco?.cep);
     const enderecoTexto = formatarEndereco(usuarioLogado?.endereco);
     const cpfExibicao = ehLocatario ? cpfOculto(perfilLocatario?.cpf) : "";
+
+    const temIdentidade = docs.some((d) => ehDocumentoIdentidade(d.tipoDocumento));
+    const temComprovante = docs.some((d) => String(d.tipoDocumento).toUpperCase() === TIPO_COMPROVANTE);
 
     const itens = [
         {
@@ -68,16 +72,16 @@ export default function Dashboard() {
         },
         {
             id: "cpf",
-            titulo: "CPF",
-            descricao: "Cria sua conta de locatário, necessária para alugar e para anunciar.",
-            feito: ehLocatario,
+            titulo: "CPF e documento de identidade",
+            descricao: "CPF e RG/CIN ou CNH para validar sua identidade.",
+            feito: ehLocatario && temIdentidade,
             valor: cpfExibicao,
         },
         {
             id: "endereco",
-            titulo: "Endereço residencial",
-            descricao: "Para sugerirmos espaços perto de você.",
-            feito: temEndereco,
+            titulo: "Endereço e comprovante",
+            descricao: "Endereço residencial com comprovante no seu nome.",
+            feito: temEndereco && temComprovante,
             valor: enderecoTexto,
         },
     ];
@@ -91,13 +95,11 @@ export default function Dashboard() {
     ].filter(Boolean);
     if (tipos.length === 0) tipos.push({ rotulo: "Nenhum perfil criado ainda", ativo: false });
 
-    // Primeiro item pendente (usado pelo botão "Completar cadastro")
     const primeiroPendente = itens.find((i) => !i.feito)?.id ?? null;
 
     const abrirModal = (foco = null) => setModal({ foco });
     const fecharModal = () => setModal(null);
 
-    // Depois de salvar algo: guarda o novo perfil e atualiza o usuário no contexto
     const handleAtualizado = async ({ novoPerfilLocatario } = {}) => {
         if (novoPerfilLocatario) setPerfilLocatario(novoPerfilLocatario);
         if (atualizarUsuario) await atualizarUsuario();
@@ -133,6 +135,27 @@ export default function Dashboard() {
         }
     };
 
+    const removerFoto = async () => {
+        setEnviandoFoto(true);
+        setErroFoto("");
+        try {
+            const resposta = await fetch(`${API}/users/${usuarioLogado.id}/foto`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fotoUrl: "" }),
+            });
+            if (!resposta.ok) {
+                const texto = await resposta.text();
+                throw new Error(texto || "Não foi possível remover a foto.");
+            }
+            if (atualizarUsuario) await atualizarUsuario();
+        } catch (falha) {
+            setErroFoto(falha.message || "Não foi possível remover a foto.");
+        } finally {
+            setEnviandoFoto(false);
+        }
+    };
+
     return (
         <div className="pf-page">
             <main className="pf-container">
@@ -145,14 +168,15 @@ export default function Dashboard() {
                     total={itens.length}
                     onCompletar={() => abrirModal(primeiroPendente)}
                     onFoto={alterarFoto}
+                    onRemoverFoto={removerFoto}
                     enviandoFoto={enviandoFoto}
                     erroFoto={erroFoto}
                 />
 
                 {cadastroCompleto ? (
                     <p className="pf-sucesso" role="status">
-                        Seu cadastro está completo. Você já pode alugar espaços e, quando quiser,
-                        criar sua conta de locador pelo painel.
+                        Seu cadastro está completo. Você já pode solicitar reservas e, quando quiser,
+                        criar sua conta de locador.
                     </p>
                 ) : (
                     <ChecklistCadastro itens={itens} onAbrir={abrirModal} />
@@ -166,7 +190,7 @@ export default function Dashboard() {
                     onExplorar={() => navigate("/home")}
                     onPainel={() => {
                         if (!ehLocador && !cadastroCompleto) abrirModal(primeiroPendente);
-                        else navigate("/perfil_locador");
+                        else navigate(ehLocador ? "/perfil_locador" : "/cadastro-locador");
                     }}
                 />
 
@@ -176,6 +200,15 @@ export default function Dashboard() {
                     enderecoTexto={enderecoTexto}
                     onEditar={abrirModal}
                 />
+
+                {usuarioLogado?.id && (
+                    <DocumentosPerfil
+                        key={docsVersao}
+                        usuarioId={usuarioLogado.id}
+                        onMudanca={setDocs}
+                        variante="locatario"
+                    />
+                )}
             </main>
 
             {modal && (
@@ -185,6 +218,7 @@ export default function Dashboard() {
                     foco={modal.foco}
                     onAtualizado={handleAtualizado}
                     onClose={fecharModal}
+                    onDocsEnviados={() => setDocsVersao((n) => n + 1)}
                 />
             )}
         </div>

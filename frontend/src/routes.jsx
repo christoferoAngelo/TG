@@ -1,8 +1,7 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 
-// IMPORTS DAS PÁGINAS
 import Auth from "./pages/login/Auth";
 import RedefinirSenha from "./pages/login/RedefinirSenha";
 import CadastroLocador from "./pages/login/CadastroLocador";
@@ -14,22 +13,13 @@ import Home from "./pages/home/Home";
 import Jornada from "./pages/jornada/Jornada";
 import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco";
 import { PagamentoPage } from "./pages/pagamento/PagamentoPage";
-
-// DOCUMENTOS
-import DocumentosUsuario from "./pages/documentos/DocumentosUsuario";
 import DocumentosEspaco from "./pages/documentos/DocumentosEspaco";
 import DocumentosAdmin from "./pages/documentos/DocumentosAdmin";
-
-// IMPORT DO NOVO LAYOUT DA SIDEBAR
-import SidebarLayout from "./components/sidebar/SidebarLayout";
+import AppShell from "./components/layout/AppShell";
 import NovoEspaco from "./pages/novo espaco/NovoEspaco";
 import Favoritos from "./pages/favoritos/Favoritos";
 
-
-// =====================================================
-// COMPONENTE PARA PROTEGER ROTAS
-// =====================================================
-function RouteProtegida({ children }) {
+function RouteProtegida() {
     const { usuarioLogado, carregando } = useAuth();
 
     if (carregando) {
@@ -44,7 +34,7 @@ function RouteProtegida({ children }) {
         return <Navigate to="/login" replace />;
     }
 
-    return children;
+    return <Outlet />;
 }
 
 function RouteAdmin({ children }) {
@@ -82,53 +72,49 @@ function RotasAplicacao() {
         <>
             <div inert={loginAberto ? true : undefined}>
                 <Routes location={localRotas}>
-                <Route path="/" element={<Navigate to="/home" replace />} />
+                    <Route path="/" element={<Navigate to="/home" replace />} />
 
-                <Route element={<SidebarLayout />}>
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/espaco/:id" element={<DetalhesEspaco />} />
-                </Route>
+                    <Route element={<AppShell />}>
+                        <Route path="/home" element={<Home />} />
+                        <Route path="/espaco/:id" element={<DetalhesEspaco />} />
+                    </Route>
 
-                <Route path="/redefinir-senha" element={<RedefinirSenha />} />
-                <Route path="/jornada" element={<Jornada />} />
+                    <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+                    <Route path="/jornada" element={<Jornada />} />
 
-                <Route
-                    path="/dashboard-admin"
-                    element={
-                        <RouteAdmin>
-                            <DashboardAdmin />
-                        </RouteAdmin>
-                    }
-                />
-                <Route
-                    path="/documentos-admin"
-                    element={
-                        <RouteAdmin>
-                            <DocumentosAdmin />
-                        </RouteAdmin>
-                    }
-                />
+                    <Route
+                        path="/dashboard-admin"
+                        element={
+                            <RouteAdmin>
+                                <DashboardAdmin />
+                            </RouteAdmin>
+                        }
+                    />
+                    <Route
+                        path="/documentos-admin"
+                        element={
+                            <RouteAdmin>
+                                <DocumentosAdmin />
+                            </RouteAdmin>
+                        }
+                    />
 
-                <Route
-                    element={
-                        <RouteProtegida>
-                            <SidebarLayout />
-                        </RouteProtegida>
-                    }
-                >
-                    <Route path="/locador/espacos/novo" element={<NovoEspaco />} />
-                    <Route path="/locador/espacos/:id/editar" element={<NovoEspaco />} />
-                    <Route path="/perfil" element={<Dashboard />} />
-                    <Route path="/minhas-reservas" element={<MinhasReservas />} />
-                    <Route path="/favoritos" element={<Favoritos />} />
-                    <Route path="/pagamento" element={<PagamentoPage />} />
-                    <Route path="/cadastro-locador" element={<CadastroLocador />} />
-                    <Route path="/perfil_locador" element={<DashboardLocador />} />
-                    <Route path="/documentos/usuario" element={<DocumentosUsuario />} />
-                    <Route path="/documentos/espaco/:id" element={<DocumentosEspaco />} />
-                </Route>
+                    <Route element={<RouteProtegida />}>
+                        <Route element={<AppShell />}>
+                            <Route path="/locador/espacos/novo" element={<NovoEspaco />} />
+                            <Route path="/locador/espacos/:id/editar" element={<NovoEspaco />} />
+                            <Route path="/perfil" element={<Dashboard />} />
+                            <Route path="/minhas-reservas" element={<MinhasReservas />} />
+                            <Route path="/favoritos" element={<Favoritos />} />
+                            <Route path="/pagamento" element={<PagamentoPage />} />
+                            <Route path="/cadastro-locador" element={<CadastroLocador />} />
+                            <Route path="/perfil_locador" element={<DashboardLocador />} />
+                            <Route path="/documentos/usuario" element={<Navigate to="/perfil" replace />} />
+                            <Route path="/documentos/espaco/:id" element={<DocumentosEspaco />} />
+                        </Route>
+                    </Route>
 
-                <Route path="*" element={<Navigate to="/home" replace />} />
+                    <Route path="*" element={<Navigate to="/home" replace />} />
                 </Routes>
             </div>
             {loginAberto && <Auth />}

@@ -80,18 +80,23 @@ export default function MenuPerfil() {
 
             {aberto && (
                 <div className="hm-perfil-menu" role="menu">
-                    <p className="hm-perfil-idioma">Português (Brasil)</p>
-                    <button type="button" role="menuitem" onClick={() => ir("/favoritos")}>Favoritos</button>
-                    <button type="button" role="menuitem" onClick={() => ir("/perfil")}>Meu perfil</button>
-                    <button type="button" role="menuitem" onClick={() => ir("/minhas-reservas")}>Minhas reservas</button>
-                    <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => ir(locador ? "/perfil_locador" : "/cadastro-locador")}
-                    >
-                        {locador ? "Painel de anúncios" : "Anunciar um espaço"}
-                    </button>
-                    <button type="button" role="menuitem" onClick={sair}>Sair</button>
+                    <div className="hm-perfil-grupo">
+                        <button type="button" role="menuitem" onClick={() => ir("/favoritos")}>Favoritos</button>
+                        <button type="button" role="menuitem" onClick={() => ir("/perfil")}>Meu perfil</button>
+                        <button type="button" role="menuitem" onClick={() => ir("/minhas-reservas")}>Minhas reservas</button>
+                    </div>
+                    <div className="hm-perfil-grupo">
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => ir(locador ? "/perfil_locador" : "/cadastro-locador")}
+                        >
+                            {locador ? "Meu negócio" : "Vou anunciar"}
+                        </button>
+                    </div>
+                    <div className="hm-perfil-grupo">
+                        <button type="button" role="menuitem" onClick={sair}>Sair</button>
+                    </div>
                 </div>
             )}
         </div>

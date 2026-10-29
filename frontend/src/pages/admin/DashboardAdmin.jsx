@@ -11,7 +11,7 @@ import "./DashboardAdmin.css";
 
 const SECOES = {
     overview: ["Visão geral", "Acompanhe o movimento de contas no período."],
-    usuarios: ["Usuários", "Busque, edite ou remova contas da plataforma."],
+    usuarios: ["Usuários", "Locadores e locatários — consulte dados, documentos e remova contas quando necessário."],
     espacos: ["Espaços", "Analise anúncios pendentes, aprovados e recusados."],
     documentos: ["Documentos", "Revise arquivos enviados por pessoas e espaços."],
     caracteristicas: ["Características", "Itens que o locador pode marcar no anúncio."],
@@ -22,6 +22,7 @@ export default function DashboardAdmin() {
     const { logout } = useAuth();
     const [sidebarExpandida, setSidebarExpandida] = useState(false);
     const [menuAtivo, setMenuAtivo] = useState("overview");
+    const [filtroDocsUsuario, setFiltroDocsUsuario] = useState(null);
 
     const handleLogout = async () => {
         try {
@@ -32,15 +33,26 @@ export default function DashboardAdmin() {
         }
     };
 
+    const irParaDocumentosDoUsuario = (usuario) => {
+        setFiltroDocsUsuario(usuario);
+        setMenuAtivo("documentos");
+    };
+
     const renderConteudoAtivo = () => {
         switch (menuAtivo) {
             case "usuarios":
-                return <UsuariosTab />;
+                return <UsuariosTab onVerDocumentos={irParaDocumentosDoUsuario} />;
             case "espacos":
             case "moderacao_espacos":
                 return <EspacosTab />;
             case "documentos":
-                return <DocumentosAdmin embutido />;
+                return (
+                    <DocumentosAdmin
+                        embutido
+                        filtroUsuario={filtroDocsUsuario}
+                        onLimparFiltroUsuario={() => setFiltroDocsUsuario(null)}
+                    />
+                );
             case "caracteristicas":
                 return <CaracteristicasPage embutido />;
             case "novo_admin":
@@ -58,14 +70,21 @@ export default function DashboardAdmin() {
                 sidebarExpandida={sidebarExpandida}
                 setSidebarExpandida={setSidebarExpandida}
                 menuAtivo={menuAtivo}
-                setMenuAtivo={setMenuAtivo}
+                setMenuAtivo={(id) => {
+                    if (id !== "documentos") setFiltroDocsUsuario(null);
+                    setMenuAtivo(id);
+                }}
                 handleLogout={handleLogout}
             />
 
             <main className="adm-main">
                 <header className="adm-topo">
                     <h1>{titulo}</h1>
-                    <p>{subtitulo}</p>
+                    <p>
+                        {menuAtivo === "documentos" && filtroDocsUsuario
+                            ? `Histórico de documentos de ${filtroDocsUsuario.nome || filtroDocsUsuario.email}.`
+                            : subtitulo}
+                    </p>
                 </header>
                 {renderConteudoAtivo()}
             </main>

@@ -157,11 +157,14 @@ private ApplicationEventPublisher eventPublisher;
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado."));
 
         String url = fotoUrl == null ? "" : fotoUrl.trim();
-        if (url.isEmpty() || url.length() > 500 || !url.startsWith("https://")) {
+        if (url.isEmpty()) {
+            usuario.setFotoUrl(null);
+        } else if (url.length() > 500 || !url.startsWith("https://")) {
             throw new IllegalArgumentException("Envie o endereço da foto.");
+        } else {
+            usuario.setFotoUrl(url);
         }
 
-        usuario.setFotoUrl(url);
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
 
         boolean isLocador = perfilLocadorRepository.existsByUsuarioId(usuarioSalvo.getId());
@@ -353,6 +356,11 @@ public UsuarioDTO atualizarUsuario(Long usuarioId, UsuarioUpdateDTO dto) {
 
 @Transactional
 public void excluirUsuario(Long idUsuarioParaExcluir) {
+    excluirUsuario(idUsuarioParaExcluir, null);
+}
+
+@Transactional
+public void excluirUsuario(Long idUsuarioParaExcluir, String motivo) {
 
     Usuario adminLogado = obterAdminLogado();
 
@@ -365,6 +373,14 @@ public void excluirUsuario(Long idUsuarioParaExcluir) {
         throw new IllegalStateException("O administrador master não pode ser excluído.");
     }
 
+    String motivoLimpo = motivo == null ? "" : motivo.trim();
+    if (motivoLimpo.length() < 10) {
+        throw new IllegalArgumentException("Informe o motivo da exclusão (mínimo 10 caracteres).");
+    }
+    if (motivoLimpo.length() > 800) {
+        throw new IllegalArgumentException("O motivo deve ter no máximo 800 caracteres.");
+    }
+
     // Guarda as informações antes de excluir
     Long idExcluido = usuario.getId();
     String nomeExcluido = usuario.getNome();
@@ -374,7 +390,7 @@ public void excluirUsuario(Long idUsuarioParaExcluir) {
     // Exclui o usuário
     usuarioRepository.delete(usuario);
 
-    // Registra a auditoria
+    // Registra a auditoria (o front notifica o e-mail cadastrado com o motivo)
     eventPublisher.publishEvent(new AuditoriaEvent(
             adminLogado.getId(),
             adminLogado.getNome(),
@@ -385,7 +401,7 @@ public void excluirUsuario(Long idUsuarioParaExcluir) {
                     + "'" + nomeExcluido + "'"
                     + ", e-mail: " + emailExcluido
                     + ", telefone: " + telefoneExcluido
-                    + "."
+                    + ". Motivo: " + motivoLimpo
     ));
 }
 

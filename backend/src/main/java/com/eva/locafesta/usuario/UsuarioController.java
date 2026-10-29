@@ -108,11 +108,15 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> excluirUsuario(@PathVariable Long id) {
+    public ResponseEntity<?> excluirUsuario(
+            @PathVariable Long id,
+            @RequestBody(required = false) java.util.Map<String, String> corpo
+    ) {
         try {
-            usuarioService.excluirUsuario(id);
+            String motivo = corpo == null ? null : corpo.get("motivo");
+            usuarioService.excluirUsuario(id, motivo);
             return ResponseEntity.noContent().build();
-        } catch (IllegalStateException erro) {
+        } catch (IllegalArgumentException | IllegalStateException erro) {
             return ResponseEntity.badRequest().body(erro.getMessage());
         }
     }
