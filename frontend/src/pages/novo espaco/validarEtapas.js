@@ -8,7 +8,11 @@ export function validarEtapa1(form, ambientes) {
     if (!form.descricao.trim()) e.descricao = "Descreva o espaço para quem vai alugar.";
     if (!form.tiposEvento.length) e.tiposEvento = "Escolha pelo menos um tipo de evento.";
     if (!(Number(form.valorDiaria) > 0)) e.valorDiaria = "Informe o valor base.";
-    if (!(parseInt(form.capacidadePessoas, 10) > 0)) e.capacidadePessoas = "Informe a capacidade (mínimo 1).";
+    {
+        const cap = parseInt(form.capacidadePessoas, 10);
+        if (!(cap > 0)) e.capacidadePessoas = "Informe a capacidade (mínimo 1).";
+        else if (cap > 1500) e.capacidadePessoas = "A capacidade máxima é 1.500 pessoas.";
+    }
 
     if (end.cep.replace(/\D/g, "").length !== 8) e.end_cep = "Informe um CEP com 8 dígitos.";
     if (!end.logradouro.trim()) e.end_logradouro = "Informe a rua ou avenida.";

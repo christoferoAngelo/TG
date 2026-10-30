@@ -135,15 +135,23 @@
 .adm-item-ico {
     display: grid;
     place-items: center;
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     flex-shrink: 0;
+    line-height: 0;
 }
 
 .adm-ico {
     width: 22px;
     height: 22px;
     display: block;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.adm-recolher .adm-ico {
+    width: 20px;
+    height: 20px;
 }
 
 .adm-item-label {

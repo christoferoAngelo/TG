@@ -152,9 +152,9 @@
 }
 
 .adm-metrica-ico {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
+    place-content: center;
     width: 44px;
     height: 44px;
     flex-shrink: 0;
@@ -162,15 +162,22 @@
     background: var(--color-primary-soft);
     color: var(--color-primary-text);
     line-height: 0;
+    font-size: 0;
+    overflow: hidden;
 }
 
-.adm-metrica-ico .adm-ico {
+.adm-metrica-ico .adm-ico,
+.adm-metrica-img {
     width: 22px;
     height: 22px;
     display: block;
+    margin: 0 auto;
+    padding: 0;
+    border: 0;
     flex-shrink: 0;
-    /* leve ajuste óptico: traços de ícone costumam pesar para cima no viewBox */
-    transform: translateY(1px);
+    object-fit: contain;
+    object-position: center;
+    vertical-align: middle;
 }
 
 .adm-metrica > div {
@@ -199,7 +206,7 @@
     line-height: 1;
 }
 
-.adm-metrica span {
+.adm-metrica > div > span {
     display: block;
     margin: 0;
     font-size: 13px;

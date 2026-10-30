@@ -5,7 +5,7 @@ import PulseHeart from "../../../components/bits/PulseHeart";
 import SpotlightCard from "../../../components/bits/SpotlightCard";
 import { formatarData, formatarMoeda, fotosDe, localDe, precoDe, unidadePreco } from "./explorar";
 
-export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compacto = false }) {
+export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compacto = false, motivoSugestao }) {
     const navigate = useNavigate();
     const fotos = fotosDe(espaco);
     const [indice, setIndice] = useState(0);
@@ -84,6 +84,9 @@ export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compac
                 </div>
                 <p>{localDe(espaco)}</p>
                 <p>Até {espaco.capacidadePessoas || "—"} pessoas{dataEvento ? ` · ${formatarData(dataEvento)}` : ""}</p>
+                {Array.isArray(motivoSugestao) && motivoSugestao.length > 0 && (
+                    <p className="hm-sugestao-motivo">{motivoSugestao.join(" · ")}</p>
+                )}
                 {preco != null && (
                     <p className="hm-preco">
                         <strong>{formatarMoeda(preco)}</strong> {unidadePreco(espaco)}

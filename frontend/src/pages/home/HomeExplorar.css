@@ -25,10 +25,10 @@
 
 .hm-topo {
     display: grid;
-    grid-template-columns: minmax(140px, 1fr) minmax(0, auto) minmax(140px, 1fr);
+    grid-template-columns: minmax(120px, 0.9fr) minmax(0, 1.4fr) minmax(120px, 0.9fr);
     align-items: center;
-    gap: 16px;
-    padding: 18px 40px 12px;
+    gap: 12px;
+    padding: 18px 32px 12px;
 }
 
 .hm-logo {
@@ -47,37 +47,56 @@
 .hm-pill {
     position: relative;
     justify-self: center;
-    width: min(720px, 100%);
+    width: min(980px, 100%);
+    z-index: 6;
 }
 
 .hm-pill-barra {
+    position: relative;
     display: flex;
     align-items: center;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
     background: var(--color-surface);
-    box-shadow: var(--shadow-sm);
-    min-height: 64px;
-    padding: 6px 6px 6px 10px;
-    transition: box-shadow 0.2s ease;
+    box-shadow: 0 3px 18px color-mix(in srgb, var(--color-text) 8%, transparent);
+    min-height: 78px;
+    padding: 8px 10px 8px 10px;
+    transition: box-shadow 0.22s ease, background-color 0.22s ease;
 }
 
 .hm-pill-barra:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--color-text) 12%, transparent);
 }
 
 .hm-pill-barra--aberta {
-    box-shadow: var(--shadow-md);
+    background: color-mix(in srgb, var(--color-bg-subtle) 70%, var(--color-surface));
+    box-shadow: 0 6px 24px color-mix(in srgb, var(--color-text) 12%, transparent);
+}
+
+.hm-pill-glow {
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    left: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--color-text) 8%, transparent);
+    pointer-events: none;
+    z-index: 0;
 }
 
 .hm-pill-parte {
-    flex: 1;
+    position: relative;
+    z-index: 1;
+    flex: 1.05;
     min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1px;
-    padding: 8px 16px;
+    justify-content: center;
+    gap: 4px;
+    min-height: 62px;
+    padding: 14px 28px;
     border: 0;
     border-radius: var(--radius-pill);
     background: transparent;
@@ -85,32 +104,66 @@
     text-align: left;
     font-family: var(--font-body);
     color: var(--color-text);
+    transition: opacity 0.18s ease;
 }
 
-.hm-pill-parte + .hm-pill-parte {
-    border-left: 1px solid var(--color-border);
-    border-radius: 0;
+.hm-pill-parte--onde {
+    flex: 1.45;
+    padding-left: 32px;
 }
 
-.hm-pill-parte--ativa,
-.hm-pill-parte:hover {
-    background: var(--color-bg-subtle);
-    border-radius: var(--radius-pill);
+.hm-pill-parte--quando {
+    flex: 1.2;
+    min-width: 148px;
+}
+
+.hm-pill-parte--quem {
+    flex: 1.1;
+    min-width: 132px;
+    padding-right: 14px;
+}
+
+.hm-pill-parte + .hm-pill-parte::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 22%;
+    bottom: 22%;
+    width: 1px;
+    background: var(--color-border);
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.hm-pill-barra--aberta .hm-pill-parte + .hm-pill-parte::before,
+.hm-pill-parte--ativa + .hm-pill-parte::before,
+.hm-pill-parte--ativa::before {
+    opacity: 0;
+}
+
+.hm-pill-parte--dim {
+    opacity: 0.45;
+}
+
+.hm-pill-parte--ativa {
+    opacity: 1;
 }
 
 .hm-pill-parte span {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
+    line-height: 1.15;
 }
 
 .hm-pill-parte strong {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 500;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.3;
 }
 
 .hm-pill-vazio {
@@ -119,9 +172,11 @@
 }
 
 .hm-pill-buscar {
+    position: relative;
+    z-index: 1;
     flex: 0 0 auto;
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     margin-left: 6px;
     border: 0;
     border-radius: 50%;
@@ -130,34 +185,249 @@
     cursor: pointer;
     display: grid;
     place-items: center;
+    transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
 .hm-pill-buscar svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
 }
 
 .hm-pill-buscar:hover {
     background: var(--color-primary-dark);
+    transform: scale(1.04);
+}
+
+.hm-pill-buscar:active {
+    transform: scale(0.97);
 }
 
 .hm-pill-painel {
     position: absolute;
-    top: calc(100% + 10px);
+    top: calc(100% + 12px);
     left: 0;
-    right: 0;
-    padding: 18px;
+    width: min(100%, 420px);
+    padding: 20px;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    border-radius: 28px;
     box-shadow: var(--shadow-md);
-    z-index: 5;
+    z-index: 8;
+}
+
+.hm-pill-painel--onde {
+    width: min(100%, 460px);
+}
+
+.hm-pill-painel--quando {
+    left: max(0px, calc((100% - min(100%, 380px)) / 2));
+    width: min(100%, 380px);
+}
+
+.hm-pill-painel--quem {
+    left: auto;
+    right: 0;
+    width: min(100%, 380px);
+}
+
+.hm-faixa--sem-filtros {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.hm-sugestoes-destino {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 280px;
+    overflow: auto;
+}
+
+.hm-sugestao-destino {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 12px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    color: var(--color-text);
+    font-family: var(--font-body);
+}
+
+.hm-sugestao-destino:hover,
+.hm-sugestao-destino:focus-visible {
+    background: var(--color-bg-subtle);
+    outline: none;
+}
+
+.hm-sugestao-destino span:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.hm-sugestao-destino strong {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.hm-sugestao-destino small {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.hm-sugestao-ico {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--color-bg-subtle);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px 20px;
+}
+
+.hm-sugestao-ico--mundo {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23130501' stroke-width='1.7'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c2.5 2.8 3.8 5.8 3.8 9S14.5 18.2 12 21c-2.5-2.8-3.8-5.8-3.8-9S9.5 5.8 12 3Z'/%3E%3C/svg%3E");
+}
+
+.hm-sugestao-ico--pin {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23130501' stroke-width='1.7'%3E%3Cpath d='M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z'/%3E%3Ccircle cx='12' cy='10' r='2.4'/%3E%3C/svg%3E");
+}
+
+.hm-sugestao-ico--cidade {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23130501' stroke-width='1.7'%3E%3Cpath d='M4 20V8l6-3v15M10 20V5l10 4v11M7 11h2M7 14h2M14 12h3M14 15h3'/%3E%3C/svg%3E");
+}
+
+.hm-sugestao-ico--espaco {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23130501' stroke-width='1.7'%3E%3Cpath d='M4 19V9l8-4 8 4v10M9 19v-5h6v5'/%3E%3C/svg%3E");
+}
+
+.hm-pill-aviso {
+    color: var(--color-danger-text, #b3261e) !important;
+}
+
+.hm-pill-buscar-texto {
+    margin-top: 6px;
+    align-self: flex-end;
+    border: 0;
+    border-radius: var(--radius-pill);
+    padding: 10px 18px;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.hm-cal {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 4px 2px 2px;
+}
+
+.hm-cal-nav {
+    display: grid;
+    grid-template-columns: 40px 1fr 40px;
+    align-items: center;
+    gap: 8px;
+}
+
+.hm-cal-nav strong {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: capitalize;
+}
+
+.hm-cal-nav button {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.hm-cal-nav button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.hm-cal-grade {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.hm-cal-semana {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    padding: 4px 0 6px;
+}
+
+.hm-cal-vazio {
+    min-height: 40px;
+}
+
+.hm-cal-dia {
+    aspect-ratio: 1;
+    min-height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.hm-cal-dia:hover:not(:disabled) {
+    background: var(--color-bg-subtle);
+}
+
+.hm-cal-dia:disabled {
+    color: var(--color-text-muted);
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.hm-cal-dia--hoje:not(.hm-cal-dia--ativo) {
+    box-shadow: inset 0 0 0 1.5px var(--color-text);
+}
+
+.hm-cal-dia--ativo {
+    background: var(--color-text);
+    color: var(--color-surface);
+}
+
+.hm-cal-dia--ativo:hover:not(:disabled) {
+    background: var(--color-text);
 }
 
 .hm-pill-campo {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     font-size: 13px;
     font-weight: 700;
 }
@@ -205,6 +475,50 @@
 .hm-passo button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+}
+
+.hm-pessoas-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hm-pessoas-chip {
+    min-width: 52px;
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.hm-pessoas-chip:hover {
+    border-color: var(--color-text);
+}
+
+.hm-pessoas-chip.is-ativo {
+    border-color: var(--color-text);
+    background: var(--color-text);
+    color: var(--color-surface);
+}
+
+.hm-pessoas-custom {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.hm-pessoas-custom input {
+    font-weight: 600;
 }
 
 .hm-acoes {
@@ -380,6 +694,70 @@
     background: var(--color-surface);
 }
 
+.hm-faixa--chips {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 8px;
+}
+
+.hm-filtro-chips {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 2px 8px;
+    scrollbar-width: none;
+}
+
+.hm-filtro-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.hm-chip-filtro {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hm-chip-filtro:hover {
+    border-color: var(--color-text);
+}
+
+.hm-chip-filtro.is-ativo {
+    border-color: var(--color-text);
+    background: color-mix(in srgb, var(--color-primary) 22%, var(--color-surface));
+    box-shadow: inset 0 0 0 1px var(--color-text);
+}
+
+.hm-chip-filtro--principal {
+    font-weight: 700;
+}
+
+.hm-chip-badge {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-text);
+}
+
+.hm-chip-ico {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
 .hm-cats {
     position: relative;
     display: flex;
@@ -394,9 +772,18 @@
     font-weight: 600;
 }
 
-.hm-cats .pill-nav__face svg {
+.hm-cats .pill-nav__face svg,
+.hm-cats .hm-cat-img {
     width: 18px;
     height: 18px;
+    max-width: 18px;
+    max-height: 18px;
+}
+
+.hm-cats .hm-cat-img {
+    object-fit: contain;
+    display: block;
+    flex: none;
 }
 
 .hm-cats::-webkit-scrollbar {
@@ -720,11 +1107,45 @@
 }
 
 .hm-estado {
-    padding: 48px 0;
+    padding: 48px 0 24px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 14px;
+}
+
+.hm-sugestoes {
+    margin-top: 8px;
+    padding-bottom: 24px;
+}
+
+.hm-sugestoes-cab {
+    margin-bottom: 18px;
+}
+
+.hm-sugestoes-cab h2 {
+    margin: 0 0 6px;
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+}
+
+.hm-sugestoes-cab p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 14px;
+    line-height: 1.45;
+    max-width: 42rem;
+}
+
+.hm-sugestao-motivo {
+    margin: 4px 0 0 !important;
+    font-size: 12px !important;
+    font-weight: 600;
+    color: var(--color-primary-text) !important;
+    text-transform: capitalize;
 }
 
 .hm-btn {
@@ -824,13 +1245,13 @@
 }
 
 .hm-modal-caixa {
-    width: min(560px, 100%);
-    max-height: min(86vh, 720px);
+    width: min(640px, 100%);
+    max-height: min(88vh, 780px);
     display: flex;
     flex-direction: column;
     background: var(--color-surface);
     color: var(--color-text);
-    border-radius: var(--radius-lg);
+    border-radius: 24px;
     box-shadow: var(--shadow-md);
 }
 
@@ -913,6 +1334,54 @@
     font-weight: 600;
 }
 
+.hm-filtro-sub {
+    margin: 4px 0 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.hm-filtro-sub--topo {
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+.hm-histo {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 64px;
+    margin: 4px 2px 8px;
+    padding: 0 4px;
+}
+
+.hm-histo-barra {
+    flex: 1 1 0;
+    min-width: 0;
+    border-radius: 3px 3px 0 0;
+    background: color-mix(in srgb, var(--color-border) 70%, transparent);
+    transition: background-color 0.15s ease, height 0.2s ease;
+}
+
+.hm-histo-barra.is-ativa {
+    background: color-mix(in srgb, var(--color-primary) 85%, #c45a2a);
+}
+
+.hm-faixa-preco-resumo {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.hm-faixa-preco-resumo strong {
+    color: var(--color-text);
+    font-weight: 700;
+}
+
 .hm-filtro-busca {
     margin-top: 8px;
     margin-bottom: 4px;
@@ -991,8 +1460,18 @@
         padding: 0 20px;
         font-size: 14px;
     }
+    .hm-pill { width: 100%; }
+    .hm-pill-barra { min-height: 64px; padding: 6px; }
     .hm-pill-parte span { display: none; }
-    .hm-pill-parte { padding: 10px 12px; }
+    .hm-pill-parte,
+    .hm-pill-parte--onde,
+    .hm-pill-parte--quando,
+    .hm-pill-parte--quem {
+        min-height: 48px;
+        padding: 10px 14px;
+    }
+    .hm-pill-parte strong { font-size: 14px; }
+    .hm-pill-buscar { width: 48px; height: 48px; }
 }
 
 @media (min-width: 1600px) {

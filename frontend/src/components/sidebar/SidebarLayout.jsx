@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import WarmTooltip, { WarmTooltipGroup } from "../bits/WarmTooltip";
 import { useAuth } from "../../contexts/AuthContext";
+import ConfirmacaoSair from "../ConfirmacaoSair";
 import "./SidebarLayout.css";
 import HeaderHome from "../../pages/home/components/HeaderHome";
 
@@ -54,6 +55,8 @@ export default function SidebarLayout() {
     const { logout, usuarioLogado } = useAuth();
 
     const [fixada, setFixada] = useState(false);
+    const [confirmarSair, setConfirmarSair] = useState(false);
+    const [saindo, setSaindo] = useState(false);
     const retraida = !fixada;
     const reduzirMovimento = useReducedMotion();
     const naHome = location.pathname === "/home";
@@ -78,11 +81,15 @@ export default function SidebarLayout() {
     ];
 
     const handleLogout = async () => {
+        setSaindo(true);
         try {
             await logout();
+            setConfirmarSair(false);
             navigate("/home");
         } catch (error) {
             console.error("Erro ao sair:", error);
+        } finally {
+            setSaindo(false);
         }
     };
 
@@ -217,7 +224,7 @@ export default function SidebarLayout() {
                     <div className="sidebar-footer">
                         <motion.button
                             type="button"
-                            onClick={handleLogout}
+                            onClick={() => setConfirmarSair(true)}
                             className="sidebar-item logout"
                             title={retraida ? "Sair" : undefined}
                             initial={{ opacity: reduzirMovimento ? 1 : 0, y: reduzirMovimento ? 0 : 8 }}
@@ -255,6 +262,13 @@ export default function SidebarLayout() {
                 {!naHome && <HeaderHome />}
                 <Outlet />
             </main>
+
+            <ConfirmacaoSair
+                aberto={confirmarSair}
+                saindo={saindo}
+                onCancelar={() => !saindo && setConfirmarSair(false)}
+                onConfirmar={handleLogout}
+            />
         </div>
     );
 }

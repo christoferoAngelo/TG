@@ -38,6 +38,7 @@ public class EspacoDTO {
     private Integer capacidadePessoas;
     private String restricoesHorario;
     private String statusAprovacao;
+    private Boolean ativo;
     private String motivoRejeicao;
     private String respostaLocador;
 
@@ -94,6 +95,7 @@ public void setFechaNoDiaSeguinte(Boolean fechaNoDiaSeguinte) {
         this.restricoesHorario = espaco.getRestricoesHorario();
         this.horarioFechamento = espaco.getHorarioFechamento();
         this.statusAprovacao = espaco.getStatusAprovacao();
+        this.ativo = espaco.getAtivo() == null || Boolean.TRUE.equals(espaco.getAtivo());
         this.motivoRejeicao = espaco.getMotivoRejeicao();
         this.respostaLocador = espaco.getRespostaLocador();
         this.notaMedia = espaco.getNotaMedia();

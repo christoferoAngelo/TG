@@ -101,7 +101,7 @@ export default function EspacoItem({ espaco, onAlternarStatus, onEditar }) {
                     className={`lc-btn ${isAtivo ? "lc-btn--danger-ghost" : "lc-btn--success"}`}
                     onClick={() => onAlternarStatus(espaco.id)}
                 >
-                    {isAtivo ? "Desativar" : "Reativar"}
+                    {isAtivo ? "Desativar" : "Ativar"}
                 </button>
                 {onEditar && (
                     <button

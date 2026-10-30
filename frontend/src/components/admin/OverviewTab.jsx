@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { IconeAdmin } from './AdminIcons';
 import Counter from '../bits/Counter';
 import GlideSelect from '../bits/GlideSelect';
+import iconeGrupo from '../../assets/group.png';
+import iconeHome from '../../assets/home.png';
+import iconeUsuario from '../../assets/user_icon_2.png';
+import iconeAdd from '../../assets/add.png';
+import iconeActivity from '../../assets/activity.png';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -144,7 +148,9 @@ export default function OverviewTab() {
 
       <div className="adm-metricas">
         <article className="adm-metrica">
-          <span className="adm-metrica-ico"><IconeAdmin nome="usuarios" /></span>
+          <span className="adm-metrica-ico">
+            <img src={iconeGrupo} alt="" className="adm-metrica-img" />
+          </span>
           <div>
             <strong>
               {loading ? "…" : (
@@ -155,7 +161,9 @@ export default function OverviewTab() {
           </div>
         </article>
         <article className="adm-metrica">
-          <span className="adm-metrica-ico"><IconeAdmin nome="espacos" /></span>
+          <span className="adm-metrica-ico">
+            <img src={iconeHome} alt="" className="adm-metrica-img" />
+          </span>
           <div>
             <strong>
               {loading ? "…" : (
@@ -166,7 +174,9 @@ export default function OverviewTab() {
           </div>
         </article>
         <article className="adm-metrica">
-          <span className="adm-metrica-ico"><IconeAdmin nome="usuario" /></span>
+          <span className="adm-metrica-ico">
+            <img src={iconeUsuario} alt="" className="adm-metrica-img" />
+          </span>
           <div>
             <strong>
               {loading ? "…" : (
@@ -177,7 +187,9 @@ export default function OverviewTab() {
           </div>
         </article>
         <article className="adm-metrica">
-          <span className="adm-metrica-ico"><IconeAdmin nome="novos" /></span>
+          <span className="adm-metrica-ico">
+            <img src={iconeAdd} alt="" className="adm-metrica-img" />
+          </span>
           <div>
             <strong>
               {loading ? "…" : (
@@ -188,7 +200,9 @@ export default function OverviewTab() {
           </div>
         </article>
         <article className="adm-metrica">
-          <span className="adm-metrica-ico"><IconeAdmin nome="ativos" /></span>
+          <span className="adm-metrica-ico">
+            <img src={iconeActivity} alt="" className="adm-metrica-img" />
+          </span>
           <div>
             <strong>
               {loading ? "…" : (

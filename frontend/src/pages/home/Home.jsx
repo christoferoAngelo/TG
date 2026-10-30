@@ -12,6 +12,7 @@ import {
     FILTRO_INICIAL,
     aplicarFiltros,
     comodidadesDisponiveis,
+    sugerirEspacos,
 } from "./explorar/explorar";
 import { carregarListas, espacoSalvo } from "../favoritos/favoritosApi";
 import JellyRadio, { jellyTema } from "../../components/ui/JellyRadio";
@@ -21,6 +22,8 @@ import GradualBlur from "../../components/bits/GradualBlur";
 import PillNav from "../../components/bits/PillNav";
 import "./Home.css";
 import "./HomeExplorar.css";
+import iconeChacara from "../../assets/icone-chacara.png";
+import iconeSitio from "../../assets/icone-sitio.png";
 
 const API_BUSCA = "http://localhost:8080/api/locadores/espacos/busca";
 
@@ -34,7 +37,14 @@ function LinkCategoria({ href, children, ...props }) {
 
 function IconeCategoria({ id }) {
     const comum = { viewBox: "0 0 24 24", "aria-hidden": true };
-    if (id === "Chácaras" || id === "Sítios" || id === "Áreas ao ar livre") {
+    // Artes invertidas em relação aos rótulos; width/height fixos evitam o PNG estourar o PillNav.
+    if (id === "Chácaras") {
+        return <img src={iconeSitio} alt="" className="hm-cat-img" width={18} height={18} />;
+    }
+    if (id === "Sítios") {
+        return <img src={iconeChacara} alt="" className="hm-cat-img" width={18} height={18} />;
+    }
+    if (id === "Áreas ao ar livre") {
         return (
             <svg {...comum}><path d="M12 20V10M8 20c0-4 4-6 4-10 0 4 4 6 4 10M5 20h14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
         );
@@ -65,6 +75,7 @@ export default function Home() {
     const { usuarioLogado } = useAuth();
     const [params, setParams] = useSearchParams();
     const [espacos, setEspacos] = useState([]);
+    const [catalogo, setCatalogo] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState(false);
     const [onde, setOnde] = useState(params.get("q") || "");
@@ -111,7 +122,10 @@ export default function Home() {
         setQuando(params.get("data") || "");
         setPessoas(params.get("pessoas") || "0");
         setCategoria(cat);
-        buscar(cat !== "Todos" ? cat : termoUrl);
+        const termoApi = cat !== "Todos"
+            ? cat
+            : (/^qualquer lugar$/i.test(termoUrl) ? "" : termoUrl);
+        buscar(termoApi);
     }, [params]);
 
     useEffect(() => {
@@ -133,14 +147,40 @@ export default function Home() {
         };
     }, []);
 
+    // Catálogo completo para sugestões quando a busca/filtros zeram
+    useEffect(() => {
+        let ativo = true;
+        fetch(`${API_BUSCA}?q=`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data) => {
+                if (ativo) setCatalogo(Array.isArray(data) ? data : []);
+            })
+            .catch(() => {
+                if (ativo) setCatalogo([]);
+            });
+        return () => {
+            ativo = false;
+        };
+    }, []);
+
+    const termoBusca = (texto) => {
+        const q = String(texto || "").trim();
+        if (!q || /^qualquer lugar$/i.test(q)) return "";
+        return q;
+    };
+
     const atualizarUrl = (proximo) => {
-        const q = (proximo.onde ?? onde).trim();
+        const q = termoBusca(proximo.onde ?? onde);
         const data = proximo.quando ?? quando;
         const qtd = String(proximo.pessoas ?? pessoas);
         const cat = proximo.categoria ?? categoria;
         const busca = new URLSearchParams();
         if (cat !== "Todos") busca.set("cat", cat);
         else if (q) busca.set("q", q);
+        // Mantém o rótulo “Qualquer lugar” na URL só como estado da UI
+        else if (/^qualquer lugar$/i.test(String(proximo.onde ?? onde).trim())) {
+            busca.set("q", "Qualquer lugar");
+        }
         if (data) busca.set("data", data);
         if (Number(qtd) > 0) busca.set("pessoas", qtd);
         setParams(busca, { replace: true });
@@ -200,15 +240,55 @@ export default function Home() {
             .filter((espaco) => !dataAplicada || !semVaga.includes(Number(espaco.id))),
         [espacos, pessoasAplicadas, filtros, dataAplicada, semVaga]
     );
+    const sugestoes = useMemo(() => {
+        if (visiveis.length > 0) return [];
+        const base = catalogo.length > 0 ? catalogo : espacos;
+        return sugerirEspacos(base, {
+            pessoas: pessoasAplicadas,
+            termo: onde.trim() || (categoria !== "Todos" ? categoria : ""),
+            data: dataAplicada,
+            semVaga,
+            filtros,
+            excluirIds: visiveis.map((e) => e.id),
+            limite: 8,
+        });
+    }, [visiveis, catalogo, espacos, pessoasAplicadas, onde, categoria, dataAplicada, semVaga, filtros]);
     const comodidadesDaBusca = useMemo(() => comodidadesDisponiveis(espacos), [espacos]);
     const comodidades = caracteristicasCatalogo.length > 0 ? caracteristicasCatalogo : comodidadesDaBusca;
     const filtrosAtivos = filtros.precoMin || filtros.precoMax || filtros.capacidadeMin || filtros.comodidades.length > 0 || filtros.ordem !== "relevancia";
+    // Filtros só depois de Onde + Quando + Quem preenchidos
+    const buscaCompleta = Boolean(onde.trim()) && Boolean(quando) && Number(pessoasAplicadas) > 0;
+    const mostrarFiltros = buscaCompleta;
 
     const titulo = categoria !== "Todos"
         ? categoria
         : onde.trim()
             ? `Resultados para “${onde.trim()}”`
             : "Espaços para o seu evento";
+
+    const renderGrade = (lista) => (
+        <AnimatedContent
+            className={vista === "lista" ? "hm-lista" : "hm-grade"}
+            trigger="mount"
+            distance={28}
+            duration={0.55}
+            blur={2}
+            stagger={0.045}
+            once
+        >
+            {lista.map((espaco) => (
+                <CardExplorar
+                    key={espaco.id}
+                    espaco={espaco}
+                    favorito={espacoSalvo(listas, espaco.id)}
+                    onFavoritar={() => setEspacoLista(espaco)}
+                    dataEvento={dataAplicada}
+                    compacto={vista === "lista"}
+                    motivoSugestao={espaco._sugestaoMotivo}
+                />
+            ))}
+        </AnimatedContent>
+    );
 
     return (
         <div className="hm">
@@ -221,6 +301,7 @@ export default function Home() {
                         onde={onde}
                         quando={quando}
                         pessoas={pessoas}
+                        catalogo={catalogo}
                         onChange={(parcial) => {
                             if (parcial.onde != null) setOnde(parcial.onde);
                             if (parcial.quando != null) setQuando(parcial.quando);
@@ -263,43 +344,81 @@ export default function Home() {
                     </div>
                 </header>
 
-                <div className="hm-faixa">
-                    <div className="hm-cats">
-                        <GradualBlur position="left" width="36px" height="100%" strength={1.1} tint="var(--color-surface)" zIndex={2} />
-                        <PillNav
-                            ariaLabel="Categorias de espaços"
-                            linkComponent={LinkCategoria}
-                            items={CATEGORIAS.map((item) => ({
-                                label: item.rotulo,
-                                href: item.id,
-                                icon: <IconeCategoria id={item.id} />
-                            }))}
-                            activeHref={categoria}
-                            onItemClick={(item) => escolherCategoria(item.href)}
-                            itemStyle="plain"
-                            hoverEffect="glide"
-                            indicator="dot"
-                            layout="split"
-                            surface="none"
-                            size="md"
-                            bounce={0.2}
-                            stretch={0.5}
-                            collapse="auto"
-                            intro
-                            theme="light"
-                            textColor="#130501"
-                            highlightColor="#FECB5A"
-                            highlightTextColor="#130501"
-                        />
-                        <GradualBlur position="right" width="36px" height="100%" strength={1.1} tint="var(--color-surface)" zIndex={2} />
-                    </div>
-                    <button
-                        type="button"
-                        className={`hm-filtros${filtrosAtivos ? " hm-filtros--ativo" : ""}`}
-                        onClick={() => setFiltrosAbertos(true)}
-                    >
-                        Filtros
-                    </button>
+                <div className={`hm-faixa${mostrarFiltros ? " hm-faixa--chips" : " hm-faixa--sem-filtros"}`}>
+                    {mostrarFiltros ? (
+                        <div className="hm-filtro-chips" role="toolbar" aria-label="Filtros rápidos">
+                            <button
+                                type="button"
+                                className={`hm-chip-filtro hm-chip-filtro--principal${filtrosAtivos ? " is-ativo" : ""}`}
+                                onClick={() => setFiltrosAbertos(true)}
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
+                                    <path
+                                        d="M4 6h16M7 12h10M10 18h4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="1.8"
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+                                Filtros
+                                {filtrosAtivos ? <span className="hm-chip-badge" aria-hidden="true" /> : null}
+                            </button>
+                            {comodidades.slice(0, 10).map((item) => {
+                                const ativa = filtros.comodidades.includes(item.nome);
+                                return (
+                                    <button
+                                        key={item.id || item.nome}
+                                        type="button"
+                                        className={`hm-chip-filtro${ativa ? " is-ativo" : ""}`}
+                                        onClick={() => {
+                                            setFiltros((atual) => ({
+                                                ...atual,
+                                                comodidades: ativa
+                                                    ? atual.comodidades.filter((nome) => nome !== item.nome)
+                                                    : [...atual.comodidades, item.nome],
+                                            }));
+                                        }}
+                                    >
+                                        {item.icone ? (
+                                            <img src={item.icone} alt="" className="hm-chip-ico" />
+                                        ) : null}
+                                        {item.nome}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="hm-cats">
+                            <GradualBlur position="left" width="36px" height="100%" strength={1.1} tint="var(--color-surface)" zIndex={2} />
+                            <PillNav
+                                ariaLabel="Categorias de espaços"
+                                linkComponent={LinkCategoria}
+                                items={CATEGORIAS.map((item) => ({
+                                    label: item.rotulo,
+                                    href: item.id,
+                                    icon: <IconeCategoria id={item.id} />
+                                }))}
+                                activeHref={categoria}
+                                onItemClick={(item) => escolherCategoria(item.href)}
+                                itemStyle="plain"
+                                hoverEffect="glide"
+                                indicator="dot"
+                                layout="split"
+                                surface="none"
+                                size="md"
+                                bounce={0.2}
+                                stretch={0.5}
+                                collapse="auto"
+                                intro
+                                theme="light"
+                                textColor="#130501"
+                                highlightColor="#FECB5A"
+                                highlightTextColor="#130501"
+                            />
+                            <GradualBlur position="right" width="36px" height="100%" strength={1.1} tint="var(--color-surface)" zIndex={2} />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -324,39 +443,42 @@ export default function Home() {
                 {erro ? (
                     <div className="hm-estado" role="alert">
                         <p>Não conseguimos carregar os espaços agora.</p>
-                        <button type="button" className="hm-btn hm-btn--primario" onClick={() => buscar(categoria !== "Todos" ? categoria : onde.trim())}>
+                        <button
+                            type="button"
+                            className="hm-btn hm-btn--primario"
+                            onClick={() => buscar(categoria !== "Todos" ? categoria : termoBusca(onde))}
+                        >
                             Tentar novamente
                         </button>
                     </div>
                 ) : carregando ? (
                     <EsqueletoGrade />
                 ) : visiveis.length === 0 ? (
-                    <div className="hm-estado">
-                        <p>Nenhum espaço encontrado com esses filtros. Tente outra cidade, data ou menos comodidades.</p>
-                    </div>
+                    <>
+                        <div className="hm-estado">
+                            <p>Nenhum espaço encontrado com esses filtros. Tente outra cidade, data ou menos comodidades.</p>
+                        </div>
+                        {sugestoes.length > 0 && (
+                            <section className="hm-sugestoes" aria-labelledby="hm-sugestoes-titulo">
+                                <div className="hm-sugestoes-cab">
+                                    <h2 id="hm-sugestoes-titulo">Sugestões próximas da sua busca</h2>
+                                    <p>
+                                        Espaços com capacidade, preço ou disponibilidade parecidos —
+                                        os mais bem avaliados aparecem primeiro.
+                                    </p>
+                                </div>
+                                {vista === "mapa" ? (
+                                    <MapaEspacos espacos={sugestoes} />
+                                ) : (
+                                    renderGrade(sugestoes)
+                                )}
+                            </section>
+                        )}
+                    </>
                 ) : vista === "mapa" ? (
                     <MapaEspacos espacos={visiveis} />
                 ) : (
-                    <AnimatedContent
-                        className={vista === "lista" ? "hm-lista" : "hm-grade"}
-                        trigger="mount"
-                        distance={28}
-                        duration={0.55}
-                        blur={2}
-                        stagger={0.045}
-                        once
-                    >
-                        {visiveis.map((espaco) => (
-                            <CardExplorar
-                                key={espaco.id}
-                                espaco={espaco}
-                                favorito={espacoSalvo(listas, espaco.id)}
-                                onFavoritar={() => setEspacoLista(espaco)}
-                                dataEvento={dataAplicada}
-                                compacto={vista === "lista"}
-                            />
-                        ))}
-                    </AnimatedContent>
+                    renderGrade(visiveis)
                 )}
             </div>
 
@@ -381,6 +503,9 @@ export default function Home() {
                 aberto={filtrosAbertos}
                 filtros={filtros}
                 comodidades={comodidades}
+                espacos={espacos}
+                pessoas={pessoasAplicadas}
+                semVaga={dataAplicada ? semVaga : []}
                 onChange={setFiltros}
                 onLimpar={() => setFiltros(FILTRO_INICIAL)}
                 onFechar={() => setFiltrosAbertos(false)}

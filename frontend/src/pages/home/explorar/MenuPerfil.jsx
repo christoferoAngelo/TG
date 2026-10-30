@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import ConfirmacaoSair from "../../../components/ConfirmacaoSair";
 
 export default function MenuPerfil() {
     const navigate = useNavigate();
     const location = useLocation();
     const { usuarioLogado, logout } = useAuth();
     const [aberto, setAberto] = useState(false);
+    const [confirmarSair, setConfirmarSair] = useState(false);
+    const [saindo, setSaindo] = useState(false);
     const caixaRef = useRef(null);
 
     const nome = usuarioLogado?.nome || usuarioLogado?.email || "Conta";
@@ -40,14 +43,22 @@ export default function MenuPerfil() {
         navigate(rota);
     };
 
-    const sair = async () => {
+    const pedirSaida = () => {
         setAberto(false);
+        setConfirmarSair(true);
+    };
+
+    const sair = async () => {
+        setSaindo(true);
         try {
             await logout();
+            setConfirmarSair(false);
+            navigate("/home");
         } catch (erro) {
             console.error(erro);
+        } finally {
+            setSaindo(false);
         }
-        navigate("/home");
     };
 
     if (!usuarioLogado) {
@@ -95,10 +106,17 @@ export default function MenuPerfil() {
                         </button>
                     </div>
                     <div className="hm-perfil-grupo">
-                        <button type="button" role="menuitem" onClick={sair}>Sair</button>
+                        <button type="button" role="menuitem" onClick={pedirSaida}>Sair</button>
                     </div>
                 </div>
             )}
+
+            <ConfirmacaoSair
+                aberto={confirmarSair}
+                saindo={saindo}
+                onCancelar={() => !saindo && setConfirmarSair(false)}
+                onConfirmar={sair}
+            />
         </div>
     );
 }

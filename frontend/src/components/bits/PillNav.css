@@ -188,10 +188,12 @@
   transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.pill-nav__face svg {
+.pill-nav__face svg,
+.pill-nav__face img {
   width: 1.15em;
   height: 1.15em;
   flex: none;
+  object-fit: contain;
 }
 
 .pill-nav__face-alt {
@@ -206,10 +208,12 @@
   transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.pill-nav__face-alt svg {
+.pill-nav__face-alt svg,
+.pill-nav__face-alt img {
   width: 1.15em;
   height: 1.15em;
   flex: none;
+  object-fit: contain;
 }
 
 .pill-nav__slot[data-on] .pill-nav__face,
@@ -289,10 +293,16 @@
   white-space: nowrap;
 }
 
-.pill-nav__ink-item svg {
+.pill-nav__ink-item svg,
+.pill-nav__ink-item img,
+.pill-nav__measure img,
+.pill-nav__row img {
   width: 1.15em;
   height: 1.15em;
+  max-width: 1.15em;
+  max-height: 1.15em;
   flex: none;
+  object-fit: contain;
 }
 
 .pill-nav__dot {

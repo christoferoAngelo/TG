@@ -4,6 +4,7 @@ import com.eva.locafesta.usuario.Usuario;
 import com.eva.locafesta.usuario.UsuarioRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -13,10 +14,11 @@ import java.time.LocalDateTime;
  * Conta Firebase já existente: locafesta.suporte@gmail.com
  */
 @Component
+@Order(1)
 public class AdminInicializador implements ApplicationRunner {
 
     public static final String MASTER_EMAIL = "locafesta.suporte@gmail.com";
-    private static final String MASTER_UID = "Vcn5kwl0vCZVI2Fcu2itwo73eOv2";
+    private static final String MASTER_UID = "6VBkzpwOSBgK5TUDevQoLTMKw4x1";
     private static final String MASTER_NOME = "Suporte Locafesta";
 
     private final UsuarioRepository usuarioRepository;

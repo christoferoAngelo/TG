@@ -1,0 +1,74 @@
+.cs-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: color-mix(in srgb, #130501 42%, transparent);
+}
+
+.cs-caixa {
+    width: min(400px, 100%);
+    padding: 28px 28px 22px;
+    border-radius: 20px;
+    background: var(--color-surface, #fff);
+    color: var(--color-text, #130501);
+    box-shadow: 0 18px 48px color-mix(in srgb, #130501 22%, transparent);
+}
+
+.cs-caixa h2 {
+    margin: 0 0 8px;
+    font-family: var(--font-heading, inherit);
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.cs-caixa p {
+    margin: 0 0 22px;
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--color-text-muted, #6b645e);
+}
+
+.cs-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.cs-btn {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 0;
+    font-family: var(--font-body, inherit);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cs-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.cs-btn--texto {
+    background: transparent;
+    color: var(--color-text, #130501);
+}
+
+.cs-btn--texto:hover:not(:disabled) {
+    background: var(--color-bg-subtle, #f5f2ef);
+}
+
+.cs-btn--sair {
+    background: var(--color-text, #130501);
+    color: var(--color-surface, #fff);
+}
+
+.cs-btn--sair:hover:not(:disabled) {
+    filter: brightness(1.08);
+}

@@ -65,6 +65,13 @@ public class EspacoService {
     }
 
     private void validarLimites(EspacoDTO dto) {
+        if (dto.getCapacidadePessoas() != null
+                && (dto.getCapacidadePessoas() < 1 || dto.getCapacidadePessoas() > 1500)) {
+            throw new IllegalArgumentException(
+                "A capacidade deve ser um número de 1 a 1500 pessoas."
+            );
+        }
+
         if (dto.getIntervaloLimpezaMin() != null && dto.getIntervaloLimpezaMin() < 0) {
             throw new IllegalArgumentException(
                 "O intervalo de limpeza não pode ser negativo."
@@ -483,6 +490,8 @@ public class EspacoService {
                 .orElseThrow(() -> new RuntimeException("Espaço não encontrado com o ID: " + espacoId));
 
         espaco.setStatusAprovacao("APROVADO");
+        // Garante que o anúncio aprovado entre na busca pública sem o locador precisar “reativar”.
+        espaco.setAtivo(true);
         espaco.setMotivoRejeicao(null);
         espaco.setRespostaLocador(null);
 

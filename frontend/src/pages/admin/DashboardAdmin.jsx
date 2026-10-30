@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import ConfirmacaoSair from "../../components/ConfirmacaoSair";
 import Sidebar from "../../components/admin/Sidebar";
 import OverviewTab from "../../components/admin/OverviewTab";
 import UsuariosTab from "../../components/admin/UsuariosTab";
@@ -23,13 +24,18 @@ export default function DashboardAdmin() {
     const [sidebarExpandida, setSidebarExpandida] = useState(false);
     const [menuAtivo, setMenuAtivo] = useState("overview");
     const [filtroDocsUsuario, setFiltroDocsUsuario] = useState(null);
+    const [confirmarSair, setConfirmarSair] = useState(false);
+    const [saindo, setSaindo] = useState(false);
 
     const handleLogout = async () => {
+        setSaindo(true);
         try {
             await logout();
+            setConfirmarSair(false);
             window.location.href = "/login";
         } catch (error) {
             console.error("Erro ao sair:", error);
+            setSaindo(false);
         }
     };
 
@@ -74,7 +80,7 @@ export default function DashboardAdmin() {
                     if (id !== "documentos") setFiltroDocsUsuario(null);
                     setMenuAtivo(id);
                 }}
-                handleLogout={handleLogout}
+                handleLogout={() => setConfirmarSair(true)}
             />
 
             <main className="adm-main">
@@ -88,6 +94,13 @@ export default function DashboardAdmin() {
                 </header>
                 {renderConteudoAtivo()}
             </main>
+
+            <ConfirmacaoSair
+                aberto={confirmarSair}
+                saindo={saindo}
+                onCancelar={() => !saindo && setConfirmarSair(false)}
+                onConfirmar={handleLogout}
+            />
         </div>
     );
 }

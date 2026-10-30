@@ -235,7 +235,7 @@ export default function NovoEspacoModal({ onClose, onSalvar, carregando, caracte
                     <div className="form-row">
                         <div className="input-group flex-1">
                             <label>Capacidade (Pessoas):</label>
-                            <input type="number" required placeholder="100"
+                            <input type="number" required min="1" max="1500" placeholder="100"
                                 value={formEspaco.capacidadePessoas} onChange={(e) => setFormEspaco({ ...formEspaco, capacidadePessoas: e.target.value })}
                                 className="input" />
                         </div>

@@ -141,6 +141,7 @@ export default function EtapaBasico({
                         <input
                             type="number"
                             min="1"
+                            max="1500"
                             inputMode="numeric"
                             className="ne-input"
                             placeholder="100"

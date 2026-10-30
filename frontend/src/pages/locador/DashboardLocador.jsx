@@ -112,7 +112,7 @@ export default function DashboardLocador() {
     // Abre a tela de edição do espaço
     const handleEditarEspaco = (espacoId) => navigate(rotaEditarEspaco(espacoId));
 
-    // Alternar Ativo / Inativo
+    // Alternar Ativo / Inativo — usa o retorno da API para não inverter o estado errado
     const handleAlternarStatus = async (espacoId) => {
         try {
             const response = await fetch(`${API}/locadores/${usuarioLogado.id}/espacos/${espacoId}/status`, {
@@ -125,13 +125,15 @@ export default function DashboardLocador() {
                 throw new Error(erro || "Falha ao atualizar o status do espaço.");
             }
 
+            const atualizado = await response.json();
             setEspacos((prev) =>
                 prev.map((esp) => {
-                    if (esp.id === espacoId) {
-                        const estaAtivo = esp.ativo === true || esp.ativo === 1;
-                        return { ...esp, ativo: !estaAtivo };
-                    }
-                    return esp;
+                    if (esp.id !== espacoId) return esp;
+                    const ativo =
+                        atualizado?.ativo === true ||
+                        atualizado?.ativo === 1 ||
+                        atualizado?.ativo === "true";
+                    return { ...esp, ...atualizado, ativo };
                 })
             );
         } catch (err) {

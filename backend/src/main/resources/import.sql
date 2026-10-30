@@ -1,29 +1,4 @@
--- Administrador master
-INSERT INTO users (
-    firebase_uid,
-    nome,
-    email,
-    telefone,
-    data_cadastro,
-    data_ativo,
-    status_conta,
-    nota_geral,
-    endereco_id,
-    is_admin
-) VALUES (
-    'Vcn5kwl0vCZVI2Fcu2itwo73eOv2',
-    'Suporte Locafesta',
-    'locafesta.suporte@gmail.com',
-    NULL,
-    NOW(),
-    NOW(),
-    'ATIVO',
-    NULL,
-    NULL,
-    1
-);
-
--- Características iniciais
+-- Características iniciais (usuários de teste vão pela classe UsuariosTesteInicializador)
 INSERT INTO caracteristicas (nome, icone) VALUES
 ('Piscina', '/icones/caracteristicas/piscina.png'),
 ('Churrasqueira', '/icones/caracteristicas/churrasqueira.png'),
