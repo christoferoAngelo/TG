@@ -190,7 +190,7 @@ export default function Dashboard() {
                     onExplorar={() => navigate("/home")}
                     onPainel={() => {
                         if (!ehLocador && !cadastroCompleto) abrirModal(primeiroPendente);
-                        else navigate(ehLocador ? "/perfil_locador" : "/cadastro-locador");
+                        else navigate(ehLocador ? "/locador" : "/cadastro-locador");
                     }}
                 />
 

@@ -1,0 +1,145 @@
+.lc-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.lc-filtro {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: var(--radius-pill);
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lc-filtro-count {
+    display: inline-flex;
+    min-width: 1.2rem;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--color-text);
+}
+
+.lc-filtro.is-ativo {
+    background: color-mix(in srgb, var(--color-primary) 28%, var(--color-surface));
+    border-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+.lc-stat--btn {
+    appearance: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    color: inherit;
+}
+
+.lc-stat--btn.is-ativo {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+}
+
+.lc-secao {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Barra opaca colada no topo da área rolável (logo abaixo do header do AppShell) */
+.lc-nav-barra {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--color-bg);
+    padding: 10px 0 12px;
+    margin: 0 0 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.lc-nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    position: static;
+    margin: 0;
+}
+
+.lc-nav-item {
+    flex: 1 1 auto;
+    min-width: 110px;
+    text-align: center;
+    padding: 10px 14px;
+    border-radius: var(--radius-pill);
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.lc-nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 6px;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.lc-nav-item:hover {
+    color: var(--color-text);
+    background: var(--color-bg-subtle);
+}
+
+.lc-nav-item.is-ativo {
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--color-primary) 28%, var(--color-surface));
+}
+
+.lc-nav-item:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+    .lc-nav-barra {
+        position: sticky;
+        bottom: 0;
+        top: auto;
+        order: 99;
+        margin: 8px 0 0;
+        padding: 10px 0 12px;
+        border-bottom: 0;
+        border-top: 1px solid var(--color-border);
+        background: var(--color-bg);
+    }
+
+    .lc-container {
+        padding-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+    }
+}

@@ -74,11 +74,14 @@ public class EspacoController {
     }
 
     // READ - GET http://localhost:8080/api/locadores/espacos/{espacoId}
+    // Header opcional Usuario-Id: necessário para o dono ver anúncio em análise/rejeitado/inativo (preview)
     @GetMapping("/espacos/{espacoId}")
-    public ResponseEntity<?> buscarEspacoPorId(@PathVariable Long espacoId) {
+    public ResponseEntity<?> buscarEspacoPorId(
+            @PathVariable Long espacoId,
+            @RequestHeader(value = "Usuario-Id", required = false) Long usuarioId
+    ) {
         try {
-            // Esse método precisará existir no seu EspacoService
-            EspacoDTO espaco = espacoService.buscarPorId(espacoId);
+            EspacoDTO espaco = espacoService.buscarPorId(espacoId, usuarioId);
             return ResponseEntity.ok(espaco);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

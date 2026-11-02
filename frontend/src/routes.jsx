@@ -5,7 +5,11 @@ import { useAuth } from "./contexts/AuthContext";
 import Auth from "./pages/login/Auth";
 import RedefinirSenha from "./pages/login/RedefinirSenha";
 import CadastroLocador from "./pages/login/CadastroLocador";
-import DashboardLocador from "./pages/locador/DashboardLocador";
+import LocadorLayout from "./pages/locador/LocadorLayout";
+import LocadorPainel from "./pages/locador/LocadorPainel";
+import LocadorReservas from "./pages/locador/LocadorReservas";
+import LocadorEspacos from "./pages/locador/LocadorEspacos";
+import LocadorFinanceiro from "./pages/locador/LocadorFinanceiro";
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Dashboard from "./pages/dashboard/Dashboard";
 import MinhasReservas from "./pages/dashboard/components/MinhasReservas";
@@ -18,6 +22,7 @@ import DocumentosAdmin from "./pages/documentos/DocumentosAdmin";
 import AppShell from "./components/layout/AppShell";
 import NovoEspaco from "./pages/novo espaco/NovoEspaco";
 import Favoritos from "./pages/favoritos/Favoritos";
+import DevPainelPreview from "./pages/locador/DevPainelPreview";
 
 function RouteProtegida() {
     const { usuarioLogado, carregando } = useAuth();
@@ -50,7 +55,7 @@ function RouteAdmin({ children }) {
 function getRotaPorRole(usuario) {
     if (!usuario) return "/login";
     if (usuario.admin || usuario.isAdmin) return "/dashboard-admin";
-    if (usuario.locador || usuario.isLocador) return "/perfil_locador";
+    if (usuario.locador || usuario.isLocador) return "/locador";
     return "/home";
 }
 
@@ -81,6 +86,9 @@ function RotasAplicacao() {
 
                     <Route path="/redefinir-senha" element={<RedefinirSenha />} />
                     <Route path="/jornada" element={<Jornada />} />
+                    {import.meta.env.DEV && (
+                        <Route path="/dev/painel-locador" element={<DevPainelPreview />} />
+                    )}
 
                     <Route
                         path="/dashboard-admin"
@@ -103,12 +111,18 @@ function RotasAplicacao() {
                         <Route element={<AppShell />}>
                             <Route path="/locador/espacos/novo" element={<NovoEspaco />} />
                             <Route path="/locador/espacos/:id/editar" element={<NovoEspaco />} />
+                            <Route path="/locador" element={<LocadorLayout />}>
+                                <Route index element={<LocadorPainel />} />
+                                <Route path="reservas" element={<LocadorReservas />} />
+                                <Route path="espacos" element={<LocadorEspacos />} />
+                                <Route path="financeiro" element={<LocadorFinanceiro />} />
+                            </Route>
                             <Route path="/perfil" element={<Dashboard />} />
                             <Route path="/minhas-reservas" element={<MinhasReservas />} />
                             <Route path="/favoritos" element={<Favoritos />} />
                             <Route path="/pagamento" element={<PagamentoPage />} />
                             <Route path="/cadastro-locador" element={<CadastroLocador />} />
-                            <Route path="/perfil_locador" element={<DashboardLocador />} />
+                            <Route path="/perfil_locador" element={<Navigate to="/locador" replace />} />
                             <Route path="/documentos/usuario" element={<Navigate to="/perfil" replace />} />
                             <Route path="/documentos/espaco/:id" element={<DocumentosEspaco />} />
                         </Route>

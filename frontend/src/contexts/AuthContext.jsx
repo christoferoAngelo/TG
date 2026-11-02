@@ -6,7 +6,7 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { userService } from "../config/api"; // Ajuste o caminho se necessário
 
 // 1. Criação do Contexto
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 // 2. Hook customizado para facilitar o uso nos componentes
 export function useAuth() {

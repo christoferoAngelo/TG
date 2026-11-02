@@ -52,11 +52,13 @@ export function textoCancelamento(reserva) {
             ? "Cancelada pelo locatário."
             : "Cancelada.";
     const condicao = reserva.condicaoReembolso === "TOTAL"
-        ? "Reembolso total."
-        : reserva.condicaoReembolso === "SEM_REEMBOLSO"
-            ? "Sem reembolso automático."
-            : reserva.condicaoReembolso === "SEM_COBRANCA"
-                ? "Pedido não confirmado, sem cobrança."
-                : "";
+        ? "Será feito reembolso total."
+        : reserva.condicaoReembolso === "PARCIAL"
+            ? "Será feito reembolso parcial de 50%."
+            : reserva.condicaoReembolso === "SEM_REEMBOLSO"
+                ? "Sem reembolso."
+                : reserva.condicaoReembolso === "SEM_COBRANCA"
+                    ? "Pedido ainda não confirmado, sem cobrança."
+                    : "";
     return [quem, condicao, "A data voltou a ficar disponível."].filter(Boolean).join(" ");
 }

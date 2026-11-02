@@ -44,7 +44,8 @@ public class SecurityConfig {
                 // 4. Libera todas as rotas de negócio, reservas e auditoria
                 .requestMatchers(
                     "/api/users", "/api/users/**", 
-                    "/api/locadores", "/api/locadores/**", 
+                    "/api/locadores", "/api/locadores/**",
+                    "/api/locador", "/api/locador/**", 
                     "/api/locatarios", "/api/locatarios/**",
                     "/api/espacos", "/api/espacos/**", 
                     "/api/reservas", "/api/reservas/**",

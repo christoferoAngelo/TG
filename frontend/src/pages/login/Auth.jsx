@@ -33,7 +33,7 @@ function ErroDoCampo({ erro, campo }) {
 
 function destinoDepoisDoLogin(usuario) {
     if (usuario?.admin || usuario?.isAdmin) return "/dashboard-admin";
-    if (usuario?.locador || usuario?.isLocador) return "/perfil_locador";
+    if (usuario?.locador || usuario?.isLocador) return "/locador";
     return "/home";
 }
 

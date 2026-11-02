@@ -1,0 +1,40 @@
+.lc-stats--espacos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.lc-espacos--fase5 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.lc-espacos--fase5 .lc-espaco {
+    height: 100%;
+}
+
+.lc-espacos--fase5 .lc-fatos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lc-espacos-vazio {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0 4px;
+}
+
+.lc-estado-erro {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+}
+
+@media (max-width: 900px) {
+    .lc-stats--espacos,
+    .lc-espacos--fase5 {
+        grid-template-columns: 1fr;
+    }
+}

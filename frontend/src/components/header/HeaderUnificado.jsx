@@ -10,7 +10,7 @@ export default function HeaderUnificado() {
     // Descobre se o usuário é locador para direcionar o botão de perfil corretamente
     const irParaPerfil = () => {
         if (usuarioLogado?.locador) {
-            navigate("/perfil_locador");
+            navigate("/locador");
         } else {
             navigate("/perfil");
         }

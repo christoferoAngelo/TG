@@ -3,14 +3,21 @@ import { useNavigate } from "react-router-dom";
 import GlareHover from "../../../components/bits/GlareHover";
 import PulseHeart from "../../../components/bits/PulseHeart";
 import SpotlightCard from "../../../components/bits/SpotlightCard";
+import { useAuth } from "../../../contexts/AuthContext";
 import { formatarData, formatarMoeda, fotosDe, localDe, precoDe, unidadePreco } from "./explorar";
 
 export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compacto = false, motivoSugestao }) {
     const navigate = useNavigate();
+    const { usuarioLogado } = useAuth();
     const fotos = fotosDe(espaco);
     const [indice, setIndice] = useState(0);
     const preco = precoDe(espaco);
     const foto = fotos[indice];
+    const meuAnuncio = Boolean(
+        usuarioLogado?.id
+        && espaco?.locadorUsuarioId
+        && Number(usuarioLogado.id) === Number(espaco.locadorUsuarioId)
+    );
 
     const abrir = () => navigate(`/espaco/${espaco.id}`);
     const mover = (evento, passo) => {
@@ -60,6 +67,11 @@ export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compac
                     label={favorito ? "Salvo em uma lista" : "Salvar em uma lista"}
                     onChange={() => onFavoritar(espaco.id)}
                 />
+                {meuAnuncio && (
+                    <span className="hm-selo-meu" title="Este anúncio é seu">
+                        Seu anúncio
+                    </span>
+                )}
                 {fotos.length > 1 && (
                     <>
                         <button type="button" className="hm-seta hm-seta--esq" aria-label="Foto anterior" onClick={(evento) => mover(evento, -1)}>‹</button>

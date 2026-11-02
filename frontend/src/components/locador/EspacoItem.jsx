@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 
 const statusDe = (s) => (s || "").toUpperCase();
 
-// O LocalTime pode chegar como "18:00:00" ou como [18, 0]
 const formatarHora = (v) => {
     if (!v) return "";
     if (Array.isArray(v)) {
@@ -14,6 +13,18 @@ const formatarHora = (v) => {
 
 const formatarMoeda = (v) =>
     Number(v ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const formatarData = (valor) => {
+    if (!valor) return "—";
+    if (Array.isArray(valor)) {
+        const [a, m, d] = valor;
+        return `${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${a}`;
+    }
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(valor));
+    if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+    const data = new Date(valor);
+    return Number.isNaN(data.getTime()) ? "—" : data.toLocaleDateString("pt-BR");
+};
 
 const formatarEndereco = (endereco) => {
     if (!endereco) return "Endereço não informado";
@@ -27,12 +38,13 @@ const APROVACAO = {
     REJEITADO: { texto: "Rejeitado", tom: "danger" },
 };
 
-export default function EspacoItem({ espaco, onAlternarStatus, onEditar }) {
+export default function EspacoItem({ espaco, onAlternarStatus, onEditar, proximoEvento }) {
     const status = statusDe(espaco.statusAprovacao);
     const aprovacao = APROVACAO[status] || { texto: espaco.statusAprovacao || "Publicado", tom: "muted" };
     const isRejeitado = status === "REJEITADO";
     const isAtivo = espaco.ativo === true || espaco.ativo === 1;
     const rotaDetalhe = `/espaco/${espaco.id}`;
+    const rotaPreview = `/espaco/${espaco.id}?preview=1`;
 
     const abre = formatarHora(espaco.horarioAbertura);
     const fecha = formatarHora(espaco.horarioFechamento);
@@ -42,6 +54,9 @@ export default function EspacoItem({ espaco, onAlternarStatus, onEditar }) {
             ? `${abre} – ${fecha}${viraNoite ? " (+1 dia)" : ""}`
             : `Fecha às ${fecha}`
         : "—";
+
+    const nota = Number(espaco.notaMedia);
+    const temNota = Number.isFinite(nota) && nota > 0;
 
     return (
         <article className={`lc-espaco lc-espaco--${aprovacao.tom}${isAtivo ? "" : " lc-espaco--inativo"}`}>
@@ -74,6 +89,20 @@ export default function EspacoItem({ espaco, onAlternarStatus, onEditar }) {
                     <span className="lc-fato-label">Funcionamento</span>
                     <span className="lc-fato-valor">{horario}</span>
                 </li>
+                <li className="lc-fato">
+                    <span className="lc-fato-label">Nota média</span>
+                    <span className="lc-fato-valor">
+                        {temNota ? `${nota.toFixed(1).replace(".", ",")} ★` : "Sem avaliações"}
+                    </span>
+                </li>
+                <li className="lc-fato">
+                    <span className="lc-fato-label">Próximo evento</span>
+                    <span className="lc-fato-valor">
+                        {proximoEvento
+                            ? `${formatarData(proximoEvento.dataEvento)}${proximoEvento.horaInicio ? ` · ${formatarHora(proximoEvento.horaInicio)}` : ""}`
+                            : "Nenhum agendado"}
+                    </span>
+                </li>
             </ul>
 
             {espaco.caracteristicas && espaco.caracteristicas.length > 0 && (
@@ -95,6 +124,12 @@ export default function EspacoItem({ espaco, onAlternarStatus, onEditar }) {
             <div className="lc-espaco-acoes">
                 <Link to={rotaDetalhe} className="lc-btn lc-btn--ghost">
                     Ver página
+                </Link>
+                <Link to={rotaPreview} className="lc-btn lc-btn--ghost">
+                    Ver como locatário
+                </Link>
+                <Link to={`/documentos/espaco/${espaco.id}`} className="lc-btn lc-btn--ghost">
+                    Documentos
                 </Link>
                 <button
                     type="button"

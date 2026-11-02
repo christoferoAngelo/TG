@@ -76,7 +76,7 @@ export default function SidebarLayout() {
         { label: "Início", path: "/home", icon: "inicio" },
         { label: "Favoritos", path: "/favoritos", icon: "favoritos" },
         { label: "Minhas Reservas", path: "/minhas-reservas", iconSrc: iconCalendario },
-        { label: "Painel do Locador", path: "/perfil_locador", iconSrc: iconChave },
+        { label: "Painel do Locador", path: "/locador", iconSrc: iconChave },
         { label: "Documentos", path: "/documentos/usuario", iconSrc: iconDocumentos },
     ];
 

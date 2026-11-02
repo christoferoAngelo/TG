@@ -64,6 +64,13 @@ public class ReservaService {
         Usuario locatario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
+        Long donoUsuarioId = espaco.getLocador() != null && espaco.getLocador().getUsuario() != null
+                ? espaco.getLocador().getUsuario().getId()
+                : null;
+        if (donoUsuarioId != null && donoUsuarioId.equals(usuarioId)) {
+            throw erro(HttpStatus.FORBIDDEN, "Você não pode reservar o seu próprio espaço.");
+        }
+
         if (Boolean.FALSE.equals(espaco.getAtivo()) || !"APROVADO".equals(espaco.getStatusAprovacao())) {
             throw erro(HttpStatus.BAD_REQUEST, "Este espaço não está disponível para reservas.");
         }
@@ -206,10 +213,19 @@ public class ReservaService {
         return new ResponseStatusException(status, mensagem);
     }
 
-   // Listar para o Dashboard do Locador
+   // Listar para o Dashboard do Locador (status opcional: PENDENTE, APROVADA, REJEITADA, CANCELADA)
     public List<ReservaResponseDTO> listarSolicitacoesDoLocador(Long usuarioId) {
+        return listarSolicitacoesDoLocador(usuarioId, null);
+    }
+
+    public List<ReservaResponseDTO> listarSolicitacoesDoLocador(Long usuarioId, String status) {
         List<Reserva> reservas = reservaRepository.findByEspacoLocadorUsuarioIdOrderByIdAsc(usuarioId);
-        return reservas.stream().map(this::mapearParaResponseDTO).toList();
+        String filtro = status != null ? status.trim().toUpperCase(java.util.Locale.ROOT) : "";
+        return reservas.stream()
+                .filter(r -> filtro.isEmpty()
+                        || (r.getStatus() != null && r.getStatus().equalsIgnoreCase(filtro)))
+                .map(this::mapearParaResponseDTO)
+                .toList();
     }
 
     // Listar as próprias reservas do locatário
@@ -331,12 +347,42 @@ public class ReservaService {
         if (!"PENDENTE".equals(reserva.getStatus()) && !"APROVADA".equals(reserva.getStatus())) {
             throw erro(HttpStatus.BAD_REQUEST, "Esta reserva não pode mais ser cancelada.");
         }
-        if (!inicioDoEvento(reserva).isAfter(LocalDateTime.now())) {
+        if (!inicioDoEvento(reserva).isAfter(LocalDateTime.now(PoliticaReembolso.FUSO_BRASIL))) {
             throw erro(HttpStatus.BAD_REQUEST, "Não é possível cancelar um evento que já começou.");
         }
 
-        String condicao = "APROVADA".equals(reserva.getStatus()) ? "SEM_REEMBOLSO" : "SEM_COBRANCA";
+        String condicao = PoliticaReembolso.condicaoCancelamentoLocatario(
+                reserva.getStatus(),
+                reserva.getDataEvento(),
+                PoliticaReembolso.hojeNoBrasil()
+        );
         return efetivarCancelamento(reserva, "LOCATARIO", condicao);
+    }
+
+    /**
+     * Prévia somente leitura da condição de reembolso se o locatário cancelar agora.
+     */
+    @Transactional(readOnly = true)
+    public PrevisaoCancelamentoDTO preverCancelamentoLocatario(Long reservaId, Long usuarioId) {
+        Reserva reserva = reservaAberta(reservaId);
+        if (reserva.getLocatario() == null || !reserva.getLocatario().getId().equals(usuarioId)) {
+            throw erro(HttpStatus.FORBIDDEN, "Você não pode consultar o cancelamento desta reserva.");
+        }
+        if (!"PENDENTE".equals(reserva.getStatus()) && !"APROVADA".equals(reserva.getStatus())) {
+            throw erro(HttpStatus.BAD_REQUEST, "Esta reserva não pode mais ser cancelada.");
+        }
+        if (!inicioDoEvento(reserva).isAfter(LocalDateTime.now(PoliticaReembolso.FUSO_BRASIL))) {
+            throw erro(HttpStatus.BAD_REQUEST, "Não é possível cancelar um evento que já começou.");
+        }
+
+        LocalDate hoje = PoliticaReembolso.hojeNoBrasil();
+        String condicao = PoliticaReembolso.condicaoCancelamentoLocatario(
+                reserva.getStatus(),
+                reserva.getDataEvento(),
+                hoje
+        );
+        long dias = PoliticaReembolso.diasAteEvento(reserva.getDataEvento(), hoje);
+        return new PrevisaoCancelamentoDTO(condicao, PoliticaReembolso.mensagem(condicao), dias);
     }
 
     @Transactional
@@ -361,7 +407,7 @@ public class ReservaService {
                     "O prazo para cancelar esta reserva já passou. O limite é de " + prazo + " dia(s) antes do evento.");
         }
 
-        return efetivarCancelamento(reserva, "LOCADOR", "TOTAL");
+        return efetivarCancelamento(reserva, "LOCADOR", PoliticaReembolso.TOTAL);
     }
 
     @Transactional(readOnly = true)
@@ -403,11 +449,7 @@ public class ReservaService {
 
     private void avisarCancelamento(Reserva reserva, String autor, String condicao) {
         String quem = "LOCADOR".equals(autor) ? "O locador" : "O locatário";
-        String reembolso = switch (condicao) {
-            case "TOTAL" -> "Reembolso total.";
-            case "SEM_REEMBOLSO" -> "Sem reembolso automático.";
-            default -> "Pedido ainda não confirmado, sem cobrança.";
-        };
+        String reembolso = PoliticaReembolso.mensagem(condicao);
         String espaco = reserva.getEspaco() != null ? reserva.getEspaco().getTitulo() : "o espaço";
         String data = reserva.getDataEvento() != null ? reserva.getDataEvento().format(DATA_AVISO) : "a data marcada";
         String mensagem = quem + " cancelou a reserva de " + espaco + " em " + data

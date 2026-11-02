@@ -129,8 +129,34 @@ export default function MinhasReservas() {
     const [enviando, setEnviando] = useState(false);
 
     const [confirmandoId, setConfirmandoId] = useState(null);
+    const [previsaoCancelamento, setPrevisaoCancelamento] = useState(null);
+    const [carregandoPrevisao, setCarregandoPrevisao] = useState(false);
+    const [mensagemPosCancelamento, setMensagemPosCancelamento] = useState("");
     const [cancelandoId, setCancelandoId] = useState(null);
     const [erroCancelar, setErroCancelar] = useState("");
+
+    const abrirConfirmacaoCancelamento = async (reserva) => {
+        setConfirmandoId(reserva.id);
+        setErroCancelar("");
+        setMensagemPosCancelamento("");
+        setPrevisaoCancelamento(null);
+        setCarregandoPrevisao(true);
+        try {
+            const response = await fetch(`${API}/reservas/${reserva.id}/previsao-cancelamento`, {
+                headers: { "Usuario-Id": usuarioLogado.id },
+            });
+            if (!response.ok) {
+                const texto = await response.text();
+                throw new Error(texto || "Não foi possível calcular a condição de cancelamento.");
+            }
+            const dados = await response.json();
+            setPrevisaoCancelamento(dados);
+        } catch (error) {
+            setErroCancelar(error.message);
+        } finally {
+            setCarregandoPrevisao(false);
+        }
+    };
 
     const buscarReservas = (silencioso = false) => {
         if (!usuarioLogado?.id) {
@@ -243,7 +269,19 @@ export default function MinhasReservas() {
                         : (texto || "Não foi possível cancelar esta reserva.")
                 );
             }
+            const cancelada = await response.json();
+            const mensagemFinal = cancelada?.condicaoReembolso === "TOTAL"
+                ? "Será feito reembolso total."
+                : cancelada?.condicaoReembolso === "PARCIAL"
+                    ? "Será feito reembolso parcial de 50%."
+                    : cancelada?.condicaoReembolso === "SEM_REEMBOLSO"
+                        ? "Sem reembolso."
+                        : cancelada?.condicaoReembolso === "SEM_COBRANCA"
+                            ? "Pedido ainda não confirmado, sem cobrança."
+                            : (previsaoCancelamento?.mensagem || "Cancelamento concluído.");
+            setMensagemPosCancelamento(mensagemFinal);
             setConfirmandoId(null);
+            setPrevisaoCancelamento(null);
             pedirRecargaAvisos();
             buscarReservas(true);
         } catch (error) {
@@ -261,6 +299,12 @@ export default function MinhasReservas() {
                     <p>Acompanhe pedidos, datas confirmadas e o que ainda falta avaliar.</p>
                 </div>
             </header>
+
+            {mensagemPosCancelamento && (
+                <p className="mr-sucesso" role="status">
+                    Reserva cancelada. {mensagemPosCancelamento} A data voltou a ficar disponível.
+                </p>
+            )}
 
             <section className="mr-resumo" aria-label="Resumo">
                 <button type="button" className={filtro === "proximas" ? "mr-resumo-item mr-resumo-item--ativo" : "mr-resumo-item"} onClick={() => setFiltro("proximas")}>
@@ -394,17 +438,22 @@ export default function MinhasReservas() {
 
                                         {confirmar ? (
                                             <div className="mr-confirma">
-                                                <p>
-                                                    {reserva.status === "APROVADA"
-                                                        ? "Cancelar esta reserva confirmada? Não há reembolso automático. A data volta a ficar disponível para novas reservas."
-                                                        : "Cancelar este pedido? Ele ainda não foi confirmado, então não há cobrança. A data volta a ficar disponível."}
-                                                </p>
+                                                {carregandoPrevisao ? (
+                                                    <p>Calculando condição de reembolso…</p>
+                                                ) : (
+                                                    <p>
+                                                        {previsaoCancelamento?.mensagem
+                                                            ? `Se você cancelar agora: ${previsaoCancelamento.mensagem}`
+                                                            : "Confirma o cancelamento desta reserva?"}
+                                                        {" "}A data volta a ficar disponível para novas reservas.
+                                                    </p>
+                                                )}
                                                 {erroCancelar && <p className="mr-erro">{erroCancelar}</p>}
                                                 <div className="mr-acoes">
                                                     <button
                                                         type="button"
                                                         className="mr-btn mr-btn--perigo"
-                                                        disabled={cancelandoId === reserva.id}
+                                                        disabled={cancelandoId === reserva.id || carregandoPrevisao || !previsaoCancelamento}
                                                         onClick={() => cancelarReserva(reserva)}
                                                     >
                                                         {cancelandoId === reserva.id ? "Cancelando…" : "Confirmar cancelamento"}
@@ -415,6 +464,7 @@ export default function MinhasReservas() {
                                                         disabled={cancelandoId === reserva.id}
                                                         onClick={() => {
                                                             setConfirmandoId(null);
+                                                            setPrevisaoCancelamento(null);
                                                             setErroCancelar("");
                                                         }}
                                                     >
@@ -444,10 +494,7 @@ export default function MinhasReservas() {
                                                     <button
                                                         type="button"
                                                         className="mr-btn mr-btn--perigo"
-                                                        onClick={() => {
-                                                            setConfirmandoId(reserva.id);
-                                                            setErroCancelar("");
-                                                        }}
+                                                        onClick={() => abrirConfirmacaoCancelamento(reserva)}
                                                     >
                                                         Cancelar
                                                     </button>

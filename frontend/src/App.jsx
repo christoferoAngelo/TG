@@ -2,6 +2,9 @@ import React from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext"; // Certifique-se de importar o useAuth
 import Routes from "./routes";
 import { useHeartbeat } from "./hooks/useHeartbeat"; // Importe o novo hook
+import DevPainelPreview from "./pages/locador/DevPainelPreview";
+import DevPreviewEspaco from "./pages/locador/DevPreviewEspaco";
+import DevDocumentosEspaco from "./pages/documentos/DevDocumentosEspaco";
 
 /**
  * Componente invisível. O único trabalho dele é escutar o 
@@ -21,6 +24,19 @@ function HeartbeatRunner() {
  * Ponto de entrada do Frontend do LocaFesta.
  */
 export default function App() {
+    // Previews DEV sem Firebase (captura de tela)
+    // /dev/painel-locador?secao=painel|reservas|espacos|financeiro
+    // /dev/preview-espaco?mobile=1
+    if (import.meta.env.DEV && window.location.pathname.startsWith("/dev/painel-locador")) {
+        return <DevPainelPreview />;
+    }
+    if (import.meta.env.DEV && window.location.pathname.startsWith("/dev/preview-espaco")) {
+        return <DevPreviewEspaco />;
+    }
+    if (import.meta.env.DEV && window.location.pathname.startsWith("/dev/documentos-espaco")) {
+        return <DevDocumentosEspaco />;
+    }
+
     return (
         <AuthProvider>
             <HeartbeatRunner />

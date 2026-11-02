@@ -538,8 +538,30 @@ public class EspacoService {
     // ambientes é lazy: precisa de transação aberta para montar o DTO
     @Transactional(readOnly = true)
     public EspacoDTO buscarPorId(Long espacoId) {
+        return buscarPorId(espacoId, null);
+    }
+
+    /**
+     * Espaços aprovados e ativos são públicos.
+     * Em análise, rejeitados ou inativos só o dono (Usuario-Id) pode ver — inclusive no preview.
+     */
+    @Transactional(readOnly = true)
+    public EspacoDTO buscarPorId(Long espacoId, Long usuarioId) {
         Espaco espaco = espacoRepository.findById(espacoId)
             .orElseThrow(() -> new RuntimeException("Espaço não encontrado!"));
+
+        boolean aprovado = "APROVADO".equalsIgnoreCase(espaco.getStatusAprovacao());
+        boolean ativo = !Boolean.FALSE.equals(espaco.getAtivo());
+        boolean publico = aprovado && ativo;
+
+        if (!publico) {
+            Long donoUsuarioId = espaco.getLocador() != null && espaco.getLocador().getUsuario() != null
+                    ? espaco.getLocador().getUsuario().getId()
+                    : null;
+            if (usuarioId == null || donoUsuarioId == null || !usuarioId.equals(donoUsuarioId)) {
+                throw new RuntimeException("Espaço não encontrado!");
+            }
+        }
 
         return converterParaDTO(espaco);
     }

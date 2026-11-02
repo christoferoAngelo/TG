@@ -54,7 +54,7 @@ export default function CadastroLocador() {
                 throw new Error(errorData || "Erro ao processar cadastro.");
             }
 
-            navigate("/perfil_locador");
+            navigate("/locador");
         } catch (error) {
             setErro(error.message);
         } finally {

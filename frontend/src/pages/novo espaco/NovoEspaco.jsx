@@ -13,7 +13,7 @@ import { validarEtapa1, validarEtapa2, validarEtapa4 } from "./validarEtapas";
 import { calcularTurnos } from "./turnos";
 import { antecedenciaSalva, interpretarRegras, serializarRegras } from "./regrasTexto";
 
-const ROTA_PAINEL = "/perfil_locador";
+const ROTA_PAINEL = "/locador";
 
 const API = "http://localhost:8080/api";
 const MAX_FOTO_MB = 10;

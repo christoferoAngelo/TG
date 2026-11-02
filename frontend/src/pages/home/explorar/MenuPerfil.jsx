@@ -100,7 +100,7 @@ export default function MenuPerfil() {
                         <button
                             type="button"
                             role="menuitem"
-                            onClick={() => ir(locador ? "/perfil_locador" : "/cadastro-locador")}
+                            onClick={() => ir(locador ? "/locador" : "/cadastro-locador")}
                         >
                             {locador ? "Meu negócio" : "Vou anunciar"}
                         </button>

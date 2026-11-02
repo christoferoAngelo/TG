@@ -20,7 +20,7 @@ export default function HeaderHome() {
             });
             return;
         }
-        navigate(isLocador ? "/perfil_locador" : "/cadastro-locador");
+        navigate(isLocador ? "/locador" : "/cadastro-locador");
     };
 
     return (

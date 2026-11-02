@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { antecedenciaSalva, interpretarRegras } from "../novo espaco/regrasTexto";
 import { calcularTurnos, formatarMinutos, paraMinutos } from "../novo espaco/turnos";
@@ -46,6 +46,14 @@ function comPonto(texto) {
 function formatarISO(iso) {
     const [ano, mes, dia] = iso.split("-");
     return `${dia}/${mes}/${ano}`;
+}
+
+function statusDeEspaco(espaco) {
+    const st = String(espaco?.statusAprovacao || "").toUpperCase();
+    if (st === "APROVADO") return "Anúncio aprovado";
+    if (st === "REJEITADO") return "Anúncio rejeitado — só você vê esta prévia";
+    if (st === "PENDENTE") return "Anúncio em análise — só você vê esta prévia";
+    return "Pré-visualização do anúncio";
 }
 
 const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
@@ -144,6 +152,10 @@ export default function DetalhesEspaco() {
     const { usuarioLogado } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [previewViewport, setPreviewViewport] = useState(
+        () => (new URLSearchParams(window.location.search).get("vp") === "mobile" ? "mobile" : "desktop")
+    ); // desktop | mobile
 
     const [espaco, setEspaco] = useState(null);
     const [carregando, setCarregando] = useState(true);
@@ -172,7 +184,9 @@ export default function DetalhesEspaco() {
 
     useEffect(() => {
         setCarregando(true);
-        fetch(`${API}/locadores/espacos/${id}`)
+        const headers = {};
+        if (usuarioLogado?.id) headers["Usuario-Id"] = usuarioLogado.id;
+        fetch(`${API}/locadores/espacos/${id}`, { headers })
             .then((res) => {
                 if (!res.ok) throw new Error("Erro ao buscar o espaço");
                 return res.json();
@@ -183,7 +197,7 @@ export default function DetalhesEspaco() {
                 setEspaco(null);
             })
             .finally(() => setCarregando(false));
-    }, [id]);
+    }, [id, usuarioLogado?.id]);
 
     useEffect(() => {
         fetch(`${API}/reservas/espaco/${id}/avaliacoes`)
@@ -363,14 +377,47 @@ export default function DetalhesEspaco() {
         }
     };
 
+    const meuAnuncio = Boolean(
+        usuarioLogado?.id
+        && espaco?.locadorUsuarioId
+        && Number(usuarioLogado.id) === Number(espaco.locadorUsuarioId)
+    );
+    const modoPreview = meuAnuncio && searchParams.get("preview") === "1";
+    // No preview, a página se comporta como o público vê (formulário de reserva).
+    const mostrarComoDono = meuAnuncio && !modoPreview;
+
+    const sairPreview = () => {
+        const next = new URLSearchParams(searchParams);
+        next.delete("preview");
+        setSearchParams(next, { replace: true });
+        setPreviewViewport("desktop");
+    };
+
+    const entrarPreview = () => {
+        const next = new URLSearchParams(searchParams);
+        next.set("preview", "1");
+        setSearchParams(next, { replace: true });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
     const handleReservar = async (e) => {
         e.preventDefault();
         setErroReserva("");
+
+        if (modoPreview) {
+            setErroReserva("Isto é só uma pré-visualização. Você não pode enviar pedido de reserva neste modo.");
+            return;
+        }
 
         if (!usuarioLogado?.id) {
             navigate(ROTA_LOGIN, {
                 state: { fundo: { pathname: location.pathname, search: location.search, hash: location.hash } }
             });
+            return;
+        }
+
+        if (meuAnuncio) {
+            setErroReserva("Você não pode reservar o seu próprio espaço.");
             return;
         }
 
@@ -508,7 +555,40 @@ export default function DetalhesEspaco() {
     const textoAvaliacoes = `${qtdAvaliacoes} avaliaç${qtdAvaliacoes === 1 ? "ão" : "ões"}`;
 
     return (
-        <div className="dt-page">
+        <div className={`dt-page${modoPreview ? " dt-page--preview" : ""}${modoPreview && previewViewport === "mobile" ? " dt-page--preview-mobile" : ""}`}>
+            {modoPreview && (
+                <div className="dt-preview-barra" role="status">
+                    <div className="dt-preview-texto">
+                        <strong>Pré-visualização — vendo como locatário</strong>
+                        <span>
+                            {statusDeEspaco(espaco)}
+                            {" · "}
+                            O formulário de reserva aparece como o público vê, mas você não consegue enviar pedido.
+                        </span>
+                    </div>
+                    <div className="dt-preview-acoes">
+                        <div className="dt-preview-viewport" role="group" aria-label="Largura da pré-visualização">
+                            <button
+                                type="button"
+                                className={`dt-preview-vp${previewViewport === "desktop" ? " is-ativo" : ""}`}
+                                onClick={() => setPreviewViewport("desktop")}
+                            >
+                                Desktop
+                            </button>
+                            <button
+                                type="button"
+                                className={`dt-preview-vp${previewViewport === "mobile" ? " is-ativo" : ""}`}
+                                onClick={() => setPreviewViewport("mobile")}
+                            >
+                                Celular
+                            </button>
+                        </div>
+                        <button type="button" className="dt-btn dt-btn--primario" onClick={sairPreview}>
+                            Sair da pré-visualização
+                        </button>
+                    </div>
+                </div>
+            )}
             <main className="dt-container">
                 <button type="button" className="dt-voltar" onClick={() => navigate(-1)}>
                     ‹ Voltar
@@ -752,6 +832,33 @@ export default function DetalhesEspaco() {
 
                     {/* ---------- Cartão de reserva ---------- */}
                     <aside className="dt-lateral">
+                        {mostrarComoDono ? (
+                            <div className="dt-reserva dt-reserva--dono" id="reserva">
+                                <p className="dt-preco">
+                                    <strong>{moeda(precoAtual.valor)}</strong> <span>{precoAtual.rotulo}</span>
+                                </p>
+                                <div className="dt-dono-aviso" role="status">
+                                    <strong>Este é o seu anúncio</strong>
+                                    <p>Você não pode reservar o próprio espaço. Use os atalhos abaixo para gerenciar o anúncio.</p>
+                                </div>
+                                <div className="dt-dono-acoes">
+                                    <button
+                                        type="button"
+                                        className="dt-btn dt-btn--primario dt-btn--largo"
+                                        onClick={() => navigate(`/locador/espacos/${espaco.id}/editar`)}
+                                    >
+                                        Editar anúncio
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="dt-btn dt-btn--secundario dt-btn--largo"
+                                        onClick={entrarPreview}
+                                    >
+                                        Ver como locatário
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
                         <form className="dt-reserva" id="reserva" onSubmit={handleReservar} noValidate>
                             <p className="dt-preco">
                                 <strong>{moeda(precoAtual.valor)}</strong> <span>{precoAtual.rotulo}</span>
@@ -942,6 +1049,7 @@ export default function DetalhesEspaco() {
                                     : "O locador analisa o pedido antes de confirmar."}
                             </p>
                         </form>
+                        )}
                     </aside>
                 </div>
             </main>
@@ -951,9 +1059,15 @@ export default function DetalhesEspaco() {
                 <p>
                     <strong>{moeda(precoAtual.valor)}</strong> <span>{precoAtual.rotulo}</span>
                 </p>
-                <a href="#reserva" className="dt-btn dt-btn--primario">
-                    {instantanea ? "Pagar" : "Reservar"}
-                </a>
+                {mostrarComoDono ? (
+                    <a href="#reserva" className="dt-btn dt-btn--primario">
+                        Meu anúncio
+                    </a>
+                ) : (
+                    <a href="#reserva" className="dt-btn dt-btn--primario">
+                        {instantanea ? "Pagar" : "Reservar"}
+                    </a>
+                )}
             </div>
 
             {/* ---------- Visualizador de fotos ---------- */}

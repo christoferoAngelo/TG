@@ -320,7 +320,7 @@ export default function Home() {
                                 }
                                 navigate(
                                     usuarioLogado.locador || usuarioLogado.isLocador
-                                        ? "/perfil_locador"
+                                        ? "/locador"
                                         : "/cadastro-locador"
                                 );
                             }}

@@ -1,0 +1,155 @@
+.lc-fin-aviso {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-subtle);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.lc-fin-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.lc-fin-espaco {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.lc-fin-espaco select {
+    min-width: 180px;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    font: inherit;
+    color: var(--color-text);
+}
+
+.lc-fin-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.lc-fin-tabela-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.lc-fin-tabela-card .lc-card-cab,
+.lc-fin-tabela-card .lc-vazio,
+.lc-fin-tabela-card .lc-fin-paginacao {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.lc-fin-tabela-card .lc-card-cab {
+    padding-top: 16px;
+}
+
+.lc-fin-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.lc-fin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.lc-fin-table th,
+.lc-fin-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 14px;
+}
+
+.lc-fin-table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-subtle);
+}
+
+.lc-fin-cards {
+    display: none;
+    list-style: none;
+    margin: 0;
+    padding: 12px;
+    gap: 12px;
+    flex-direction: column;
+}
+
+.lc-fin-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+
+.lc-fin-card span {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.lc-fin-card dl {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 0;
+}
+
+.lc-fin-card dt {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+}
+
+.lc-fin-card dd {
+    margin: 2px 0 0;
+    font-weight: 700;
+}
+
+.lc-fin-paginacao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 14px 16px 16px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+@media (max-width: 980px) {
+    .lc-fin-kpis {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 860px) {
+    .lc-fin-table-wrap {
+        display: none;
+    }
+
+    .lc-fin-cards {
+        display: flex;
+    }
+
+    .lc-fin-kpis {
+        grid-template-columns: 1fr;
+    }
+}

@@ -46,7 +46,7 @@ export default function MeusPerfis({ usuarioLogado, setModalAberto, ehLocatario 
                     {usuarioLogado?.isLocador ? (
                         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                             <span className="badge badge-locador">Anunciante Ativo</span>
-                            <button onClick={() => navigate("/perfil_locador")} className="btn btn-destaque">
+                            <button onClick={() => navigate("/locador")} className="btn btn-destaque">
                                 Acessar Painel do Locador
                             </button>
                         </div>

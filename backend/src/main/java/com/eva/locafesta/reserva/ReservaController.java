@@ -41,10 +41,13 @@ public class ReservaController {
         return ResponseEntity.ok(reservaService.consultarDisponibilidade(espacoId, data));
     }
 
-    // Rota para listar todas as solicitações recebidas pelo locador
+    // Rota para listar solicitações recebidas pelo locador (filtro opcional por status)
     @GetMapping("/minhas-solicitacoes")
-    public ResponseEntity<List<ReservaResponseDTO>> listarMinhasSolicitacoes(@RequestHeader("Usuario-Id") Long usuarioId) {
-        List<ReservaResponseDTO> solicitacoes = reservaService.listarSolicitacoesDoLocador(usuarioId);
+    public ResponseEntity<List<ReservaResponseDTO>> listarMinhasSolicitacoes(
+            @RequestHeader("Usuario-Id") Long usuarioId,
+            @RequestParam(required = false) String status
+    ) {
+        List<ReservaResponseDTO> solicitacoes = reservaService.listarSolicitacoesDoLocador(usuarioId, status);
         return ResponseEntity.ok(solicitacoes);
     }
 
@@ -72,6 +75,14 @@ public class ReservaController {
     @PatchMapping("/{reservaId}/rejeitar")
     public ResponseEntity<ReservaResponseDTO> rejeitar(@PathVariable Long reservaId, @RequestHeader("Usuario-Id") Long usuarioId) {
         return ResponseEntity.ok(reservaService.rejeitarReserva(reservaId, usuarioId));
+    }
+
+    // Prévia da condição de reembolso se o locatário cancelar agora (somente leitura)
+    @GetMapping("/{reservaId}/previsao-cancelamento")
+    public ResponseEntity<PrevisaoCancelamentoDTO> previsaoCancelamento(
+            @PathVariable Long reservaId,
+            @RequestHeader("Usuario-Id") Long usuarioId) {
+        return ResponseEntity.ok(reservaService.preverCancelamentoLocatario(reservaId, usuarioId));
     }
 
     // Rota para o locatário CANCELAR um pedido que ainda não começou

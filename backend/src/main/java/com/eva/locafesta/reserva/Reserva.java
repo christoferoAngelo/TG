@@ -63,7 +63,7 @@ public class Reserva {
     @Column(name = "cancelado_por", length = 20)
     private String canceladoPor;
 
-    // TOTAL, SEM_REEMBOLSO ou SEM_COBRANCA.
+    // TOTAL, PARCIAL, SEM_REEMBOLSO ou SEM_COBRANCA (informativo; sem estorno real).
     @Column(name = "condicao_reembolso", length = 40)
     private String condicaoReembolso;
 
