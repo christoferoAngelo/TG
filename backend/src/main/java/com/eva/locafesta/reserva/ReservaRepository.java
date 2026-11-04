@@ -19,6 +19,45 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     // Mágica do Spring Data: Busca reservas onde o ID do Locador do Espaço seja igual ao passado
     List<Reserva> findByEspacoLocadorUsuarioIdOrderByIdAsc(Long usuarioId);
 
+    /**
+     * Reservas do locador no intervalo de data do evento.
+     * Filtra no banco (locador + período + espaço opcional) antes da agregação em memória.
+     */
+    @Query("""
+            SELECT DISTINCT r FROM Reserva r
+            JOIN FETCH r.espaco e
+            LEFT JOIN FETCH r.locatario
+            WHERE e.locador.usuario.id = :usuarioId
+              AND r.dataEvento BETWEEN :de AND :ate
+              AND (:espacoId IS NULL OR e.id = :espacoId)
+            ORDER BY r.dataEvento DESC, r.id DESC
+            """)
+    List<Reserva> findByLocadorPeriodoEEspaco(
+            @Param("usuarioId") Long usuarioId,
+            @Param("de") LocalDate de,
+            @Param("ate") LocalDate ate,
+            @Param("espacoId") Long espacoId
+    );
+
+    /**
+     * A receber: aprovadas com pagamento ainda não liberado (inclui eventos futuros).
+     * Não corta pela data final do filtro de faturamento.
+     */
+    @Query("""
+            SELECT DISTINCT r FROM Reserva r
+            JOIN FETCH r.espaco e
+            LEFT JOIN FETCH r.locatario
+            WHERE e.locador.usuario.id = :usuarioId
+              AND UPPER(r.status) = 'APROVADA'
+              AND r.pagamentoLiberado = false
+              AND (:espacoId IS NULL OR e.id = :espacoId)
+            ORDER BY r.dataEvento ASC, r.id ASC
+            """)
+    List<Reserva> findAReceberPorLocadorEEspaco(
+            @Param("usuarioId") Long usuarioId,
+            @Param("espacoId") Long espacoId
+    );
+
     // Reservas feitas pelo próprio locatário, mais recentes primeiro
     List<Reserva> findByLocatarioIdOrderByDataEventoDesc(Long locatarioId);
 

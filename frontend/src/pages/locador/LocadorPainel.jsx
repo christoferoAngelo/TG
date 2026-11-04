@@ -15,7 +15,7 @@ import {
     YAxis,
 } from "recharts";
 import { useAuth } from "../../contexts/AuthContext";
-import { formatarData, formatarHora, formatarMoeda } from "./formatadores";
+import { formatarData, formatarEixoReais, formatarHora, formatarMoeda } from "./formatadores";
 import "./DashboardLocador.css";
 import "./LocadorPainel.css";
 
@@ -327,15 +327,8 @@ export default function LocadorPainel() {
                                     />
                                     <YAxis
                                         tick={{ fontSize: 13, fill: "var(--color-text-secondary)" }}
-                                        tickFormatter={(v) => {
-                                            const n = Number(v) || 0;
-                                            if (n >= 1000) {
-                                                const mil = n / 1000;
-                                                return `R$ ${mil.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
-                                            }
-                                            return `R$ ${n.toLocaleString("pt-BR")}`;
-                                        }}
-                                        width={78}
+                                        tickFormatter={formatarEixoReais}
+                                        width={88}
                                         tickCount={4}
                                         allowDecimals={false}
                                         tickMargin={6}

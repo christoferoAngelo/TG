@@ -55,7 +55,12 @@ public class SecurityConfig {
                     "/api/pagamento", "/api/pagamento/**",
                     "/api/v1/pagamentos", "/api/v1/pagamentos/**",
                     "/api/v1/**", "/api/v1/pagamentos/criar-preferencia",
-                    "/api/logs-auditoria", "/api/logs-auditoria/**"
+                    "/api/logs-auditoria", "/api/logs-auditoria/**",
+                    // Documentação do espaço/usuário (mesma política das demais APIs de negócio)
+                    "/documentos", "/documentos/**",
+                    "/api/documentos", "/api/documentos/**",
+                    // Termos: vigente público; aceitar/pendente e admin validam no serviço (Firebase)
+                    "/api/termos", "/api/termos/**"
                 ).permitAll()
                 
                 // 5. Demais rotas exigem autenticação

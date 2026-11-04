@@ -21,7 +21,9 @@ async function obterToken(forcarRenovacao = false) {
 
     const usuario = auth.currentUser;
     if (!usuario) {
-        throw new Error("Sua sessão expirou. Entre novamente para continuar.");
+        // Rotas /documentos/** estão liberadas como as demais APIs de negócio;
+        // sem sessão Firebase seguimos sem Authorization (ex.: preview DEV).
+        return null;
     }
 
     return usuario.getIdToken(forcarRenovacao);
@@ -40,28 +42,44 @@ async function lerMensagemDeErro(resposta, padrao) {
     }
 }
 
-async function requisitar(caminho, { method = "GET", body } = {}, mensagemPadrao, primeiraTentativa = true) {
+async function requisitar(
+    caminho,
+    { method = "GET", body, usuarioId } = {},
+    mensagemPadrao,
+    primeiraTentativa = true
+) {
     const token = await obterToken(!primeiraTentativa);
 
-    const response = await fetch(`${API_URL}/documentos${caminho}`, {
+    const headers = {
+        ...(body ? { "Content-Type": "application/json" } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(usuarioId != null ? { "Usuario-Id": String(usuarioId) } : {}),
+    };
+
+    const response = await fetch(`${API_URL}/api/documentos${caminho}`, {
         method,
-        headers: {
-            Authorization: `Bearer ${token}`,
-            ...(body ? { "Content-Type": "application/json" } : {}),
-        },
+        headers,
         body: body ? JSON.stringify(body) : undefined,
     });
 
     // O token pode ter vencido entre a leitura e o envio: renova uma vez e tenta de novo
-    if (response.status === 401 && primeiraTentativa) {
-        return requisitar(caminho, { method, body }, mensagemPadrao, false);
+    if (response.status === 401 && primeiraTentativa && token) {
+        return requisitar(caminho, { method, body, usuarioId }, mensagemPadrao, false);
     }
 
     if (!response.ok) {
         throw new Error(await lerMensagemDeErro(response, mensagemPadrao));
     }
 
-    return response.json();
+    if (response.status === 204) return null;
+
+    const texto = await response.text();
+    if (!texto) return [];
+    try {
+        return JSON.parse(texto);
+    } catch {
+        return [];
+    }
 }
 
 
@@ -128,11 +146,15 @@ export const listarDocumentosUsuario = (usuarioId) =>
  * DOCUMENTOS DO ESPAÇO
  * =========================================================
  */
-export const criarDocumentoEspaco = (espacoId, documento) =>
-    requisitar(`/espaco/${espacoId}`, { method: "POST", body: documento }, "Erro ao cadastrar documento do espaço.");
+export const criarDocumentoEspaco = (espacoId, documento, usuarioId) =>
+    requisitar(
+        `/espaco/${espacoId}`,
+        { method: "POST", body: documento, usuarioId },
+        "Erro ao cadastrar documento do espaço."
+    );
 
-export const listarDocumentosEspaco = (espacoId) =>
-    requisitar(`/espaco/${espacoId}`, {}, "Erro ao buscar documentos do espaço.");
+export const listarDocumentosEspaco = (espacoId, usuarioId) =>
+    requisitar(`/espaco/${espacoId}`, { usuarioId }, "Erro ao buscar documentos do espaço.");
 
 
 /**
@@ -145,13 +167,14 @@ export const buscarDocumento = (id) =>
 
 export async function cancelarDocumento(id) {
     const token = await obterToken(false);
-    const response = await fetch(`${API_URL}/documentos/${id}`, {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await fetch(`${API_URL}/api/documentos/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers,
     });
-    if (response.status === 401) {
+    if (response.status === 401 && token) {
         const tokenNovo = await obterToken(true);
-        const retry = await fetch(`${API_URL}/documentos/${id}`, {
+        const retry = await fetch(`${API_URL}/api/documentos/${id}`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${tokenNovo}` },
         });

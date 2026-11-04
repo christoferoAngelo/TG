@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 
 import DocumentoCard from "../../components/documento/DocumentoCard";
 import DocumentoUpload from "../../components/documento/DocumentoUpload";
+import { useAuth } from "../../contexts/AuthContext";
 
 import {
     listarDocumentosEspaco,
@@ -29,6 +30,8 @@ function Stat({ label, valor, dica, alerta }) {
 
 export default function DocumentosEspaco() {
     const { id } = useParams();
+    const { usuarioLogado } = useAuth();
+    const usuarioId = usuarioLogado?.id;
 
     const [documentos, setDocumentos] = useState([]);
     const [carregando, setCarregando] = useState(true);
@@ -39,7 +42,7 @@ export default function DocumentosEspaco() {
             setCarregando(true);
             setErro("");
 
-            const data = await listarDocumentosEspaco(id);
+            const data = await listarDocumentosEspaco(id, usuarioId);
             setDocumentos(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
@@ -51,12 +54,12 @@ export default function DocumentosEspaco() {
 
     useEffect(() => {
         carregar();
-    }, [id]);
+    }, [id, usuarioId]);
 
     const handleEnviar = async (documento) => {
         try {
-            await criarDocumentoEspaco(id, documento);
-            const atualizados = await listarDocumentosEspaco(id);
+            await criarDocumentoEspaco(id, documento, usuarioId);
+            const atualizados = await listarDocumentosEspaco(id, usuarioId);
             setDocumentos(Array.isArray(atualizados) ? atualizados : []);
             alert("Documento enviado para validação.");
         } catch (error) {

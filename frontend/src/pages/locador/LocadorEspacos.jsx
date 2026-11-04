@@ -229,11 +229,16 @@ export default function LocadorEspacos() {
                         </button>
                     </div>
                 ) : filtrados.length === 0 ? (
-                    <div className="lc-espacos-vazio">
-                        <p className="lc-vazio">
+                    <div className="lc-espacos-vazio lc-vazio-ilustrado" aria-label="Sem espaços">
+                        <h2>
                             {espacos.length === 0
-                                ? "Você ainda não possui nenhum espaço cadastrado."
-                                : "Nenhum espaço neste filtro."}
+                                ? "Nenhum espaço cadastrado"
+                                : "Nenhum espaço neste filtro"}
+                        </h2>
+                        <p>
+                            {espacos.length === 0
+                                ? "Crie o primeiro anúncio para começar a receber pedidos."
+                                : "Limpe o filtro ou escolha outra situação para ver seus anúncios."}
                         </p>
                         {espacos.length === 0 && (
                             <button type="button" className="lc-btn lc-btn--primary" onClick={() => navigate(ROTA_NOVO)}>

@@ -131,15 +131,38 @@
         top: auto;
         order: 99;
         margin: 8px 0 0;
-        padding: 10px 0 12px;
+        padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 0px));
         border-bottom: 0;
         border-top: 1px solid var(--color-border);
         background: var(--color-bg);
     }
 
+    .lc-nav {
+        gap: 4px;
+        padding: 4px;
+    }
+
+    .lc-nav-item {
+        min-width: 0;
+        flex: 1 1 0;
+        padding: 10px 6px;
+        font-size: 12px;
+    }
+
     .lc-container {
-        padding-bottom: 12px;
+        padding: 16px 14px calc(12px + env(safe-area-inset-bottom, 0px));
         display: flex;
         flex-direction: column;
+    }
+
+    .lc-filtros {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+    }
+
+    .lc-filtro {
+        flex: 0 0 auto;
     }
 }

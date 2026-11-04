@@ -1,0 +1,246 @@
+.adm-termos {
+    position: relative;
+}
+
+.adm-termos .btn.btn-destaque {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #fff);
+    border-color: transparent;
+}
+
+.adm-termos-toast {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    margin-bottom: 14px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md, 12px);
+    background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+    border: 1px solid var(--color-border);
+    font-weight: 600;
+}
+
+.adm-termos-abas {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.adm-termos-aba {
+    min-height: 40px;
+    padding: 8px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill, 999px);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.adm-termos-aba.ativa {
+    border-color: var(--color-primary-text, var(--color-primary));
+    background: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface));
+}
+
+.adm-termos-aba:focus-visible,
+.adm-termos-campo input:focus-visible,
+.adm-termos-campo textarea:focus-visible,
+.adm-termos .btn:focus-visible {
+    outline: 2px solid var(--color-primary-text, var(--color-primary));
+    outline-offset: 2px;
+}
+
+.adm-termos-cab {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.adm-termos-cab h3 {
+    margin: 0 0 4px;
+}
+
+.adm-termos-cab p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.adm-termos-previa {
+    margin: 0;
+    padding: 14px;
+    max-height: 280px;
+    overflow: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg);
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
+.adm-termos-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.adm-termos-campo input,
+.adm-termos-campo textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+    font-weight: 400;
+}
+
+.adm-termos-campo textarea {
+    min-height: 280px;
+    resize: vertical;
+}
+
+.adm-termos-contador {
+    font-weight: 500;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.adm-termos-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.adm-termos-tabela-wrap {
+    overflow-x: auto;
+}
+
+.adm-termos-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.adm-termos-tabela th,
+.adm-termos-tabela td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.adm-termos-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 1px solid var(--color-border);
+}
+
+.adm-termos-badge.status-publicado {
+    background: color-mix(in srgb, #1b7f4e 14%, var(--color-surface));
+}
+
+.adm-termos-badge.status-rascunho {
+    background: color-mix(in srgb, #b58100 14%, var(--color-surface));
+}
+
+.adm-termos-badge.status-arquivado {
+    background: color-mix(in srgb, var(--color-text-muted) 12%, var(--color-surface));
+}
+
+.adm-termos-erro {
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: color-mix(in srgb, #b42318 8%, var(--color-surface));
+}
+
+.adm-termos-skeleton .sk {
+    height: 72px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: linear-gradient(
+        90deg,
+        var(--color-surface),
+        color-mix(in srgb, var(--color-border) 50%, var(--color-surface)),
+        var(--color-surface)
+    );
+    background-size: 200% 100%;
+    animation: adm-termos-pulse 1.2s ease-in-out infinite;
+}
+
+.adm-termos-skeleton .sk.curto {
+    width: 60%;
+}
+
+@keyframes adm-termos-pulse {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+
+.adm-termos-modal-fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 160;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: color-mix(in srgb, var(--palette-coffee, #2a1f18) 72%, transparent);
+}
+
+.adm-termos-modal {
+    width: min(720px, 100%);
+    max-height: min(88dvh, 800px);
+    overflow: auto;
+    padding: 20px;
+    border-radius: 16px;
+    background: var(--color-bg);
+    box-shadow: var(--shadow-md);
+}
+
+.adm-termos-modal--curto {
+    width: min(440px, 100%);
+}
+
+.adm-termos-modal header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.adm-termos-modal h3 {
+    margin: 0 0 8px;
+}
+
+.adm-termos-meta {
+    margin: 0 0 12px;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 720px) {
+    .adm-termos-campo textarea {
+        min-height: 220px;
+    }
+}

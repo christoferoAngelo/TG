@@ -66,4 +66,42 @@ export const TERMOS = [
 export const EMAIL_SUPORTE = "locafesta.suporte@gmail.com";
 
 export const CHAVE_TERMOS = "hasAcceptedTerms";
+/** IDs dos termos vigentes aceitos antes do usuário existir no banco (JSON array). */
+export const CHAVE_TERMOS_IDS = "termosAceitosIds";
 export const CHAVE_JORNADA = "hasSeenOnboarding";
+
+export function formatarDataPublicacao(iso) {
+    if (!iso) return "";
+    const data = new Date(iso);
+    if (Number.isNaN(data.getTime())) return "";
+    return data.toLocaleDateString("pt-BR");
+}
+
+export function rotuloVersaoTermo(termo) {
+    if (!termo?.versao) return "Termos de Uso";
+    const data = formatarDataPublicacao(termo.publicadoEm);
+    return data
+        ? `Versão ${termo.versao} — publicada em ${data}`
+        : `Versão ${termo.versao}`;
+}
+
+export function guardarTermosAceitosIds(ids) {
+    const limpos = [...new Set((ids || []).filter((id) => Number.isFinite(Number(id))).map(Number))];
+    localStorage.setItem(CHAVE_TERMOS_IDS, JSON.stringify(limpos));
+    localStorage.setItem(CHAVE_TERMOS, "true");
+}
+
+export function lerTermosAceitosIds() {
+    try {
+        const bruto = localStorage.getItem(CHAVE_TERMOS_IDS);
+        if (!bruto) return [];
+        const lista = JSON.parse(bruto);
+        return Array.isArray(lista) ? lista.map(Number).filter((id) => id > 0) : [];
+    } catch {
+        return [];
+    }
+}
+
+export function limparTermosAceitosIds() {
+    localStorage.removeItem(CHAVE_TERMOS_IDS);
+}

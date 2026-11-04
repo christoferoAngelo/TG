@@ -1,30 +1,46 @@
 import React, { createContext, useCallback, useContext, useState, useEffect } from "react";
-// Importe o auth da sua configuração do Firebase
-import { auth } from "../config/firebaseConfig"; 
-// Importe as funções nativas de sessão do Firebase
-import { signOut, onAuthStateChanged } from "firebase/auth"; 
-import { userService } from "../config/api"; // Ajuste o caminho se necessário
+import { auth } from "../config/firebaseConfig";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import { userService } from "../config/api";
+import TermosModal from "../components/apresentacao/TermosModal";
+import {
+    registrarAceiteTermos,
+    sincronizarAceitesPendentesDoStorage,
+    termoService,
+} from "../services/termoService";
 
-// 1. Criação do Contexto
 export const AuthContext = createContext();
 
-// 2. Hook customizado para facilitar o uso nos componentes
 export function useAuth() {
     return useContext(AuthContext);
 }
 
-// 3. Provider que vai envolver a sua aplicação
 export function AuthProvider({ children }) {
-    // Estado que guarda os dados do usuário vindos do MySQL/Spring Boot
     const [usuarioLogado, setUsuarioLogado] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [termosPendentes, setTermosPendentes] = useState([]);
+    const [avisoTermosAberto, setAvisoTermosAberto] = useState(false);
+
+    const verificarTermosPendentes = useCallback(async () => {
+        if (!auth.currentUser) {
+            setTermosPendentes([]);
+            setAvisoTermosAberto(false);
+            return;
+        }
+        try {
+            await sincronizarAceitesPendentesDoStorage();
+            const resp = await termoService.pendente();
+            const lista = resp?.termosPendentes || [];
+            setTermosPendentes(lista);
+            setAvisoTermosAberto(Boolean(resp?.precisaAceitar && lista.length));
+        } catch (e) {
+            console.error("Erro ao verificar termos pendentes:", e);
+        }
+    }, []);
 
     useEffect(() => {
-        // Escuta as mudanças de estado da sessão nativa do Firebase
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
-                // Caso o usuário recarregue a página (F5), o Firebase ainda tem a sessão.
-                // Aqui podemos buscar os dados no backend novamente para não perder o estado.
                 try {
                     await firebaseUser.reload();
 
@@ -37,20 +53,21 @@ export function AuthProvider({ children }) {
                     const perfilLocal = await userService.buscarPerfilPorUid(firebaseUser.uid);
                     if (perfilLocal) {
                         setUsuarioLogado(perfilLocal);
+                        await verificarTermosPendentes();
                     }
                 } catch (error) {
                     console.error("Erro ao recuperar dados do usuário após recarregar a página:", error);
                 }
             } else {
-                // Se não houver usuário no Firebase, garante que o estado local está limpo
                 setUsuarioLogado(null);
+                setTermosPendentes([]);
+                setAvisoTermosAberto(false);
             }
-            setLoading(false); // Libera a renderização da tela
+            setLoading(false);
         });
 
-        // Limpa o listener quando o componente for desmontado
         return () => unsubscribe();
-    }, []);
+    }, [verificarTermosPendentes]);
 
     const atualizarUsuario = useCallback(async () => {
         const firebaseUser = auth.currentUser;
@@ -59,40 +76,55 @@ export function AuthProvider({ children }) {
         const perfilLocal = await userService.buscarPerfilPorUid(firebaseUser.uid);
         if (perfilLocal) {
             setUsuarioLogado(perfilLocal);
+            await verificarTermosPendentes();
         }
         return perfilLocal;
-    }, []);
+    }, [verificarTermosPendentes]);
 
-    // 4. Função de Logout Corrigida
     const logout = async () => {
         try {
-            // A. Quebra a sessão persistente do Firebase (Isso resolve o bug de voltar logado)
             await signOut(auth);
-            
-            // B. Zera o estado global do React
             setUsuarioLogado(null);
-            
-            // C. Limpa qualquer armazenamento local que você possa estar usando para tokens ou cache
             localStorage.removeItem("usuario");
-            localStorage.removeItem("token"); 
-            
+            localStorage.removeItem("token");
+            setTermosPendentes([]);
+            setAvisoTermosAberto(false);
         } catch (error) {
             console.error("Erro ao deslogar:", error);
         }
     };
 
-    // Objeto com os dados e funções que serão distribuídos para o sistema
+    const aceitarTermosPendentes = async (termoIds) => {
+        try {
+            await registrarAceiteTermos(termoIds?.length ? termoIds : termosPendentes.map((t) => t.id));
+            setAvisoTermosAberto(false);
+            setTermosPendentes([]);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     const value = {
         usuarioLogado,
         setUsuarioLogado,
         atualizarUsuario,
-        logout
+        logout,
+        loading,
+        carregando: loading,
+        verificarTermosPendentes,
     };
 
     return (
         <AuthContext.Provider value={value}>
-            {/* Só renderiza as rotas da plataforma de eventos depois de checar a sessão */}
-            {!loading && children} 
+            {!loading && children}
+            <TermosModal
+                aberto={avisoTermosAberto}
+                termosForcados={termosPendentes}
+                onAceitar={aceitarTermosPendentes}
+                onFechar={() => setAvisoTermosAberto(false)}
+                titulo="Atualização dos Termos de Uso"
+                textoConfirmar="Aceitar nova versão"
+            />
         </AuthContext.Provider>
     );
 }

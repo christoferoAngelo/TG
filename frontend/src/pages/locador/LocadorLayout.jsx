@@ -1,4 +1,4 @@
-import { NavLink, Navigate, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import ModalCriarLocador from "../../components/locador/ModalCriarLocador";
 import { useEffect, useState } from "react";
@@ -18,14 +18,18 @@ const ABAS = [
 export default function LocadorLayout() {
     const { usuarioLogado, carregando, atualizarUsuario } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [modalLocadorAberto, setModalLocadorAberto] = useState(false);
     const [pendentes, setPendentes] = useState(0);
 
     const ehLocador = Boolean(usuarioLogado?.isLocador || usuarioLogado?.locador);
     const ehLocatario = Boolean(usuarioLogado?.isLocatario || usuarioLogado?.locatario);
+    const naAbaReservas = location.pathname.startsWith("/locador/reservas");
 
     useEffect(() => {
         if (!usuarioLogado?.id || !ehLocador) return undefined;
+        // Na aba Reservas a lista é a fonte do selo (evita corrida com o painel).
+        if (naAbaReservas) return undefined;
         let ativo = true;
         fetch(`${API}/locador/painel/resumo`, {
             headers: { "Usuario-Id": usuarioLogado.id },
@@ -41,7 +45,7 @@ export default function LocadorLayout() {
         return () => {
             ativo = false;
         };
-    }, [usuarioLogado?.id, ehLocador]);
+    }, [usuarioLogado?.id, ehLocador, naAbaReservas]);
 
     if (carregando) {
         return (

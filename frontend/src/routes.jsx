@@ -23,6 +23,7 @@ import AppShell from "./components/layout/AppShell";
 import NovoEspaco from "./pages/novo espaco/NovoEspaco";
 import Favoritos from "./pages/favoritos/Favoritos";
 import DevPainelPreview from "./pages/locador/DevPainelPreview";
+import DevTermosPreview from "./pages/admin/DevTermosPreview";
 
 function RouteProtegida() {
     const { usuarioLogado, carregando } = useAuth();
@@ -87,7 +88,10 @@ function RotasAplicacao() {
                     <Route path="/redefinir-senha" element={<RedefinirSenha />} />
                     <Route path="/jornada" element={<Jornada />} />
                     {import.meta.env.DEV && (
-                        <Route path="/dev/painel-locador" element={<DevPainelPreview />} />
+                        <>
+                            <Route path="/dev/painel-locador" element={<DevPainelPreview />} />
+                            <Route path="/dev/termos" element={<DevTermosPreview />} />
+                        </>
                     )}
 
                     <Route

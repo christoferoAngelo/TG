@@ -162,18 +162,31 @@ const AnimatedContent = ({
         return;
       }
 
-      ScrollTrigger.create({
+      const st = ScrollTrigger.create({
         trigger: el,
         scroller,
         start,
         once,
         onEnter: () => tl.play(),
+        onRefresh: (self) => {
+          // Se o bloco já está na área visível no mount (ou após zoom/layout),
+          // onEnter pode não disparar — força a animação.
+          if (self.isActive || self.progress > 0) tl.play();
+        },
         onLeaveBack: once
           ? undefined
           : () => {
               if (mask) gsap.set(targets, { maskImage: mask, webkitMaskImage: mask });
               tl.reverse();
             }
+      });
+
+      // Layout do scroller costuma estar atrasado; refresh + checagem imediata.
+      requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+        if (st.isActive || ScrollTrigger.isInViewport(el)) {
+          tl.play();
+        }
       });
     }, el);
 

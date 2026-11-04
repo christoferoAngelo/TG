@@ -82,6 +82,7 @@ export default function LocadorReservas() {
 
     const [solicitacoes, setSolicitacoes] = useState([]);
     const [carregando, setCarregando] = useState(true);
+    const [erro, setErro] = useState("");
     const [visualizacao, setVisualizacao] = useState("lista");
     const [confirmandoId, setConfirmandoId] = useState(null);
     const [pedidoAberto, setPedidoAberto] = useState(null);
@@ -91,10 +92,16 @@ export default function LocadorReservas() {
     const carregar = () => {
         if (!usuarioLogado?.id) return;
         setCarregando(true);
+        setErro("");
         fetch(`${API}/reservas/minhas-solicitacoes`, {
             headers: { "Usuario-Id": usuarioLogado.id },
         })
-            .then((res) => (res.ok ? res.json() : []))
+            .then(async (res) => {
+                if (!res.ok) {
+                    throw new Error((await res.text()) || "Não foi possível carregar as reservas.");
+                }
+                return res.json();
+            })
             .then((data) => {
                 const lista = Array.isArray(data) ? data : [];
                 lista.sort(compararReservas);
@@ -103,7 +110,10 @@ export default function LocadorReservas() {
                     setPendentesNav(lista.filter((r) => statusDe(r.status) === "PENDENTE").length);
                 }
             })
-            .catch(() => setSolicitacoes([]))
+            .catch((e) => {
+                setSolicitacoes([]);
+                setErro(e.message || "Não foi possível carregar as reservas.");
+            })
             .finally(() => setCarregando(false));
     };
 
@@ -231,13 +241,29 @@ export default function LocadorReservas() {
 
             <section className="lc-card lc-reservas-card">
                 {carregando ? (
-                    <p className="lc-vazio">Carregando pedidos…</p>
-                ) : filtradas.length === 0 ? (
-                    <p className="lc-vazio">
-                        {filtroStatus
-                            ? "Nenhuma reserva com este status."
-                            : "Você ainda não recebeu nenhum pedido de locação."}
+                    <p className="lc-vazio" aria-busy="true">
+                        Carregando pedidos…
                     </p>
+                ) : erro ? (
+                    <div className="lc-estado-erro" role="alert">
+                        <p>{erro}</p>
+                        <button type="button" className="lc-btn lc-btn--primary" onClick={carregar}>
+                            Tentar novamente
+                        </button>
+                    </div>
+                ) : filtradas.length === 0 ? (
+                    <div className="lc-vazio-ilustrado" aria-label="Sem reservas">
+                        <h2>
+                            {filtroStatus
+                                ? "Nenhuma reserva com este status"
+                                : "Nenhum pedido de locação ainda"}
+                        </h2>
+                        <p>
+                            {filtroStatus
+                                ? "Tente outro filtro ou limpe a seleção para ver todas."
+                                : "Quando alguém solicitar um dos seus espaços, o pedido aparece aqui."}
+                        </p>
+                    </div>
                 ) : visualizacao === "calendario" ? (
                     <div className="lc-calendario">
                         <CalendarioSolicitacoes

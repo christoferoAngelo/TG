@@ -91,7 +91,7 @@ public class UsuariosTesteInicializador implements ApplicationRunner {
             ),
             new UsuarioSeed(
                     "V9nMU2UGaNMt0zte0jzvSngS53k2",
-                    "Locatario A",
+                    "Locatário A",
                     "christoferoangelo@gmail.com",
                     "12547878011",
                     "(11) 96543-2109",
@@ -109,7 +109,7 @@ public class UsuariosTesteInicializador implements ApplicationRunner {
             ),
             new UsuarioSeed(
                     "ytC3DfaUmgTeDLARF9FiyD55ZEY2",
-                    "Locatario B",
+                    "Locatário B",
                     "telaskoavara903@gmail.com",
                     "04329205017",
                     "(11) 95432-1098",

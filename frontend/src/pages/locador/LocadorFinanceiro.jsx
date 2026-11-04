@@ -1,23 +1,37 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    Area,
-    AreaChart,
     Bar,
     BarChart,
     CartesianGrid,
+    Legend,
     ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
 } from "recharts";
 import { useAuth } from "../../contexts/AuthContext";
-import { formatarData, formatarMoeda } from "./formatadores";
+import { formatarData, formatarEixoReais, formatarMoeda, pluralReservas } from "./formatadores";
 import "./DashboardLocador.css";
 import "./LocadorPainel.css";
 import "./LocadorFinanceiro.css";
 
 const API = "http://localhost:8080/api";
-const COR_BARRAS = "#C9952A";
+const COR_BRUTO = "#C9952A";
+const COR_LIQUIDO = "#5C7C4A";
+
+function mesCorrenteIso() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function serieComMesEmAndamento(pontos) {
+    const atual = mesCorrenteIso();
+    return (pontos || []).map((p) => ({
+        ...p,
+        rotulo: p.chave === atual ? `${p.rotulo}*` : p.rotulo,
+        emAndamento: p.chave === atual,
+    }));
+}
 
 const PERIODOS = [
     { id: "mes", rotulo: "Este mês" },
@@ -52,12 +66,18 @@ function intervaloDoPeriodo(id) {
     return { de: isoLocal(de), ate: isoLocal(ate) };
 }
 
-function eixoReais(v) {
-    const n = Number(v) || 0;
-    if (n >= 1000) {
-        return `R$ ${(n / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
+function textoVariacao(item) {
+    if (!item || !item.disponivel) {
+        return item?.mensagem || "sem base de comparação";
     }
-    return `R$ ${n.toLocaleString("pt-BR")}`;
+    const n = Number(item.percentual);
+    const seta = n >= 0 ? "↑" : "↓";
+    return `${seta} ${Math.abs(n).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% vs período anterior`;
+}
+
+function classeVariacao(item) {
+    if (!item?.disponivel) return "lc-kpi-var is-neutro";
+    return Number(item.percentual) >= 0 ? "lc-kpi-var is-up" : "lc-kpi-var is-down";
 }
 
 function SkeletonFin() {
@@ -111,7 +131,19 @@ export default function LocadorFinanceiro() {
     }, [periodo, espacoId]);
 
     const kpis = dados?.kpis || {};
-    const temDados = (dados?.totalReservas || 0) > 0 || (dados?.faturamentoMensal || []).some((p) => Number(p.bruto) > 0);
+    const variacao = dados?.variacao || {};
+    const pctComissao = dados?.percentualComissao != null ? Number(dados.percentualComissao) : null;
+    const rotuloComissao =
+        pctComissao != null && !Number.isNaN(pctComissao)
+            ? `Comissão da plataforma (${pctComissao.toLocaleString("pt-BR")}%)`
+            : "Comissão da plataforma";
+    const temDados =
+        (dados?.totalReservas || 0) > 0 || (dados?.faturamentoMensal || []).some((p) => Number(p.bruto) > 0);
+    const serieMensal = useMemo(
+        () => serieComMesEmAndamento(dados?.faturamentoMensal),
+        [dados?.faturamentoMensal]
+    );
+    const temMesEmAndamento = serieMensal.some((p) => p.emAndamento);
 
     return (
         <div className="lc-secao lc-financeiro">
@@ -119,7 +151,9 @@ export default function LocadorFinanceiro() {
                 <div>
                     <h1 className="lc-titulo">Financeiro</h1>
                     <p className="lc-subtitulo">
-                        Faturamento estimado das reservas aprovadas, comissão de 10% e valores a receber.
+                        Faturamento estimado das reservas aprovadas
+                        {pctComissao != null ? `, comissão de ${pctComissao.toLocaleString("pt-BR")}%` : ""} e
+                        valores a receber.
                     </p>
                 </div>
             </header>
@@ -173,23 +207,36 @@ export default function LocadorFinanceiro() {
                         <div className="lc-kpi">
                             <span className="lc-kpi-label">Faturamento bruto</span>
                             <strong className="lc-kpi-valor">{formatarMoeda(kpis.faturamentoBruto)}</strong>
-                            <span className="lc-kpi-dica">Reservas aprovadas no período</span>
+                            <span className={classeVariacao(variacao.faturamentoBruto)}>
+                                {textoVariacao(variacao.faturamentoBruto)}
+                            </span>
                         </div>
                         <div className="lc-kpi">
-                            <span className="lc-kpi-label">Comissão da plataforma (10%)</span>
+                            <span className="lc-kpi-label">{rotuloComissao}</span>
                             <strong className="lc-kpi-valor">{formatarMoeda(kpis.comissaoPlataforma)}</strong>
-                            <span className="lc-kpi-dica">Estimativa sobre o bruto</span>
+                            <span className={classeVariacao(variacao.comissaoPlataforma)}>
+                                {textoVariacao(variacao.comissaoPlataforma)}
+                            </span>
                         </div>
                         <div className="lc-kpi">
                             <span className="lc-kpi-label">Valor líquido estimado</span>
                             <strong className="lc-kpi-valor">{formatarMoeda(kpis.valorLiquidoEstimado)}</strong>
-                            <span className="lc-kpi-dica">Bruto menos comissão</span>
+                            <span className={classeVariacao(variacao.valorLiquidoEstimado)}>
+                                {textoVariacao(variacao.valorLiquidoEstimado)}
+                            </span>
                         </div>
                         <div className="lc-kpi">
                             <span className="lc-kpi-label">A receber</span>
                             <strong className="lc-kpi-valor">{formatarMoeda(kpis.aReceber)}</strong>
-                            <span className="lc-kpi-dica">
-                                {kpis.quantidadeReservas ?? 0} reserva(s) · sem pagamento liberado
+                            <span className={classeVariacao(variacao.aReceber)}>
+                                {textoVariacao(variacao.aReceber)}
+                            </span>
+                        </div>
+                        <div className="lc-kpi">
+                            <span className="lc-kpi-label">Reservas aprovadas</span>
+                            <strong className="lc-kpi-valor">{kpis.quantidadeReservas ?? 0}</strong>
+                            <span className={classeVariacao(variacao.quantidadeReservas)}>
+                                {textoVariacao(variacao.quantidadeReservas)}
                             </span>
                         </div>
                     </section>
@@ -203,23 +250,26 @@ export default function LocadorFinanceiro() {
                         <>
                             <section className="lc-card" aria-labelledby="lc-fin-fat">
                                 <div className="lc-card-cab">
-                                    <h2 id="lc-fin-fat" className="lc-card-titulo">Faturamento por mês</h2>
+                                    <h2 id="lc-fin-fat" className="lc-card-titulo">
+                                        Faturamento por mês
+                                    </h2>
                                 </div>
-                                <div className="lc-chart" role="img" aria-label="Gráfico de faturamento mensal">
+                                <div
+                                    className="lc-chart"
+                                    role="img"
+                                    aria-label="Gráfico de barras com faturamento bruto e líquido estimado por mês"
+                                >
                                     <ResponsiveContainer width="100%" height={280}>
-                                        <AreaChart data={dados.faturamentoMensal || []} margin={{ top: 8, right: 12, left: 4, bottom: 8 }}>
-                                            <defs>
-                                                <linearGradient id="lcFinFill" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="0%" stopColor="#FECB5A" stopOpacity={0.55} />
-                                                    <stop offset="100%" stopColor="#FECB5A" stopOpacity={0.05} />
-                                                </linearGradient>
-                                            </defs>
+                                        <BarChart
+                                            data={serieMensal}
+                                            margin={{ top: 8, right: 12, left: 4, bottom: 8 }}
+                                        >
                                             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                                            <XAxis dataKey="rotulo" tick={{ fontSize: 13 }} tickMargin={10} height={40} />
+                                            <XAxis dataKey="rotulo" tick={{ fontSize: 12 }} tickMargin={10} height={40} />
                                             <YAxis
-                                                tick={{ fontSize: 13 }}
-                                                tickFormatter={eixoReais}
-                                                width={78}
+                                                tick={{ fontSize: 12 }}
+                                                tickFormatter={formatarEixoReais}
+                                                width={88}
                                                 tickCount={4}
                                                 tickMargin={6}
                                             />
@@ -228,16 +278,33 @@ export default function LocadorFinanceiro() {
                                                     formatarMoeda(valor),
                                                     nome === "bruto" ? "Bruto" : "Líquido estimado",
                                                 ]}
+                                                labelFormatter={(rotulo, payload) => {
+                                                    const item = payload?.[0]?.payload;
+                                                    return item?.emAndamento
+                                                        ? `${rotulo.replace(/\*$/, "")} (mês em andamento)`
+                                                        : rotulo;
+                                                }}
                                             />
-                                            <Area type="monotone" dataKey="bruto" stroke={COR_BARRAS} fill="url(#lcFinFill)" strokeWidth={2} name="bruto" />
-                                        </AreaChart>
+                                            <Legend
+                                                formatter={(value) =>
+                                                    value === "bruto" ? "Bruto" : "Líquido estimado"
+                                                }
+                                            />
+                                            <Bar dataKey="bruto" fill={COR_BRUTO} radius={[4, 4, 0, 0]} name="bruto" maxBarSize={28} />
+                                            <Bar dataKey="liquido" fill={COR_LIQUIDO} radius={[4, 4, 0, 0]} name="liquido" maxBarSize={28} />
+                                        </BarChart>
                                     </ResponsiveContainer>
                                 </div>
+                                {temMesEmAndamento && (
+                                    <p className="lc-fin-nota-mes">* Mês em andamento — o valor ainda pode mudar.</p>
+                                )}
                             </section>
 
                             <div className="lc-charts-2">
                                 <section className="lc-card" aria-labelledby="lc-fin-rank">
-                                    <h2 id="lc-fin-rank" className="lc-card-titulo">Espaços mais alugados</h2>
+                                    <h2 id="lc-fin-rank" className="lc-card-titulo">
+                                        Espaços mais alugados
+                                    </h2>
                                     {(dados.espacosMaisAlugados || []).length < 2 ? (
                                         <ul className="lc-rank-lista">
                                             {(dados.espacosMaisAlugados || []).length === 0 ? (
@@ -247,7 +314,7 @@ export default function LocadorFinanceiro() {
                                                     <li key={e.espacoId} className="lc-rank-card">
                                                         <strong>{e.titulo}</strong>
                                                         <span>
-                                                            {e.reservas} reserva(s) · {formatarMoeda(e.faturamento)}
+                                                            {pluralReservas(e.reservas)} · {formatarMoeda(e.faturamento)}
                                                         </span>
                                                     </li>
                                                 ))
@@ -256,12 +323,21 @@ export default function LocadorFinanceiro() {
                                     ) : (
                                         <div className="lc-chart" role="img" aria-label="Ranking de espaços">
                                             <ResponsiveContainer width="100%" height={220}>
-                                                <BarChart layout="vertical" data={dados.espacosMaisAlugados} margin={{ left: 8, right: 12 }}>
+                                                <BarChart
+                                                    layout="vertical"
+                                                    data={dados.espacosMaisAlugados}
+                                                    margin={{ left: 8, right: 12 }}
+                                                >
                                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                                                     <XAxis type="number" allowDecimals={false} tick={{ fontSize: 13 }} />
-                                                    <YAxis type="category" dataKey="titulo" width={100} tick={{ fontSize: 13 }} />
+                                                    <YAxis
+                                                        type="category"
+                                                        dataKey="titulo"
+                                                        width={100}
+                                                        tick={{ fontSize: 13 }}
+                                                    />
                                                     <Tooltip formatter={(v) => [`${v} reservas`, "Quantidade"]} />
-                                                    <Bar dataKey="reservas" fill={COR_BARRAS} radius={[0, 6, 6, 0]} />
+                                                    <Bar dataKey="reservas" fill={COR_BRUTO} radius={[0, 6, 6, 0]} />
                                                 </BarChart>
                                             </ResponsiveContainer>
                                         </div>
@@ -269,7 +345,9 @@ export default function LocadorFinanceiro() {
                                 </section>
 
                                 <section className="lc-card" aria-labelledby="lc-fin-procura">
-                                    <h2 id="lc-fin-procura" className="lc-card-titulo">Períodos de maior procura</h2>
+                                    <h2 id="lc-fin-procura" className="lc-card-titulo">
+                                        Períodos de maior procura
+                                    </h2>
                                     <div className="lc-chart" role="img" aria-label="Procura por mês">
                                         <ResponsiveContainer width="100%" height={220}>
                                             <BarChart data={dados.procuraPorMes || []}>
@@ -277,12 +355,39 @@ export default function LocadorFinanceiro() {
                                                 <XAxis dataKey="rotulo" tick={{ fontSize: 13 }} tickMargin={8} />
                                                 <YAxis allowDecimals={false} tick={{ fontSize: 13 }} tickCount={4} />
                                                 <Tooltip />
-                                                <Bar dataKey="quantidade" fill={COR_BARRAS} radius={[6, 6, 0, 0]} name="Pedidos" />
+                                                <Bar
+                                                    dataKey="quantidade"
+                                                    fill={COR_BRUTO}
+                                                    radius={[6, 6, 0, 0]}
+                                                    name="Pedidos"
+                                                />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </section>
                             </div>
+
+                            <section className="lc-card" aria-labelledby="lc-fin-dia">
+                                <h2 id="lc-fin-dia" className="lc-card-titulo">
+                                    Procura por dia da semana
+                                </h2>
+                                <div className="lc-chart" role="img" aria-label="Procura por dia da semana">
+                                    <ResponsiveContainer width="100%" height={220}>
+                                        <BarChart data={dados.procuraPorDiaSemana || []}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                                            <XAxis dataKey="rotulo" tick={{ fontSize: 13 }} />
+                                            <YAxis allowDecimals={false} tick={{ fontSize: 13 }} tickCount={4} />
+                                            <Tooltip />
+                                            <Bar
+                                                dataKey="quantidade"
+                                                fill={COR_BRUTO}
+                                                radius={[6, 6, 0, 0]}
+                                                name="Pedidos"
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </section>
                         </>
                     )}
 
@@ -308,6 +413,7 @@ export default function LocadorFinanceiro() {
                                                 <th>Bruto</th>
                                                 <th>Comissão</th>
                                                 <th>Líquido est.</th>
+                                                <th>Pagamento</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -319,6 +425,18 @@ export default function LocadorFinanceiro() {
                                                     <td>{formatarMoeda(r.valorBruto)}</td>
                                                     <td>{formatarMoeda(r.comissao)}</td>
                                                     <td>{formatarMoeda(r.liquidoEstimado)}</td>
+                                                    <td>
+                                                        <span
+                                                            className={`lc-fin-pag-status${
+                                                                r.pagamentoLiberado ? " is-ok" : " is-pendente"
+                                                            }`}
+                                                        >
+                                                            {r.situacaoPagamento ||
+                                                                (r.pagamentoLiberado
+                                                                    ? "Pagamento liberado"
+                                                                    : "A receber")}
+                                                        </span>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -331,6 +449,14 @@ export default function LocadorFinanceiro() {
                                             <strong>{r.espacoTitulo}</strong>
                                             <span>
                                                 {formatarData(r.dataEvento)} · {r.locatarioNome}
+                                            </span>
+                                            <span
+                                                className={`lc-fin-pag-status${
+                                                    r.pagamentoLiberado ? " is-ok" : " is-pendente"
+                                                }`}
+                                            >
+                                                {r.situacaoPagamento ||
+                                                    (r.pagamentoLiberado ? "Pagamento liberado" : "A receber")}
                                             </span>
                                             <dl>
                                                 <div>

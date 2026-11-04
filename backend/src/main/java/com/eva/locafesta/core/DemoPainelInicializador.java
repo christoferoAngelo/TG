@@ -79,11 +79,25 @@ public class DemoPainelInicializador implements ApplicationRunner {
             return;
         }
 
-        boolean jaTemDemo = reservaRepository.findByEspacoLocadorUsuarioIdOrderByIdAsc(locadorUser.getId())
+        List<Reserva> existentes = reservaRepository.findByEspacoLocadorUsuarioIdOrderByIdAsc(locadorUser.getId())
                 .stream()
-                .anyMatch(r -> r.getObservacao() != null && r.getObservacao().startsWith(MARCA));
-        if (jaTemDemo) {
-            System.out.println("[demo-seed] Reservas demo já existem; nada a fazer.");
+                .filter(r -> r.getObservacao() != null && r.getObservacao().startsWith(MARCA))
+                .toList();
+        if (!existentes.isEmpty()) {
+            // Eventos passados do seed não devem ficar "A receber" (evita dúvida na banca)
+            LocalDate hoje = LocalDate.now();
+            int corrigidas = 0;
+            for (Reserva r : existentes) {
+                if ("APROVADA".equalsIgnoreCase(r.getStatus())
+                        && !r.isPagamentoLiberado()
+                        && r.getDataEvento() != null
+                        && r.getDataEvento().isBefore(hoje)) {
+                    r.setPagamentoLiberado(true);
+                    reservaRepository.save(r);
+                    corrigidas++;
+                }
+            }
+            System.out.println("[demo-seed] Reservas demo já existem; liberados " + corrigidas + " pagamentos passados.");
             return;
         }
 
@@ -91,11 +105,11 @@ public class DemoPainelInicializador implements ApplicationRunner {
         LocalDate hoje = LocalDate.now();
         int seq = 0;
 
-        // Histórico mensal (APROVADA) para o gráfico de área
+        // Histórico mensal (APROVADA): eventos passados já com pagamento liberado
         for (int m = 8; m >= 1; m--) {
             LocalDate base = hoje.minusMonths(m).withDayOfMonth(Math.min(12, hoje.minusMonths(m).lengthOfMonth()));
             salvar(espaco, locatario, base, "APROVADA", true, new BigDecimal("900").add(BigDecimal.valueOf(m * 40L)), ++seq);
-            salvar(espaco, locatario, base.plusDays(5), "APROVADA", m % 2 == 0, new BigDecimal("1100"), ++seq);
+            salvar(espaco, locatario, base.plusDays(5), "APROVADA", true, new BigDecimal("1100"), ++seq);
         }
 
         // Mês atual + próximos

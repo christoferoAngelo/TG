@@ -22,3 +22,18 @@ export const formatarHora = (hora) => {
 };
 
 export const statusDe = (s) => (s || "").toUpperCase();
+
+export const pluralReservas = (n) => {
+    const q = Number(n) || 0;
+    return q === 1 ? "1 reserva" : `${q} reservas`;
+};
+
+/** Eixo de gráficos: "R$ 4,5 mil" (nbsp evita quebra de linha). */
+export const formatarEixoReais = (v) => {
+    const n = Number(v) || 0;
+    if (n >= 1000) {
+        const mil = (n / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+        return `R$\u00A0${mil}\u00A0mil`;
+    }
+    return `R$\u00A0${n.toLocaleString("pt-BR")}`;
+};

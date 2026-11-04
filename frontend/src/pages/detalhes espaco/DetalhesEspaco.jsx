@@ -724,7 +724,15 @@ export default function DetalhesEspaco() {
 
                         {/* ---------- Cômodos ---------- */}
                         {espaco.ambientes?.length > 0 && (
-                            <AnimatedContent className="dt-secao" container=".sidebar-content" distance={20} duration={0.5} blur={1} once>
+                            <AnimatedContent
+                                className="dt-secao"
+                                container=".sidebar-content"
+                                distance={20}
+                                duration={0.5}
+                                blur={1}
+                                once
+                                trigger="mount"
+                            >
                                 <h2>Conheça cada ambiente</h2>
                                 <div className="dt-ambientes">
                                     {espaco.ambientes.map((amb, idx) => (

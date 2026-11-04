@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/documentos")
+@RequestMapping({"/documentos", "/api/documentos"})
 @CrossOrigin(origins = "*")
 public class DocumentoController {
 
@@ -52,13 +52,15 @@ public class DocumentoController {
     @PostMapping("/espaco/{espacoId}")
     public ResponseEntity<DocumentoDTO> criarDocumentoEspaco(
             @PathVariable Long espacoId,
-            @RequestBody DocumentoCreateDTO dto
+            @RequestBody DocumentoCreateDTO dto,
+            @RequestHeader(value = "Usuario-Id", required = false) Long usuarioId
     ) {
 
         return ResponseEntity.ok(
                 documentoService.criarDocumentoEspaco(
                         espacoId,
-                        dto
+                        dto,
+                        usuarioId
                 )
         );
     }
@@ -66,11 +68,12 @@ public class DocumentoController {
 
     @GetMapping("/espaco/{espacoId}")
     public ResponseEntity<List<DocumentoDTO>> listarPorEspaco(
-            @PathVariable Long espacoId
+            @PathVariable Long espacoId,
+            @RequestHeader(value = "Usuario-Id", required = false) Long usuarioId
     ) {
 
         return ResponseEntity.ok(
-                documentoService.listarPorEspaco(espacoId)
+                documentoService.listarPorEspaco(espacoId, usuarioId)
         );
     }
 

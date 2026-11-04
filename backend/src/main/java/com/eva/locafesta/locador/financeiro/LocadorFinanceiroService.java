@@ -11,6 +11,8 @@ import com.eva.locafesta.locador.financeiro.LocadorFinanceiroDTO.KpisDTO;
 import com.eva.locafesta.locador.financeiro.LocadorFinanceiroDTO.LinhaReservaDTO;
 import com.eva.locafesta.locador.financeiro.LocadorFinanceiroDTO.PeriodoProcuraDTO;
 import com.eva.locafesta.locador.financeiro.LocadorFinanceiroDTO.PontoMensalDTO;
+import com.eva.locafesta.locador.financeiro.LocadorFinanceiroDTO.VariacaoItemDTO;
+import com.eva.locafesta.locador.financeiro.LocadorFinanceiroDTO.VariacaoKpisDTO;
 import com.eva.locafesta.reserva.PoliticaReembolso;
 import com.eva.locafesta.reserva.Reserva;
 import com.eva.locafesta.reserva.ReservaRepository;
@@ -20,11 +22,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -34,21 +41,25 @@ import java.util.Objects;
 @Service
 public class LocadorFinanceiroService {
 
+    private static final Locale PT = Locale.forLanguageTag("pt-BR");
     private static final DateTimeFormatter MES_ROTULO =
-            DateTimeFormatter.ofPattern("MMM/yy", Locale.forLanguageTag("pt-BR"));
+            DateTimeFormatter.ofPattern("MMM/yy", PT);
 
     private final PerfilLocadorRepository perfilLocadorRepository;
     private final EspacoRepository espacoRepository;
     private final ReservaRepository reservaRepository;
+    private final ComissaoPlataforma comissaoPlataforma;
 
     public LocadorFinanceiroService(
             PerfilLocadorRepository perfilLocadorRepository,
             EspacoRepository espacoRepository,
-            ReservaRepository reservaRepository
+            ReservaRepository reservaRepository,
+            ComissaoPlataforma comissaoPlataforma
     ) {
         this.perfilLocadorRepository = perfilLocadorRepository;
         this.espacoRepository = espacoRepository;
         this.reservaRepository = reservaRepository;
+        this.comissaoPlataforma = comissaoPlataforma;
     }
 
     @Transactional(readOnly = true)
@@ -92,62 +103,59 @@ public class LocadorFinanceiroService {
         int page = Math.max(0, pagina);
         int size = Math.min(50, Math.max(1, tamanhoPagina));
 
-        List<Reserva> todas = reservaRepository.findByEspacoLocadorUsuarioIdOrderByIdAsc(usuarioId);
+        // Filtra no banco por locador + período (+ espaço). Agregação ainda em memória.
+        // TODO: se o volume crescer, mover somas/rankings/série mensal para consultas de agregação no banco
+        // (GROUP BY mês/espaço/status) em vez de carregar as entidades e calcular aqui.
+        List<Reserva> noIntervalo = reservaRepository.findByLocadorPeriodoEEspaco(
+                usuarioId, inicio, fim, espacoId
+        );
 
-        List<Reserva> noPeriodo = new ArrayList<>();
-        BigDecimal bruto = BigDecimal.ZERO;
-        BigDecimal aReceber = BigDecimal.ZERO;
-        Map<YearMonth, BigDecimal> fatPorMes = new HashMap<>();
-        Map<YearMonth, Long> procuraMes = new HashMap<>();
-        Map<Long, Acumulo> ranking = new HashMap<>();
+        long diasPeriodo = ChronoUnit.DAYS.between(inicio, fim) + 1;
+        LocalDate prevFim = inicio.minusDays(1);
+        LocalDate prevInicio = prevFim.minusDays(diasPeriodo - 1);
+        List<Reserva> periodoAnterior = reservaRepository.findByLocadorPeriodoEEspaco(
+                usuarioId, prevInicio, prevFim, espacoId
+        );
 
-        for (Reserva r : todas) {
-            if (r.getDataEvento() == null || r.getEspaco() == null) continue;
-            if (espacoId != null && !Objects.equals(r.getEspaco().getId(), espacoId)) continue;
+        Totais totais = agregar(noIntervalo);
+        Totais totaisAnt = agregar(periodoAnterior);
 
-            String status = r.getStatus() != null ? r.getStatus().toUpperCase(Locale.ROOT) : "";
-            boolean aprovada = "APROVADA".equals(status);
-            boolean pendente = "PENDENTE".equals(status);
-            boolean noIntervalo = !r.getDataEvento().isBefore(inicio) && !r.getDataEvento().isAfter(fim);
+        // A receber: estoque aberto (APROVADA + !pagamentoLiberado), inclui eventos futuros.
+        // Não usa a data final do filtro de faturamento — mesma regra do Painel.
+        BigDecimal aReceber = somarAReceber(
+                reservaRepository.findAReceberPorLocadorEEspaco(usuarioId, espacoId)
+        );
 
-            if ((aprovada || pendente) && noIntervalo) {
-                YearMonth ym = YearMonth.from(r.getDataEvento());
-                procuraMes.merge(ym, 1L, Long::sum);
-            }
+        BigDecimal comissao = comissaoPlataforma.taxa(totais.bruto);
+        BigDecimal liquido = comissaoPlataforma.liquido(totais.bruto);
+        long quantidade = totais.aprovadas.size();
 
-            if (!aprovada || !noIntervalo) continue;
+        BigDecimal comissaoAnt = comissaoPlataforma.taxa(totaisAnt.bruto);
+        BigDecimal liquidoAnt = comissaoPlataforma.liquido(totaisAnt.bruto);
 
-            noPeriodo.add(r);
-            BigDecimal valor = valorDe(r);
-            bruto = bruto.add(valor);
-            if (!r.isPagamentoLiberado()) {
-                aReceber = aReceber.add(valor);
-            }
-            YearMonth ym = YearMonth.from(r.getDataEvento());
-            fatPorMes.merge(ym, valor, BigDecimal::add);
-            ranking.computeIfAbsent(r.getEspaco().getId(), id -> new Acumulo(
-                    id,
-                    r.getEspaco().getTitulo()
-            )).somar(valor);
-        }
-
-        BigDecimal comissao = ComissaoPlataforma.taxa(bruto);
-        BigDecimal liquido = ComissaoPlataforma.liquido(bruto);
+        VariacaoKpisDTO variacao = new VariacaoKpisDTO(
+                variacaoDe(totais.bruto, totaisAnt.bruto),
+                variacaoDe(comissao, comissaoAnt),
+                variacaoDe(liquido, liquidoAnt),
+                // Estoque aberto (inclui futuros) — sem variação por período
+                VariacaoItemDTO.semBase(),
+                variacaoDeQuantidade(quantidade, totaisAnt.aprovadas.size())
+        );
 
         YearMonth mesInicio = YearMonth.from(inicio);
         YearMonth mesFim = YearMonth.from(fim);
         List<PontoMensalDTO> serie = new ArrayList<>();
         for (YearMonth ym = mesInicio; !ym.isAfter(mesFim); ym = ym.plusMonths(1)) {
-            BigDecimal v = fatPorMes.getOrDefault(ym, BigDecimal.ZERO);
+            BigDecimal v = totais.fatPorMes.getOrDefault(ym, BigDecimal.ZERO);
             serie.add(new PontoMensalDTO(
                     ym.toString(),
                     ym.format(MES_ROTULO),
                     v,
-                    ComissaoPlataforma.liquido(v)
+                    comissaoPlataforma.liquido(v)
             ));
         }
 
-        List<EspacoRankingDTO> rankingDto = ranking.values().stream()
+        List<EspacoRankingDTO> rankingDto = totais.ranking.values().stream()
                 .sorted(Comparator.comparingLong(Acumulo::reservas).reversed())
                 .limit(8)
                 .map(a -> new EspacoRankingDTO(a.id, a.titulo, a.reservas, a.faturamento))
@@ -157,34 +165,45 @@ public class LocadorFinanceiroService {
         for (YearMonth ym = mesInicio; !ym.isAfter(mesFim); ym = ym.plusMonths(1)) {
             mesesProcura.add(new PeriodoProcuraDTO(
                     ym.format(MES_ROTULO),
-                    procuraMes.getOrDefault(ym, 0L)
+                    totais.procuraMes.getOrDefault(ym, 0L)
             ));
         }
 
-        noPeriodo.sort(Comparator
+        List<PeriodoProcuraDTO> diasProcura = new ArrayList<>();
+        for (DayOfWeek d : DayOfWeek.values()) {
+            diasProcura.add(new PeriodoProcuraDTO(
+                    d.getDisplayName(TextStyle.SHORT, PT),
+                    totais.procuraDia.getOrDefault(d, 0L)
+            ));
+        }
+
+        List<Reserva> aprovadasOrdenadas = new ArrayList<>(totais.aprovadas);
+        aprovadasOrdenadas.sort(Comparator
                 .comparing(Reserva::getDataEvento)
                 .reversed()
                 .thenComparing(Reserva::getId, Comparator.reverseOrder()));
 
-        long total = noPeriodo.size();
+        long total = aprovadasOrdenadas.size();
         int totalPaginas = total == 0 ? 0 : (int) Math.ceil(total / (double) size);
         int from = Math.min(page * size, (int) total);
         int to = Math.min(from + size, (int) total);
-        List<LinhaReservaDTO> linhas = noPeriodo.subList(from, to).stream()
+        List<LinhaReservaDTO> linhas = aprovadasOrdenadas.subList(from, to).stream()
                 .map(this::mapLinha)
                 .toList();
 
-        KpisDTO kpis = new KpisDTO(bruto, comissao, liquido, aReceber, total);
+        KpisDTO kpis = new KpisDTO(totais.bruto, comissao, liquido, aReceber, total);
 
         return new LocadorFinanceiroDTO(
                 inicio,
                 fim,
                 espacoId,
-                ComissaoPlataforma.PERCENTUAL,
+                comissaoPlataforma.percentual(),
                 kpis,
+                variacao,
                 serie,
                 rankingDto,
                 mesesProcura,
+                diasProcura,
                 linhas,
                 page,
                 size,
@@ -194,8 +213,66 @@ public class LocadorFinanceiroService {
         );
     }
 
+    private Totais agregar(List<Reserva> reservas) {
+        Totais t = new Totais();
+        for (DayOfWeek d : DayOfWeek.values()) {
+            t.procuraDia.put(d, 0L);
+        }
+
+        for (Reserva r : reservas) {
+            if (r.getDataEvento() == null || r.getEspaco() == null) continue;
+
+            String status = r.getStatus() != null ? r.getStatus().toUpperCase(Locale.ROOT) : "";
+            boolean aprovada = "APROVADA".equals(status);
+            boolean pendente = "PENDENTE".equals(status);
+
+            if (aprovada || pendente) {
+                YearMonth ym = YearMonth.from(r.getDataEvento());
+                t.procuraMes.merge(ym, 1L, Long::sum);
+                t.procuraDia.merge(r.getDataEvento().getDayOfWeek(), 1L, Long::sum);
+            }
+
+            // CANCELADA e REJEITADA não entram no faturamento
+            if (!aprovada) continue;
+
+            t.aprovadas.add(r);
+            BigDecimal valor = valorDe(r);
+            t.bruto = t.bruto.add(valor);
+            YearMonth ym = YearMonth.from(r.getDataEvento());
+            t.fatPorMes.merge(ym, valor, BigDecimal::add);
+            t.ranking.computeIfAbsent(r.getEspaco().getId(), id -> new Acumulo(
+                    id,
+                    r.getEspaco().getTitulo()
+            )).somar(valor);
+        }
+        return t;
+    }
+
+    private VariacaoItemDTO variacaoDe(BigDecimal atual, BigDecimal anterior) {
+        BigDecimal base = anterior != null ? anterior : BigDecimal.ZERO;
+        if (base.compareTo(BigDecimal.ZERO) == 0) {
+            return VariacaoItemDTO.semBase();
+        }
+        BigDecimal atualSafe = atual != null ? atual : BigDecimal.ZERO;
+        BigDecimal pct = atualSafe.subtract(base)
+                .multiply(new BigDecimal("100"))
+                .divide(base, 1, RoundingMode.HALF_UP);
+        return VariacaoItemDTO.de(pct);
+    }
+
+    private VariacaoItemDTO variacaoDeQuantidade(long atual, long anterior) {
+        if (anterior == 0L) {
+            return VariacaoItemDTO.semBase();
+        }
+        BigDecimal pct = BigDecimal.valueOf(atual - anterior)
+                .multiply(new BigDecimal("100"))
+                .divide(BigDecimal.valueOf(anterior), 1, RoundingMode.HALF_UP);
+        return VariacaoItemDTO.de(pct);
+    }
+
     private LinhaReservaDTO mapLinha(Reserva r) {
         BigDecimal bruto = valorDe(r);
+        boolean liberado = r.isPagamentoLiberado();
         return new LinhaReservaDTO(
                 r.getId(),
                 r.getDataEvento(),
@@ -203,10 +280,19 @@ public class LocadorFinanceiroService {
                 r.getEspaco() != null ? r.getEspaco().getTitulo() : "Espaço",
                 r.getLocatario() != null ? primeiroNome(r.getLocatario().getNome()) : "Locatário",
                 bruto,
-                ComissaoPlataforma.taxa(bruto),
-                ComissaoPlataforma.liquido(bruto),
-                r.isPagamentoLiberado()
+                comissaoPlataforma.taxa(bruto),
+                comissaoPlataforma.liquido(bruto),
+                liberado,
+                liberado ? "Pagamento liberado" : "A receber"
         );
+    }
+
+    private BigDecimal somarAReceber(List<Reserva> abertas) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (Reserva r : abertas) {
+            total = total.add(comissaoPlataforma.liquido(valorDe(r)));
+        }
+        return total;
     }
 
     private BigDecimal valorDe(Reserva r) {
@@ -216,6 +302,15 @@ public class LocadorFinanceiroService {
     private static String primeiroNome(String nome) {
         if (nome == null || nome.isBlank()) return "Locatário";
         return nome.trim().split("\\s+")[0];
+    }
+
+    private static final class Totais {
+        private BigDecimal bruto = BigDecimal.ZERO;
+        private final List<Reserva> aprovadas = new ArrayList<>();
+        private final Map<YearMonth, BigDecimal> fatPorMes = new HashMap<>();
+        private final Map<YearMonth, Long> procuraMes = new HashMap<>();
+        private final Map<DayOfWeek, Long> procuraDia = new EnumMap<>(DayOfWeek.class);
+        private final Map<Long, Acumulo> ranking = new HashMap<>();
     }
 
     private static final class Acumulo {

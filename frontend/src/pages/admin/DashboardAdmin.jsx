@@ -8,6 +8,7 @@ import NovoAdminTab from "../../components/admin/NovoAdminTab";
 import EspacosTab from "../../components/admin/EspacosTab";
 import DocumentosAdmin from "../documentos/DocumentosAdmin";
 import CaracteristicasPage from "../locador/CaracteristicasPage";
+import TermosAdminTab from "../../components/admin/TermosAdminTab";
 import "./DashboardAdmin.css";
 
 const SECOES = {
@@ -16,6 +17,7 @@ const SECOES = {
     espacos: ["Espaços", "Analise anúncios pendentes, aprovados e recusados."],
     documentos: ["Documentos", "Revise arquivos enviados por pessoas e espaços."],
     caracteristicas: ["Características", "Itens que o locador pode marcar no anúncio."],
+    termos: ["Termos de uso", "Versões publicadas para locadores e locatários."],
     novo_admin: ["Administradores", "Contas com acesso a este painel."],
 };
 
@@ -61,6 +63,8 @@ export default function DashboardAdmin() {
                 );
             case "caracteristicas":
                 return <CaracteristicasPage embutido />;
+            case "termos":
+                return <TermosAdminTab />;
             case "novo_admin":
                 return <NovoAdminTab />;
             default:

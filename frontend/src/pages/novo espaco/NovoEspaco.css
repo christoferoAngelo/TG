@@ -78,6 +78,7 @@
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);
     gap: 40px;
+    align-items: start;
     padding: 36px 0;
     border-top: 1px solid var(--color-border);
 }
@@ -99,6 +100,14 @@
     font-size: 14px;
     line-height: 1.5;
     color: var(--color-text-muted);
+}
+
+/* Um único filho à direita evita que botões/contratos caiam na coluna do título */
+.ne-secao-corpo {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
 }
 
 /* --- Grade de campos (6 colunas) --- */
@@ -742,6 +751,34 @@
     line-height: 1.5;
 }
 
+.ne-termo-uso {
+    margin-bottom: 18px;
+}
+
+.ne-termo-uso h3,
+.ne-contrato-titulo {
+    margin: 0 0 6px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.ne-contrato--termos {
+    height: 12rem;
+}
+
+.ne-termo-texto {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
 .ne-contrato--erro {
     border-color: var(--color-danger, #b3261e);
 }
@@ -756,7 +793,11 @@
 }
 
 .ne-seguranca {
-    margin-top: 16px;
+    margin-top: 0;
+}
+
+.ne-secao-corpo > .ne-btn {
+    align-self: flex-start;
 }
 
 select.ne-input {

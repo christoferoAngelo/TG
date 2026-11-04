@@ -1,6 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import GlideSelect from "../../../components/bits/GlideSelect";
 import BotaoImagem from "../../../components/ui/BotaoImagem";
+import { rotuloVersaoTermo } from "../../../components/apresentacao/termos";
+import { registrarAceiteTermos, termoService } from "../../../services/termoService";
 import Campo from "./Campo";
 
 export const TIPOS_VINCULO = [
@@ -75,6 +77,7 @@ export default function EtapaDocumentos({
     setRespostaLocador,
 }) {
     const caixaRef = useRef(null);
+    const [termoLocador, setTermoLocador] = useState(null);
 
     const chegouAoFim = (el) => el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
 
@@ -82,6 +85,19 @@ export default function EtapaDocumentos({
         const el = caixaRef.current;
         if (el && chegouAoFim(el)) marcarContratoLido();
     }, [marcarContratoLido]);
+
+    useEffect(() => {
+        let cancelado = false;
+        termoService
+            .vigente("LOCADOR")
+            .then((t) => {
+                if (!cancelado) setTermoLocador(t);
+            })
+            .catch((e) => console.error("Falha ao carregar Termos do locador:", e));
+        return () => {
+            cancelado = true;
+        };
+    }, []);
 
     return (
         <>
@@ -93,84 +109,45 @@ export default function EtapaDocumentos({
                         {editando ? " Na edição, enviar de novo é opcional." : ""}
                     </p>
                 </div>
-                <div className="ne-grid">
-                    <Campo
-                        id="ne-documento-tipo"
-                        label="Tipo de documento"
-                        opcional={editando}
-                        erro={erros.documentoTipo}
-                    >
-                        <GlideSelect
+                <div className="ne-secao-corpo">
+                    <div className="ne-grid">
+                        <Campo
                             id="ne-documento-tipo"
-                            className="glide-select--bloco"
-                            ariaLabel="Tipo de documento"
-                            size="lg"
-                            menuWidth={420}
-                            placeholder="Selecione o comprovante"
-                            value={documento.tipo}
-                            options={TIPOS_VINCULO.map((tipo) => ({ value: tipo.valor, label: tipo.rotulo }))}
-                            onChange={(valor) => setDocumento((prev) => ({ ...prev, tipo: valor }))}
-                        />
-                    </Campo>
-                    <Campo
-                        id="ne-documento-arquivo"
-                        label="Arquivo"
-                        opcional={editando}
-                        erro={erros.documentoArquivo}
-                        dica="PDF ou imagem. O envio ao Cloudinary acontece ao concluir."
-                    >
-                        <BotaoImagem
-                            id="ne-documento-arquivo"
-                            accept="image/*,.pdf,application/pdf"
-                            nomeArquivo={documento.nomeArquivo || ""}
-                            rotulo="Adicionar arquivo"
-                            rotuloTroca="Trocar arquivo"
-                            dica="PDF ou imagem"
-                            onChange={(e) => {
-                                const arquivo = e.target.files?.[0] || null;
-                                setDocumento((prev) => ({
-                                    ...prev,
-                                    arquivo,
-                                    nomeArquivo: arquivo?.name || "",
-                                }));
-                            }}
-                        />
-                    </Campo>
-                </div>
-
-                {!segurancaAberta ? (
-                    <button type="button" className="ne-btn ne-btn--ghost" onClick={abrirSeguranca}>
-                        + Adicionar documento de segurança
-                    </button>
-                ) : (
-                    <div className="ne-grid ne-seguranca">
-                        <p className="ne-dica ne-span-6">
-                            Opcional. Alvará e AVCB não bloqueiam o cadastro. Quem envia o AVCB pode ser destacado depois como Espaço certificado.
-                        </p>
-                        <Campo id="ne-seguranca-tipo" label="Documento de segurança" opcional erro={erros.segurancaTipo} span={6}>
+                            label="Tipo de documento"
+                            opcional={editando}
+                            erro={erros.documentoTipo}
+                            span={3}
+                        >
                             <GlideSelect
-                                id="ne-seguranca-tipo"
+                                id="ne-documento-tipo"
                                 className="glide-select--bloco"
-                                ariaLabel="Documento de segurança"
+                                ariaLabel="Tipo de documento"
                                 size="lg"
                                 menuWidth={420}
-                                placeholder="Selecione"
-                                value={seguranca.tipo}
-                                options={TIPOS_SEGURANCA.map((tipo) => ({ value: tipo.valor, label: tipo.rotulo }))}
-                                onChange={(valor) => setSeguranca((prev) => ({ ...prev, tipo: valor }))}
+                                placeholder="Selecione o comprovante"
+                                value={documento.tipo}
+                                options={TIPOS_VINCULO.map((tipo) => ({ value: tipo.valor, label: tipo.rotulo }))}
+                                onChange={(valor) => setDocumento((prev) => ({ ...prev, tipo: valor }))}
                             />
                         </Campo>
-                        <Campo id="ne-seguranca-arquivo" label="Arquivo de segurança" opcional erro={erros.segurancaArquivo}>
+                        <Campo
+                            id="ne-documento-arquivo"
+                            label="Arquivo"
+                            opcional={editando}
+                            erro={erros.documentoArquivo}
+                            dica="PDF ou imagem. O envio ao Cloudinary acontece ao concluir."
+                            span={3}
+                        >
                             <BotaoImagem
-                                id="ne-seguranca-arquivo"
+                                id="ne-documento-arquivo"
                                 accept="image/*,.pdf,application/pdf"
-                                nomeArquivo={seguranca.nomeArquivo || ""}
+                                nomeArquivo={documento.nomeArquivo || ""}
                                 rotulo="Adicionar arquivo"
                                 rotuloTroca="Trocar arquivo"
                                 dica="PDF ou imagem"
                                 onChange={(e) => {
                                     const arquivo = e.target.files?.[0] || null;
-                                    setSeguranca((prev) => ({
+                                    setDocumento((prev) => ({
                                         ...prev,
                                         arquivo,
                                         nomeArquivo: arquivo?.name || "",
@@ -179,60 +156,154 @@ export default function EtapaDocumentos({
                             />
                         </Campo>
                     </div>
-                )}
+
+                    {!segurancaAberta ? (
+                        <button type="button" className="ne-btn ne-btn--ghost" onClick={abrirSeguranca}>
+                            + Adicionar documento de segurança
+                        </button>
+                    ) : (
+                        <div className="ne-grid ne-seguranca">
+                            <Campo
+                                id="ne-seguranca-tipo"
+                                label="Documento de segurança"
+                                opcional
+                                erro={erros.segurancaTipo}
+                                dica="Opcional. Alvará e AVCB não bloqueiam o cadastro. Quem envia o AVCB pode ser destacado depois como Espaço certificado."
+                                span={3}
+                            >
+                                <GlideSelect
+                                    id="ne-seguranca-tipo"
+                                    className="glide-select--bloco"
+                                    ariaLabel="Documento de segurança"
+                                    size="lg"
+                                    menuWidth={420}
+                                    placeholder="Selecione"
+                                    value={seguranca.tipo}
+                                    options={TIPOS_SEGURANCA.map((tipo) => ({
+                                        value: tipo.valor,
+                                        label: tipo.rotulo,
+                                    }))}
+                                    onChange={(valor) => setSeguranca((prev) => ({ ...prev, tipo: valor }))}
+                                />
+                            </Campo>
+                            <Campo
+                                id="ne-seguranca-arquivo"
+                                label="Arquivo de segurança"
+                                opcional
+                                erro={erros.segurancaArquivo}
+                                span={3}
+                            >
+                                <BotaoImagem
+                                    id="ne-seguranca-arquivo"
+                                    accept="image/*,.pdf,application/pdf"
+                                    nomeArquivo={seguranca.nomeArquivo || ""}
+                                    rotulo="Adicionar arquivo"
+                                    rotuloTroca="Trocar arquivo"
+                                    dica="PDF ou imagem"
+                                    onChange={(e) => {
+                                        const arquivo = e.target.files?.[0] || null;
+                                        setSeguranca((prev) => ({
+                                            ...prev,
+                                            arquivo,
+                                            nomeArquivo: arquivo?.name || "",
+                                        }));
+                                    }}
+                                />
+                            </Campo>
+                        </div>
+                    )}
+                </div>
             </section>
 
             <section className="ne-secao">
                 <div className="ne-secao-cab">
                     <h2>Termos de aceite</h2>
-                    <p>Leia até o final. O aceite e a conclusão só liberam depois disso.</p>
+                    <p>Leia o contrato do imóvel e os Termos de Uso. O aceite só libera depois disso.</p>
                 </div>
-                <div
-                    className={`ne-contrato${erros.contrato ? " ne-contrato--erro" : ""}`}
-                    ref={caixaRef}
-                    tabIndex={0}
-                    data-erro={erros.contrato ? "true" : undefined}
-                    onScroll={(e) => {
-                        if (chegouAoFim(e.currentTarget)) marcarContratoLido();
-                    }}
-                >
-                    {CONTRATO.split("\n").map((linha, i) => (
-                        linha.trim() ? <p key={i}>{linha}</p> : <br key={i} />
-                    ))}
+                <div className="ne-secao-corpo">
+                    {termoLocador && (
+                        <div className="ne-termo-uso">
+                            <h3>Termos de Uso — versão {termoLocador.versao}</h3>
+                            <p className="ne-dica">{rotuloVersaoTermo(termoLocador)}</p>
+                            <div className="ne-contrato ne-contrato--termos" tabIndex={0}>
+                                <pre className="ne-termo-texto">{termoLocador.conteudo}</pre>
+                            </div>
+                        </div>
+                    )}
+
+                    <h3 className="ne-contrato-titulo">Contrato de locação do imóvel</h3>
+                    <div
+                        className={`ne-contrato${erros.contrato ? " ne-contrato--erro" : ""}`}
+                        ref={caixaRef}
+                        tabIndex={0}
+                        data-erro={erros.contrato ? "true" : undefined}
+                        onScroll={(e) => {
+                            if (chegouAoFim(e.currentTarget)) marcarContratoLido();
+                        }}
+                    >
+                        {CONTRATO.split("\n").map((linha, i) =>
+                            linha.trim() ? <p key={i}>{linha}</p> : <br key={i} />
+                        )}
+                    </div>
+                    {erros.contrato && <small className="ne-erro">{erros.contrato}</small>}
+
+                    <label
+                        className={`ne-opcao ne-opcao--linha ne-termos${contratoLido ? "" : " ne-termos--bloqueado"}`}
+                        data-erro={erros.termos ? "true" : undefined}
+                    >
+                        <input
+                            type="checkbox"
+                            checked={termosAceitos}
+                            disabled={!contratoLido}
+                            onChange={async (e) => {
+                                const marcado = e.target.checked;
+                                setTermosAceitos(marcado);
+                                if (marcado && termoLocador?.id) {
+                                    try {
+                                        await registrarAceiteTermos([termoLocador.id]);
+                                    } catch (err) {
+                                        console.error(err);
+                                    }
+                                }
+                            }}
+                        />
+                        <span className="ne-opcao-titulo">
+                            Li e aceito os Termos de Uso
+                            {termoLocador?.versao ? ` (versão ${termoLocador.versao})` : ""} e o Contrato de
+                            Locação
+                        </span>
+                    </label>
+                    {!contratoLido && (
+                        <small className="ne-dica">Role o contrato até o final para habilitar o aceite.</small>
+                    )}
+                    {erros.termos && <small className="ne-erro">{erros.termos}</small>}
                 </div>
-                {erros.contrato && <small className="ne-erro">{erros.contrato}</small>}
-                <label
-                    className={`ne-opcao ne-opcao--linha ne-termos${contratoLido ? "" : " ne-termos--bloqueado"}`}
-                    data-erro={erros.termos ? "true" : undefined}
-                >
-                    <input
-                        type="checkbox"
-                        checked={termosAceitos}
-                        disabled={!contratoLido}
-                        onChange={(e) => setTermosAceitos(e.target.checked)}
-                    />
-                    <span className="ne-opcao-titulo">Li e aceito os Termos de Uso e o Contrato de Locação</span>
-                </label>
-                {!contratoLido && <small className="ne-dica">Role o texto até o final para habilitar o aceite.</small>}
-                {erros.termos && <small className="ne-erro">{erros.termos}</small>}
             </section>
 
             {editando && rejeitado && (
                 <section className="ne-secao">
                     <div className="ne-secao-cab">
                         <h2>Mensagem para a análise</h2>
-                        <p>{motivoRejeicao ? `Motivo da rejeição: ${motivoRejeicao}` : "Conte o que você ajustou."}</p>
+                        <p>
+                            {motivoRejeicao
+                                ? `Motivo da rejeição: ${motivoRejeicao}`
+                                : "Conte o que você ajustou."}
+                        </p>
                     </div>
-                    <Campo id="ne-respostaLocador" label="Sua resposta" opcional>
-                        <textarea
-                            id="ne-respostaLocador"
-                            className="ne-textarea"
-                            rows={3}
-                            maxLength={500}
-                            value={respostaLocador}
-                            onChange={(e) => setRespostaLocador(e.target.value)}
-                        />
-                    </Campo>
+                    <div className="ne-secao-corpo">
+                        <div className="ne-grid">
+                            <Campo id="ne-respostaLocador" label="Sua resposta" opcional>
+                                <textarea
+                                    id="ne-respostaLocador"
+                                    className="ne-textarea"
+                                    rows={3}
+                                    maxLength={500}
+                                    value={respostaLocador}
+                                    onChange={(e) => setRespostaLocador(e.target.value)}
+                                />
+                            </Campo>
+                        </div>
+                    </div>
                 </section>
             )}
         </>

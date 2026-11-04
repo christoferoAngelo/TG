@@ -128,6 +128,40 @@ public class DocumentoService {
         }
     }
 
+    /**
+     * Autorização flexível para a área do locador:
+     * 1) Firebase no SecurityContext (quando houver token), ou
+     * 2) header Usuario-Id do dono/admin (mesmo padrão das demais APIs /api/locador/*).
+     */
+    private void exigirDonoOuAdminComHeader(Long donoId, Long usuarioIdHeader) {
+        Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
+        boolean firebaseOk = autenticacao != null
+                && autenticacao.isAuthenticated()
+                && !(autenticacao instanceof AnonymousAuthenticationToken)
+                && autenticacao.getName() != null
+                && !"anonymousUser".equals(autenticacao.getName());
+
+        if (firebaseOk) {
+            exigirDonoOuAdmin(donoId);
+            return;
+        }
+
+        if (usuarioIdHeader == null) {
+            throw erro(HttpStatus.UNAUTHORIZED, "Faça login para continuar.");
+        }
+
+        if (donoId != null && donoId.equals(usuarioIdHeader)) {
+            return;
+        }
+
+        Usuario peloHeader = usuarioRepository.findById(usuarioIdHeader).orElse(null);
+        if (peloHeader != null && peloHeader.isAdmin()) {
+            return;
+        }
+
+        throw erro(HttpStatus.FORBIDDEN, "Você não tem permissão para acessar estes documentos.");
+    }
+
     // Dono de um espaço = o usuário por trás do locador que o cadastrou
     private Long donoDoEspaco(Espaco espaco) {
         if (espaco.getLocador() == null || espaco.getLocador().getUsuario() == null) {
@@ -187,13 +221,22 @@ public class DocumentoService {
             Long espacoId,
             DocumentoCreateDTO dto
     ) {
+        return criarDocumentoEspaco(espacoId, dto, null);
+    }
+
+    @Transactional
+    public DocumentoDTO criarDocumentoEspaco(
+            Long espacoId,
+            DocumentoCreateDTO dto,
+            Long usuarioIdHeader
+    ) {
 
         Espaco espaco = espacoRepository.findById(espacoId)
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "Espaço não encontrado com o ID: " + espacoId)
                 );
 
-        exigirDonoOuAdmin(donoDoEspaco(espaco));
+        exigirDonoOuAdminComHeader(donoDoEspaco(espaco), usuarioIdHeader);
         validarDocumento(dto);
 
         DocumentoEntity documento = DocumentoEntity.builder()
@@ -235,13 +278,18 @@ public class DocumentoService {
 
     @Transactional(readOnly = true)
     public List<DocumentoDTO> listarPorEspaco(Long espacoId) {
+        return listarPorEspaco(espacoId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DocumentoDTO> listarPorEspaco(Long espacoId, Long usuarioIdHeader) {
 
         Espaco espaco = espacoRepository.findById(espacoId)
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "Espaço não encontrado com o ID: " + espacoId)
                 );
 
-        exigirDonoOuAdmin(donoDoEspaco(espaco));
+        exigirDonoOuAdminComHeader(donoDoEspaco(espaco), usuarioIdHeader);
 
         return documentoRepository.findByEspacoId(espacoId)
                 .stream()

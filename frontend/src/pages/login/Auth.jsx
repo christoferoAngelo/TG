@@ -19,6 +19,10 @@ import logoLocaFesta from "../../assets/logo-locafesta.png";
 import fotoFesta from "../../assets/login-festa.jpg";
 import TermosModal from "../../components/apresentacao/TermosModal";
 import { CHAVE_JORNADA, CHAVE_TERMOS } from "../../components/apresentacao/termos";
+import {
+    registrarAceiteTermos,
+    sincronizarAceitesPendentesDoStorage,
+} from "../../services/termoService";
 import "./Auth.css";
 
 function ErroDoCampo({ erro, campo }) {
@@ -116,6 +120,7 @@ export default function Auth() {
             const perfilLocal = await userService.buscarPerfilPorUid(firebaseUser.uid);
 
             if (perfilLocal) {
+                await sincronizarAceitesPendentesDoStorage();
                 setUsuarioLogado(perfilLocal);
                 navigate(destinoDepoisDoLogin(perfilLocal));
             } else {
@@ -177,6 +182,8 @@ export default function Auth() {
             setMensagemSucesso(
                 `Conta criada. Enviamos um link de verificação para ${email}. Confirme o e-mail antes de entrar.`
             );
+            // Aceite ainda pode ocorrer antes da verificação; IDs ficam no localStorage
+            // e são gravados em aceites_termos no próximo login autenticado.
             acaoTermos.current = "cadastro";
             setTermosAbertos(true);
         } catch (error) {
@@ -219,6 +226,7 @@ export default function Auth() {
                 perfilLocal = await userService.cadastrarNoBancoLocal(novosDados);
             }
 
+            await sincronizarAceitesPendentesDoStorage();
             setUsuarioLogado(perfilLocal);
             navigate(irParaJornada ? "/jornada" : destinoDepoisDoLogin(perfilLocal));
         } catch (error) {
@@ -240,13 +248,21 @@ export default function Auth() {
         entrarComGoogle(!jornadaVista);
     };
 
-    const aceitarTermos = () => {
-        localStorage.setItem(CHAVE_TERMOS, "true");
+    const aceitarTermos = async (termoIds) => {
+        try {
+            await registrarAceiteTermos(termoIds);
+        } catch (e) {
+            console.error(e);
+            // Mantém IDs no localStorage; sincroniza no próximo login.
+        }
         const acao = acaoTermos.current;
         acaoTermos.current = null;
         setTermosAbertos(false);
         if (acao === "google") {
             entrarComGoogle(true);
+            return;
+        }
+        if (acao === "cadastro") {
             return;
         }
         navigate("/jornada");
@@ -622,7 +638,12 @@ export default function Auth() {
                     </p>
                 </div>
             </motion.div>
-            <TermosModal aberto={termosAbertos} onAceitar={aceitarTermos} onFechar={fecharTermos} />
+            <TermosModal
+                aberto={termosAbertos}
+                onAceitar={aceitarTermos}
+                onFechar={fecharTermos}
+                tipoAudiencia="AMBOS"
+            />
         </div>
     );
 }

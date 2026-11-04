@@ -4,6 +4,7 @@ import com.eva.locafesta.documento.DocumentoEntity;
 import com.eva.locafesta.documento.DocumentoRepository;
 import com.eva.locafesta.espaco.Espaco;
 import com.eva.locafesta.espaco.EspacoRepository;
+import com.eva.locafesta.locador.ComissaoPlataforma;
 import com.eva.locafesta.locador.PerfilLocador;
 import com.eva.locafesta.locador.PerfilLocadorRepository;
 import com.eva.locafesta.locador.painel.LocadorPainelDTO.AlertaDTO;
@@ -51,17 +52,20 @@ public class LocadorPainelService {
     private final EspacoRepository espacoRepository;
     private final ReservaRepository reservaRepository;
     private final DocumentoRepository documentoRepository;
+    private final ComissaoPlataforma comissaoPlataforma;
 
     public LocadorPainelService(
             PerfilLocadorRepository perfilLocadorRepository,
             EspacoRepository espacoRepository,
             ReservaRepository reservaRepository,
-            DocumentoRepository documentoRepository
+            DocumentoRepository documentoRepository,
+            ComissaoPlataforma comissaoPlataforma
     ) {
         this.perfilLocadorRepository = perfilLocadorRepository;
         this.espacoRepository = espacoRepository;
         this.reservaRepository = reservaRepository;
         this.documentoRepository = documentoRepository;
+        this.comissaoPlataforma = comissaoPlataforma;
     }
 
     @Transactional(readOnly = true)
@@ -125,8 +129,9 @@ public class LocadorPainelService {
                 fatPorMes.merge(ym, valor, BigDecimal::add);
                 if (ym.equals(mesAtual)) fatMes = fatMes.add(valor);
                 if (ym.equals(mesAnterior)) fatMesAnt = fatMesAnt.add(valor);
+                // Mesma regra do Financeiro: líquido estimado, inclui eventos futuros
                 if (!r.isPagamentoLiberado()) {
-                    aReceber = aReceber.add(valor);
+                    aReceber = aReceber.add(comissaoPlataforma.liquido(valor));
                 }
                 ranking.computeIfAbsent(r.getEspaco().getId(), id -> new Acumulo(
                         id,

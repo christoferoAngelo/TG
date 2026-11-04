@@ -15,6 +15,7 @@ const GRUPOS = [
         itens: [
             { id: "documentos", label: "Documentos", icone: "documentos" },
             { id: "caracteristicas", label: "Características", icone: "caracteristicas" },
+            { id: "termos", label: "Termos de uso", icone: "documentos" },
         ],
     },
     {
