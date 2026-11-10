@@ -2,9 +2,7 @@ import React, { createContext, useCallback, useContext, useState, useEffect } fr
 import { auth } from "../config/firebaseConfig";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { userService } from "../config/api";
-import TermosModal from "../components/apresentacao/TermosModal";
 import {
-    registrarAceiteTermos,
     sincronizarAceitesPendentesDoStorage,
     termoService,
 } from "../services/termoService";
@@ -19,22 +17,25 @@ export function AuthProvider({ children }) {
     const [usuarioLogado, setUsuarioLogado] = useState(null);
     const [loading, setLoading] = useState(true);
     const [termosPendentes, setTermosPendentes] = useState([]);
-    const [avisoTermosAberto, setAvisoTermosAberto] = useState(false);
+    const [precisaAceitarTermos, setPrecisaAceitarTermos] = useState(false);
 
     const verificarTermosPendentes = useCallback(async () => {
         if (!auth.currentUser) {
             setTermosPendentes([]);
-            setAvisoTermosAberto(false);
-            return;
+            setPrecisaAceitarTermos(false);
+            return false;
         }
         try {
             await sincronizarAceitesPendentesDoStorage();
             const resp = await termoService.pendente();
             const lista = resp?.termosPendentes || [];
+            const precisa = Boolean(resp?.precisaAceitar && lista.length);
             setTermosPendentes(lista);
-            setAvisoTermosAberto(Boolean(resp?.precisaAceitar && lista.length));
+            setPrecisaAceitarTermos(precisa);
+            return precisa;
         } catch (e) {
             console.error("Erro ao verificar termos pendentes:", e);
+            return false;
         }
     }, []);
 
@@ -46,6 +47,7 @@ export function AuthProvider({ children }) {
 
                     if (!firebaseUser.emailVerified) {
                         setUsuarioLogado(null);
+                        setPrecisaAceitarTermos(false);
                         setLoading(false);
                         return;
                     }
@@ -53,7 +55,13 @@ export function AuthProvider({ children }) {
                     const perfilLocal = await userService.buscarPerfilPorUid(firebaseUser.uid);
                     if (perfilLocal) {
                         setUsuarioLogado(perfilLocal);
-                        await verificarTermosPendentes();
+                        const admin = perfilLocal.admin || perfilLocal.isAdmin;
+                        if (!admin) {
+                            await verificarTermosPendentes();
+                        } else {
+                            setPrecisaAceitarTermos(false);
+                            setTermosPendentes([]);
+                        }
                     }
                 } catch (error) {
                     console.error("Erro ao recuperar dados do usuário após recarregar a página:", error);
@@ -61,7 +69,7 @@ export function AuthProvider({ children }) {
             } else {
                 setUsuarioLogado(null);
                 setTermosPendentes([]);
-                setAvisoTermosAberto(false);
+                setPrecisaAceitarTermos(false);
             }
             setLoading(false);
         });
@@ -76,7 +84,9 @@ export function AuthProvider({ children }) {
         const perfilLocal = await userService.buscarPerfilPorUid(firebaseUser.uid);
         if (perfilLocal) {
             setUsuarioLogado(perfilLocal);
-            await verificarTermosPendentes();
+            if (!(perfilLocal.admin || perfilLocal.isAdmin)) {
+                await verificarTermosPendentes();
+            }
         }
         return perfilLocal;
     }, [verificarTermosPendentes]);
@@ -88,19 +98,9 @@ export function AuthProvider({ children }) {
             localStorage.removeItem("usuario");
             localStorage.removeItem("token");
             setTermosPendentes([]);
-            setAvisoTermosAberto(false);
+            setPrecisaAceitarTermos(false);
         } catch (error) {
             console.error("Erro ao deslogar:", error);
-        }
-    };
-
-    const aceitarTermosPendentes = async (termoIds) => {
-        try {
-            await registrarAceiteTermos(termoIds?.length ? termoIds : termosPendentes.map((t) => t.id));
-            setAvisoTermosAberto(false);
-            setTermosPendentes([]);
-        } catch (e) {
-            console.error(e);
         }
     };
 
@@ -112,19 +112,14 @@ export function AuthProvider({ children }) {
         loading,
         carregando: loading,
         verificarTermosPendentes,
+        termosPendentes,
+        precisaAceitarTermos,
+        setPrecisaAceitarTermos,
     };
 
     return (
         <AuthContext.Provider value={value}>
             {!loading && children}
-            <TermosModal
-                aberto={avisoTermosAberto}
-                termosForcados={termosPendentes}
-                onAceitar={aceitarTermosPendentes}
-                onFechar={() => setAvisoTermosAberto(false)}
-                titulo="Atualização dos Termos de Uso"
-                textoConfirmar="Aceitar nova versão"
-            />
         </AuthContext.Provider>
     );
 }

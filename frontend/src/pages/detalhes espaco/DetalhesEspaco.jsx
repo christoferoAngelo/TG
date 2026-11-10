@@ -622,22 +622,27 @@ export default function DetalhesEspaco() {
                 {totalFotos > 0 ? (
                     <section className={`dt-hero dt-hero--${qtdHero}`} aria-label="Fotos do espaço">
                         <GradualBlur position="bottom" height="4.5rem" strength={1.4} tint="var(--color-bg)" zIndex={2} />
-                        {fotos.lista.slice(0, qtdHero).map((foto, i) => (
-                            <button
-                                type="button"
-                                key={foto.url + i}
-                                className="dt-hero-foto"
-                                onClick={() => setLightbox(i)}
-                                aria-label={`Ampliar foto: ${foto.ambiente}`}
-                            >
-                                <img src={foto.url} alt={`${foto.ambiente}, foto ${foto.n}`} />
-                            </button>
-                        ))}
-                        {totalFotos > qtdHero && (
-                            <button type="button" className="dt-hero-todas" onClick={() => setLightbox(0)}>
-                                Ver todas as {totalFotos} fotos
-                            </button>
-                        )}
+                        {fotos.lista.slice(0, qtdHero).map((foto, i) => {
+                            const temMais = totalFotos > qtdHero && i === qtdHero - 1;
+                            const teaser = temMais ? fotos.lista[qtdHero] : null;
+                            const exibida = teaser || foto;
+                            return (
+                                <button
+                                    type="button"
+                                    key={foto.url + i}
+                                    className={`dt-hero-foto${temMais ? " dt-hero-foto--mais" : ""}`}
+                                    onClick={() => setLightbox(temMais ? qtdHero : i)}
+                                    aria-label={
+                                        temMais
+                                            ? `Ver mais fotos (${totalFotos - qtdHero + 1} restantes)`
+                                            : `Ampliar foto: ${foto.ambiente}`
+                                    }
+                                >
+                                    <img src={exibida.url} alt={`${exibida.ambiente}, foto ${exibida.n}`} />
+                                    {temMais && <span className="dt-hero-mais-veil" aria-hidden="true" />}
+                                </button>
+                            );
+                        })}
                     </section>
                 ) : (
                     <div className="dt-hero-vazio">Este anúncio ainda não tem fotos.</div>

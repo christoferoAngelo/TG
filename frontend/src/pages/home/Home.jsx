@@ -7,6 +7,7 @@ import MenuPerfil from "./explorar/MenuPerfil";
 import ModalFiltros from "./explorar/ModalFiltros";
 import SalvarLista from "./explorar/SalvarLista";
 import { CardExplorar, EsqueletoGrade, MapaEspacos } from "./explorar/CardExplorar";
+import HomeRodape from "./HomeRodape";
 import {
     CATEGORIAS,
     FILTRO_INICIAL,
@@ -89,7 +90,9 @@ export default function Home() {
     const [espacoLista, setEspacoLista] = useState(null);
     const [semVaga, setSemVaga] = useState([]);
     const [caracteristicasCatalogo, setCaracteristicasCatalogo] = useState([]);
+    const [rodapeVisivel, setRodapeVisivel] = useState(false);
     const ultimaBusca = useRef(0);
+    const rodapeRef = useRef(null);
 
     const buscar = (termo) => {
         const idBusca = ++ultimaBusca.current;
@@ -145,6 +148,18 @@ export default function Home() {
         return () => {
             ativo = false;
         };
+    }, []);
+
+    // Esconde Grade/Lista/Mapa quando o rodapé está na tela (evita cobrir o ©)
+    useEffect(() => {
+        const el = rodapeRef.current;
+        if (!el || typeof IntersectionObserver === "undefined") return undefined;
+        const io = new IntersectionObserver(
+            ([entry]) => setRodapeVisivel(Boolean(entry?.isIntersecting)),
+            { root: null, threshold: 0.08 }
+        );
+        io.observe(el);
+        return () => io.disconnect();
     }, []);
 
     // Catálogo completo para sugestões quando a busca/filtros zeram
@@ -310,6 +325,13 @@ export default function Home() {
                         onBuscar={pesquisar}
                     />
                     <div className="hm-acoes">
+                        <button
+                            type="button"
+                            className="hm-link-sobre"
+                            onClick={() => navigate("/sobre")}
+                        >
+                            Sobre
+                        </button>
                         <button
                             type="button"
                             className="hm-cta-anunciar"
@@ -482,7 +504,10 @@ export default function Home() {
                 )}
             </div>
 
-            <div className="hm-alternar-wrap">
+            <div
+                className={`hm-alternar-wrap${rodapeVisivel ? " hm-alternar-wrap--oculto" : ""}`}
+                aria-hidden={rodapeVisivel ? "true" : undefined}
+            >
                 <JellyRadio
                     className="hm-alternar"
                     ariaLabel="Modo de visualização"
@@ -497,6 +522,10 @@ export default function Home() {
                     onChange={setVista}
                     {...jellyTema}
                 />
+            </div>
+
+            <div ref={rodapeRef}>
+                <HomeRodape />
             </div>
 
             <ModalFiltros

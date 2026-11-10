@@ -1,0 +1,45 @@
+.aceitar-termos-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: color-mix(in srgb, var(--palette-coffee, #2a1f18) 78%, transparent);
+}
+
+.aceitar-termos-caixa {
+    width: min(640px, 100%);
+    max-height: min(92dvh, 820px);
+}
+
+.aceitar-termos-titulo {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    letter-spacing: -0.03em;
+}
+
+.aceitar-termos-aviso {
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--color-text-muted);
+}
+
+.aceitar-termos-dica {
+    display: block;
+    margin: 8px 0 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.aceitar-termos-meta {
+    margin: 12px 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.termos-aceite--bloqueado {
+    opacity: 0.55;
+    cursor: not-allowed;
+}

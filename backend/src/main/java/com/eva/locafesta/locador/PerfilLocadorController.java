@@ -1,12 +1,15 @@
 package com.eva.locafesta.locador;
 
+import com.eva.locafesta.termo.TermosAceiteFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/locadores")
@@ -22,6 +25,14 @@ public class PerfilLocadorController {
         try {
             PerfilLocadorDTO novoPerfil = service.criarPerfil(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(novoPerfil);
+        } catch (ResponseStatusException e) {
+            if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                        "codigo", TermosAceiteFilter.CODIGO,
+                        "erro", e.getReason() != null ? e.getReason() : "Aceite os Termos de Uso para continuar."
+                ));
+            }
+            throw e;
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

@@ -14,6 +14,7 @@ import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import Dashboard from "./pages/dashboard/Dashboard";
 import MinhasReservas from "./pages/dashboard/components/MinhasReservas";
 import Home from "./pages/home/Home";
+import Sobre from "./pages/sobre/Sobre";
 import Jornada from "./pages/jornada/Jornada";
 import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco";
 import { PagamentoPage } from "./pages/pagamento/PagamentoPage";
@@ -24,9 +25,11 @@ import NovoEspaco from "./pages/novo espaco/NovoEspaco";
 import Favoritos from "./pages/favoritos/Favoritos";
 import DevPainelPreview from "./pages/locador/DevPainelPreview";
 import DevTermosPreview from "./pages/admin/DevTermosPreview";
+import AceitarTermos from "./pages/termos/AceitarTermos";
 
 function RouteProtegida() {
-    const { usuarioLogado, carregando } = useAuth();
+    const { usuarioLogado, carregando, precisaAceitarTermos } = useAuth();
+    const location = useLocation();
 
     if (carregando) {
         return (
@@ -38,6 +41,12 @@ function RouteProtegida() {
 
     if (!usuarioLogado) {
         return <Navigate to="/login" replace />;
+    }
+
+    const admin = usuarioLogado.admin || usuarioLogado.isAdmin;
+    if (precisaAceitarTermos && !admin) {
+        const voltar = encodeURIComponent(`${location.pathname}${location.search}`);
+        return <Navigate to={`/aceitar-termos?voltar=${voltar}`} replace />;
     }
 
     return <Outlet />;
@@ -82,11 +91,13 @@ function RotasAplicacao() {
 
                     <Route element={<AppShell />}>
                         <Route path="/home" element={<Home />} />
+                        <Route path="/sobre" element={<Sobre />} />
                         <Route path="/espaco/:id" element={<DetalhesEspaco />} />
                     </Route>
 
                     <Route path="/redefinir-senha" element={<RedefinirSenha />} />
                     <Route path="/jornada" element={<Jornada />} />
+                    <Route path="/aceitar-termos" element={<AceitarTermos />} />
                     {import.meta.env.DEV && (
                         <>
                             <Route path="/dev/painel-locador" element={<DevPainelPreview />} />

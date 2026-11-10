@@ -1,31 +1,49 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { CODIGO_TERMOS_NAO_ACEITOS, apiFetch, parseJsonSeguro } from "../../../../services/http";
+
+const API = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 export default function ModalLocador({ usuarioLogado, onClose, onSuccess }) {
+    const navigate = useNavigate();
     const [formLocador, setFormLocador] = useState({ documento: "", nomeFantasia: "" });
     const [carregando, setCarregando] = useState(false);
+
+    const irAceitarLocador = () => {
+        const voltar = encodeURIComponent("/perfil");
+        navigate(`/aceitar-termos?tipo=LOCADOR&voltar=${voltar}`);
+        onClose?.();
+    };
 
     const handleSalvarLocador = async (e) => {
         e.preventDefault();
         setCarregando(true);
         try {
-            const response = await fetch("http://localhost:8080/api/locadores", {
+            const response = await apiFetch(`${API}/api/locadores`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     documento: formLocador.documento,
                     nomeFantasia: formLocador.nomeFantasia,
-                    usuarioId: usuarioLogado.id
-                })
+                    usuarioId: usuarioLogado.id,
+                }),
             });
 
+            const corpo = await parseJsonSeguro(response);
             if (!response.ok) {
-                const erro = await response.text();
-                throw new Error(erro || "Falha ao cadastrar perfil de locador.");
+                if (corpo?.codigo === CODIGO_TERMOS_NAO_ACEITOS) {
+                    irAceitarLocador();
+                    return;
+                }
+                throw new Error(corpo?.erro || corpo || "Falha ao cadastrar perfil de locador.");
             }
 
             alert("Perfil de Locador criado com sucesso!");
-            onSuccess(); // Atualiza o usuário e fecha o modal
+            onSuccess();
         } catch (err) {
+            if (err?.codigo === CODIGO_TERMOS_NAO_ACEITOS) {
+                irAceitarLocador();
+                return;
+            }
             alert("Erro: " + err.message);
         } finally {
             setCarregando(false);
@@ -36,7 +54,10 @@ export default function ModalLocador({ usuarioLogado, onClose, onSuccess }) {
         <div className="modal-overlay">
             <div className="modal-content">
                 <h3>Tornar-se um Anunciante (Locador)</h3>
-                <p className="modal-desc">Informe os dados para disponibilizar seus espaços para locação.</p>
+                <p className="modal-desc">
+                    Informe os dados para disponibilizar seus espaços. Antes de confirmar, é necessário
+                    aceitar os Termos de Uso do locador.
+                </p>
 
                 <form onSubmit={handleSalvarLocador}>
                     <div className="input-group">
@@ -64,7 +85,16 @@ export default function ModalLocador({ usuarioLogado, onClose, onSuccess }) {
                     </div>
 
                     <div className="modal-actions">
-                        <button type="button" onClick={onClose} className="btn btn-cancelar">Cancelar</button>
+                        <button type="button" onClick={onClose} className="btn btn-cancelar">
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            className="btn"
+                            onClick={irAceitarLocador}
+                        >
+                            Ler Termos do locador
+                        </button>
                         <button type="submit" disabled={carregando} className="btn btn-destaque">
                             {carregando ? "Salvando..." : "Confirmar e Anunciar"}
                         </button>

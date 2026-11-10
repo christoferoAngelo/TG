@@ -650,19 +650,36 @@
 
 .lc-espaco-acoes {
     display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-end;
+    flex-wrap: wrap;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     padding-top: 12px;
     border-top: 1px solid var(--color-border);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    overflow-x: visible;
+}
+
+.lc-espaco-acoes-grupo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: visible;
 }
 
 .lc-espaco-acoes .lc-btn {
+    flex: 0 0 auto; /* nunca encolhe o rótulo; quebra de linha no flex-wrap */
+    max-width: none;
+    overflow: visible;
+    text-overflow: unset;
+}
+
+.lc-espaco-acoes-status {
+    margin-left: auto;
     flex: 0 0 auto;
-    white-space: nowrap;
 }
 
 /* --- Aviso: usuário logado sem conta de locador --- */
@@ -735,12 +752,13 @@
     }
 
     .lc-espaco-acoes {
-        flex-wrap: wrap;
-        justify-content: flex-start;
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .lc-espaco-acoes .lc-btn {
-        flex: 1 1 auto;
+    .lc-espaco-acoes-status {
+        margin-left: 0;
+        align-self: flex-start;
     }
 }
 

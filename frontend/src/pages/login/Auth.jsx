@@ -42,7 +42,7 @@ function destinoDepoisDoLogin(usuario) {
 }
 
 export default function Auth() {
-    const { setUsuarioLogado } = useAuth();
+    const { setUsuarioLogado, verificarTermosPendentes } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const reduzirMovimento = useReducedMotion();
@@ -122,7 +122,14 @@ export default function Auth() {
             if (perfilLocal) {
                 await sincronizarAceitesPendentesDoStorage();
                 setUsuarioLogado(perfilLocal);
-                navigate(destinoDepoisDoLogin(perfilLocal));
+                const destino = destinoDepoisDoLogin(perfilLocal);
+                const admin = perfilLocal.admin || perfilLocal.isAdmin;
+                const precisa = !admin && (await verificarTermosPendentes?.());
+                navigate(
+                    precisa
+                        ? `/aceitar-termos?voltar=${encodeURIComponent(destino)}`
+                        : destino
+                );
             } else {
                 mostrarErro(
                     "auth-email",
@@ -228,7 +235,12 @@ export default function Auth() {
 
             await sincronizarAceitesPendentesDoStorage();
             setUsuarioLogado(perfilLocal);
-            navigate(irParaJornada ? "/jornada" : destinoDepoisDoLogin(perfilLocal));
+            const destino = irParaJornada ? "/jornada" : destinoDepoisDoLogin(perfilLocal);
+            const admin = perfilLocal.admin || perfilLocal.isAdmin;
+            const precisa = !admin && (await verificarTermosPendentes?.());
+            navigate(
+                precisa ? `/aceitar-termos?voltar=${encodeURIComponent(destino)}` : destino
+            );
         } catch (error) {
             console.error(error);
             mostrarErro("auth-google", "Falha na autenticação com o Google ou erro ao salvar perfil local.");
@@ -269,8 +281,10 @@ export default function Auth() {
     };
 
     const fecharTermos = () => {
+        // Aceite obrigatório: × / fundo não segue o fluxo — volta à home pública.
         acaoTermos.current = null;
         setTermosAbertos(false);
+        navigate("/home", { replace: true });
     };
 
     const reenviarEmailVerificacao = async () => {
@@ -642,7 +656,9 @@ export default function Auth() {
                 aberto={termosAbertos}
                 onAceitar={aceitarTermos}
                 onFechar={fecharTermos}
-                tipoAudiencia="AMBOS"
+                onRecusar={fecharTermos}
+                tipoAudiencia="LOCATARIO"
+                exigirLeitura
             />
         </div>
     );

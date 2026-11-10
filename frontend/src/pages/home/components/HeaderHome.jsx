@@ -30,6 +30,13 @@ export default function HeaderHome() {
             </div>
 
             <div className="nav-buttons header-home-acoes">
+                <button
+                    type="button"
+                    className="hm-link-sobre"
+                    onClick={() => navigate("/sobre")}
+                >
+                    Sobre
+                </button>
                 <button type="button" className="hm-cta-anunciar" onClick={handleAnunciarClick}>
                     {isLocador ? "Meu negócio" : "Vou anunciar"}
                 </button>

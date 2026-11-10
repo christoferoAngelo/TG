@@ -122,31 +122,33 @@ export default function EspacoItem({ espaco, onAlternarStatus, onEditar, proximo
             )}
 
             <div className="lc-espaco-acoes">
-                <Link to={rotaDetalhe} className="lc-btn lc-btn--ghost">
-                    Ver página
-                </Link>
-                <Link to={rotaPreview} className="lc-btn lc-btn--ghost">
-                    Ver como locatário
-                </Link>
-                <Link to={`/documentos/espaco/${espaco.id}`} className="lc-btn lc-btn--ghost">
-                    Documentos
-                </Link>
+                <div className="lc-espaco-acoes-grupo">
+                    {onEditar && (
+                        <button
+                            type="button"
+                            className="lc-btn lc-btn--primary"
+                            onClick={() => onEditar(espaco.id)}
+                        >
+                            {isRejeitado ? "Editar e reenviar" : "Editar"}
+                        </button>
+                    )}
+                    <Link to={rotaDetalhe} className="lc-btn lc-btn--ghost">
+                        Ver página
+                    </Link>
+                    <Link to={rotaPreview} className="lc-btn lc-btn--ghost">
+                        Ver como locatário
+                    </Link>
+                    <Link to={`/documentos/espaco/${espaco.id}`} className="lc-btn lc-btn--ghost">
+                        Documentos
+                    </Link>
+                </div>
                 <button
                     type="button"
-                    className={`lc-btn ${isAtivo ? "lc-btn--danger-ghost" : "lc-btn--success"}`}
+                    className={`lc-btn lc-espaco-acoes-status ${isAtivo ? "lc-btn--danger-ghost" : "lc-btn--success"}`}
                     onClick={() => onAlternarStatus(espaco.id)}
                 >
                     {isAtivo ? "Desativar" : "Ativar"}
                 </button>
-                {onEditar && (
-                    <button
-                        type="button"
-                        className="lc-btn lc-btn--primary"
-                        onClick={() => onEditar(espaco.id)}
-                    >
-                        {isRejeitado ? "Editar e reenviar" : "Editar"}
-                    </button>
-                )}
             </div>
         </article>
     );

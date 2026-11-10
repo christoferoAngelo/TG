@@ -4,6 +4,7 @@ import {
     lerTermosAceitosIds,
     limparTermosAceitosIds,
 } from "../components/apresentacao/termos";
+import { apiFetch, parseJsonSeguro, redirecionarSeTermosPendentes } from "./http";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -23,19 +24,16 @@ async function headersAuth() {
 }
 
 async function lerJson(response) {
-    const texto = await response.text();
+    const corpo = await parseJsonSeguro(response);
     if (!response.ok) {
-        let msg = texto || `Erro HTTP ${response.status}`;
-        try {
-            const j = JSON.parse(texto);
-            msg = j.erro || j.message || msg;
-        } catch {
-            /* texto puro */
+        if (redirecionarSeTermosPendentes(corpo)) {
+            const err = new Error(corpo?.erro || "Aceite os Termos de Uso para continuar.");
+            err.codigo = corpo?.codigo;
+            throw err;
         }
-        throw new Error(msg);
+        throw new Error(corpo?.erro || corpo?.message || `Erro HTTP ${response.status}`);
     }
-    if (!texto) return null;
-    return JSON.parse(texto);
+    return corpo;
 }
 
 export const termoService = {
@@ -45,64 +43,52 @@ export const termoService = {
     },
 
     async pendente() {
-        const headers = await headersAuth();
-        const response = await fetch(`${API_BASE_URL}/api/termos/pendente`, { headers });
+        const response = await apiFetch(`${API_BASE_URL}/api/termos/pendente`);
         return lerJson(response);
     },
 
     async aceitar(termoIds) {
-        const headers = await headersAuth();
         const body = Array.isArray(termoIds) && termoIds.length
             ? JSON.stringify({ termoIds })
             : JSON.stringify({});
-        const response = await fetch(`${API_BASE_URL}/api/termos/aceitar`, {
+        const response = await apiFetch(`${API_BASE_URL}/api/termos/aceitar`, {
             method: "POST",
-            headers,
             body,
         });
         return lerJson(response);
     },
 
     async listarAdmin(tipo) {
-        const headers = await headersAuth();
-        const response = await fetch(
-            `${API_BASE_URL}/api/admin/termos?tipo=${encodeURIComponent(tipo)}`,
-            { headers }
+        const response = await apiFetch(
+            `${API_BASE_URL}/api/admin/termos?tipo=${encodeURIComponent(tipo)}`
         );
         return lerJson(response);
     },
 
     async detalheAdmin(id) {
-        const headers = await headersAuth();
-        const response = await fetch(`${API_BASE_URL}/api/admin/termos/${id}`, { headers });
+        const response = await apiFetch(`${API_BASE_URL}/api/admin/termos/${id}`);
         return lerJson(response);
     },
 
     async criarRascunho({ tipo, titulo, conteudo }) {
-        const headers = await headersAuth();
-        const response = await fetch(`${API_BASE_URL}/api/admin/termos`, {
+        const response = await apiFetch(`${API_BASE_URL}/api/admin/termos`, {
             method: "POST",
-            headers,
             body: JSON.stringify({ tipo, titulo, conteudo }),
         });
         return lerJson(response);
     },
 
     async atualizarRascunho(id, { titulo, conteudo }) {
-        const headers = await headersAuth();
-        const response = await fetch(`${API_BASE_URL}/api/admin/termos/${id}`, {
+        const response = await apiFetch(`${API_BASE_URL}/api/admin/termos/${id}`, {
             method: "PUT",
-            headers,
             body: JSON.stringify({ titulo, conteudo }),
         });
         return lerJson(response);
     },
 
     async publicar(id) {
-        const headers = await headersAuth();
-        const response = await fetch(`${API_BASE_URL}/api/admin/termos/${id}/publicar`, {
+        const response = await apiFetch(`${API_BASE_URL}/api/admin/termos/${id}/publicar`, {
             method: "POST",
-            headers,
         });
         return lerJson(response);
     },

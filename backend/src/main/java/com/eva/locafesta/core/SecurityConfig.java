@@ -1,5 +1,6 @@
 package com.eva.locafesta.core;
 
+import com.eva.locafesta.termo.TermosAceiteFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,9 +20,11 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final FirebaseFilter firebaseFilter;
+    private final TermosAceiteFilter termosAceiteFilter;
 
-    public SecurityConfig(FirebaseFilter firebaseFilter) {
+    public SecurityConfig(FirebaseFilter firebaseFilter, TermosAceiteFilter termosAceiteFilter) {
         this.firebaseFilter = firebaseFilter;
+        this.termosAceiteFilter = termosAceiteFilter;
     }
 
     @Bean
@@ -66,7 +69,9 @@ public class SecurityConfig {
                 // 5. Demais rotas exigem autenticação
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(firebaseFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(firebaseFilter, UsernamePasswordAuthenticationFilter.class)
+            // Depois do Firebase: exige aceite dos Termos vigentes (exceto allowlist / admin)
+            .addFilterAfter(termosAceiteFilter, FirebaseFilter.class);
 
         return http.build();
     }

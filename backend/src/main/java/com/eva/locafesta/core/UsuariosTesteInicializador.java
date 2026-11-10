@@ -124,6 +124,61 @@ public class UsuariosTesteInicializador implements ApplicationRunner {
                             -40.08512
                     ),
                     null
+            ),
+            // Contas extras para popular avaliações (nomes Locador C/D/E; perfil de locatário)
+            new UsuarioSeed(
+                    "demo-uid-locatario-c",
+                    "Locador C",
+                    "jeehbeatrizaraujo@gmail.com",
+                    "52998224725",
+                    "(83) 98811-2200",
+                    new EnderecoSeed(
+                            "58400-250",
+                            "Rua Vigário Calixto",
+                            "140",
+                            "Centro",
+                            "Campina Grande",
+                            "PB",
+                            -7.21833,
+                            -35.88111
+                    ),
+                    null
+            ),
+            new UsuarioSeed(
+                    "demo-uid-locatario-d",
+                    "Locador D",
+                    "xongx26@gmail.com",
+                    "11144477735",
+                    "(83) 98722-3344",
+                    new EnderecoSeed(
+                            "58010-000",
+                            "Av. Epitácio Pessoa",
+                            "800",
+                            "Estados",
+                            "João Pessoa",
+                            "PB",
+                            -7.11950,
+                            -34.84500
+                    ),
+                    null
+            ),
+            new UsuarioSeed(
+                    "demo-uid-locatario-e",
+                    "Locador E",
+                    "presencify@gmail.com",
+                    "39053344705",
+                    "(81) 98633-4455",
+                    new EnderecoSeed(
+                            "50030-230",
+                            "Rua da Aurora",
+                            "255",
+                            "Boa Vista",
+                            "Recife",
+                            "PE",
+                            -8.06200,
+                            -34.88100
+                    ),
+                    null
             )
     );
 

@@ -3,7 +3,7 @@ export const TERMOS = [
         titulo: "1. Objeto e papel da plataforma",
         itens: [
             "1.1. Estes Termos regulam o uso do LocaFesta, plataforma web que aproxima LOCADORES, que anunciam espaços para eventos, e LOCATÁRIOS, que os reservam. O LocaFesta atua exclusivamente como intermediador tecnológico: não é proprietário, administrador nem possuidor dos espaços anunciados e não mantém vínculo empregatício ou societário com os usuários.",
-            "1.2. A locação de cada espaço é um acordo entre locador e locatário, nas condições do Termo de Reserva (Apêndice C). O LocaFesta não se responsabiliza por danos físicos ou patrimoniais, incidentes ou acidentes ocorridos no espaço durante o período locado, sem prejuízo das responsabilidades previstas em lei."
+            "1.2. A locação de cada espaço é um acordo entre locador e locatário, nas condições do Termo de Reserva, apresentado no momento da reserva. O LocaFesta não se responsabiliza por danos físicos ou patrimoniais, incidentes ou acidentes ocorridos no espaço durante o período locado, sem prejuízo das responsabilidades previstas em lei."
         ]
     },
     {
@@ -35,7 +35,7 @@ export const TERMOS = [
         itens: [
             "5.1. Todos os pagamentos devem ser feitos exclusivamente pela plataforma, por Pix, por meio do Mercado Pago. Pagamentos ou negociações por fora da plataforma são infração grave e sujeitam os envolvidos à suspensão ou ao bloqueio da conta, após análise.",
             "5.2. O evento é encerrado automaticamente ao fim do horário da reserva. Sete dias depois, se o locatário não tiver relatado problema, o valor é repassado automaticamente ao locador, descontada a comissão.",
-            "5.3. As regras de cancelamento e reembolso constam do Termo de Reserva (Apêndice C)."
+            "5.3. As regras de cancelamento e reembolso constam do Termo de Reserva, apresentado no momento da reserva."
         ]
     },
     {

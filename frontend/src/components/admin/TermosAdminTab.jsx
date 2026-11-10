@@ -209,9 +209,10 @@ export default function TermosAdminTab() {
                                     onClick={() => {
                                         setEditorAberto(false);
                                         setEditando(null);
+                                        setConfirmarPublicar(false);
                                     }}
                                 >
-                                    Fechar
+                                    Cancelar / Voltar
                                 </button>
                             </div>
                             <label className="adm-termos-campo" htmlFor="termo-titulo">
@@ -236,6 +237,18 @@ export default function TermosAdminTab() {
                                 </span>
                             </label>
                             <div className="adm-termos-acoes">
+                                <button
+                                    type="button"
+                                    className="btn"
+                                    disabled={salvando}
+                                    onClick={() => {
+                                        setEditorAberto(false);
+                                        setEditando(null);
+                                        setConfirmarPublicar(false);
+                                    }}
+                                >
+                                    Cancelar
+                                </button>
                                 <button
                                     type="button"
                                     className="btn"

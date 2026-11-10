@@ -23,9 +23,10 @@ public class TermoController {
      * nunca de ID no corpo ou cabeçalho.
      */
     @PostMapping("/aceitar")
-    public ResponseEntity<Void> aceitar(@RequestBody(required = false) AceiteRequestDTO dto) {
-        termoService.aceitar(dto);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<java.util.List<AceiteDTO>> aceitar(
+            @RequestBody(required = false) AceiteRequestDTO dto
+    ) {
+        return ResponseEntity.ok(termoService.aceitar(dto));
     }
 
     /** Termos publicados que o usuário autenticado ainda não aceitou. */

@@ -1,6 +1,7 @@
 package com.eva.locafesta.locador;
 
 import com.eva.locafesta.locatario.PerfilLocatarioRepository;
+import com.eva.locafesta.termo.TermoService;
 import com.eva.locafesta.usuario.Usuario;
 import com.eva.locafesta.usuario.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class PerfilLocadorService {
 
     @Autowired
     private PerfilLocatarioRepository perfilLocatarioRepository;
+
+    @Autowired
+    private TermoService termoService;
 
     // Método auxiliar para converter Entidade em DTO
     private PerfilLocadorDTO converterParaDTO(PerfilLocador perfil) {
@@ -48,6 +52,9 @@ public class PerfilLocadorService {
         if (!telefone || !endereco || !locatario) {
             throw new RuntimeException("Complete telefone, endereço e CPF antes de criar o perfil de locador.");
         }
+
+        // Aceite do termo LOCADOR vigente é obrigatório ao habilitar o perfil.
+        termoService.exigirAceiteLocador(usuario);
         
         //construtor sem id, pq ele vai ser gerado pelo @GeneratedValue automaticamente
         PerfilLocador perfil = PerfilLocador.builder()

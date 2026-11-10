@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -161,7 +162,7 @@ public class TermoService {
     }
 
     @Transactional
-    public void aceitar(AceiteRequestDTO dto) {
+    public List<AceiteDTO> aceitar(AceiteRequestDTO dto) {
         Usuario usuario = usuarioAutenticado();
         Set<Long> ids = new LinkedHashSet<>();
         if (dto != null && dto.termoIds() != null) {
@@ -180,6 +181,7 @@ public class TermoService {
         }
 
         LocalDateTime agora = LocalDateTime.now();
+        List<AceiteDTO> gravados = new ArrayList<>();
         for (Long termoId : ids) {
             TermoUso termo = buscar(termoId);
             if (termo.getStatus() != StatusTermo.PUBLICADO) {
@@ -187,21 +189,36 @@ public class TermoService {
                         HttpStatus.BAD_REQUEST,
                         "Só é possível aceitar a versão publicada vigente.");
             }
-            if (aceiteTermoRepository.existsByUsuarioIdAndTermoId(usuario.getId(), termoId)) {
+            Optional<AceiteTermo> existente =
+                    aceiteTermoRepository.findByUsuarioIdAndTermoId(usuario.getId(), termoId);
+            if (existente.isPresent()) {
+                gravados.add(AceiteDTO.de(existente.get()));
                 continue;
             }
             AceiteTermo aceite = AceiteTermo.builder()
                     .usuario(usuario)
                     .termo(termo)
+                    .versao(termo.getVersao())
                     .aceitoEm(agora)
                     .build();
-            aceiteTermoRepository.save(aceite);
+            gravados.add(AceiteDTO.de(aceiteTermoRepository.save(aceite)));
         }
+        return gravados;
     }
 
     @Transactional(readOnly = true)
     public TermoPendenteDTO pendente() {
         Usuario usuario = usuarioAutenticado();
+        List<TermoDTO> pendentes = listarPendentesPara(usuario);
+        return new TermoPendenteDTO(!pendentes.isEmpty(), pendentes);
+    }
+
+    /**
+     * Termos vigentes ainda não aceitos pelo usuário, conforme o(s) perfil(is).
+     * Só locatário → LOCATARIO; só locador → LOCADOR; ambos → ambos; sem perfil → LOCATARIO.
+     */
+    @Transactional(readOnly = true)
+    public List<TermoDTO> listarPendentesPara(Usuario usuario) {
         List<TermoDTO> pendentes = new ArrayList<>();
         for (TipoTermo tipo : tiposAplicaveis(usuario)) {
             termoUsoRepository.findByTipoAndStatus(tipo, StatusTermo.PUBLICADO).ifPresent(vigente -> {
@@ -210,21 +227,40 @@ public class TermoService {
                 }
             });
         }
-        return new TermoPendenteDTO(!pendentes.isEmpty(), pendentes);
+        return pendentes;
+    }
+
+    /** Exige aceite do LOCADOR vigente (ex.: ao habilitar perfil de locador). */
+    @Transactional(readOnly = true)
+    public void exigirAceiteLocador(Usuario usuario) {
+        TermoUso vigente = termoUsoRepository.findByTipoAndStatus(TipoTermo.LOCADOR, StatusTermo.PUBLICADO)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Não há termo LOCADOR publicado."));
+        if (!aceiteTermoRepository.existsByUsuarioIdAndTermoId(usuario.getId(), vigente.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Aceite os Termos de Uso do locador antes de habilitar o perfil.");
+        }
+    }
+
+    static List<TipoTermo> tiposAplicaveis(Usuario usuario, boolean locador, boolean locatario) {
+        List<TipoTermo> tipos = new ArrayList<>();
+        if (locador) {
+            tipos.add(TipoTermo.LOCADOR);
+        }
+        if (locatario) {
+            tipos.add(TipoTermo.LOCATARIO);
+        }
+        if (!locador && !locatario) {
+            tipos.add(TipoTermo.LOCATARIO);
+        }
+        return tipos;
     }
 
     private List<TipoTermo> tiposAplicaveis(Usuario usuario) {
         boolean locador = perfilLocadorRepository.existsByUsuarioId(usuario.getId());
         boolean locatario = perfilLocatarioRepository.existsByUsuarioId(usuario.getId());
-        List<TipoTermo> tipos = new ArrayList<>();
-        if (locador) {
-            tipos.add(TipoTermo.LOCADOR);
-        }
-        if (locatario || !locador) {
-            // Sem perfil ainda (cadastro) ou locatário: exige LOCATARIO.
-            tipos.add(TipoTermo.LOCATARIO);
-        }
-        return tipos;
+        return tiposAplicaveis(usuario, locador, locatario);
     }
 
     private TermoUso buscar(Long id) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
+import AppShell from "../../components/layout/AppShell";
 import LocadorLayout from "./LocadorLayout";
 import LocadorPainel from "./LocadorPainel";
 import LocadorReservas from "./LocadorReservas";
@@ -73,11 +74,13 @@ export default function DevPainelPreview() {
         <AuthContext.Provider value={valor}>
             <MemoryRouter initialEntries={[inicial]}>
                 <Routes>
-                    <Route path="/locador" element={<LocadorLayout />}>
-                        <Route index element={<LocadorPainel />} />
-                        <Route path="reservas" element={<LocadorReservas />} />
-                        <Route path="espacos" element={<LocadorEspacos />} />
-                        <Route path="financeiro" element={<LocadorFinanceiro />} />
+                    <Route element={<AppShell />}>
+                        <Route path="/locador" element={<LocadorLayout />}>
+                            <Route index element={<LocadorPainel />} />
+                            <Route path="reservas" element={<LocadorReservas />} />
+                            <Route path="espacos" element={<LocadorEspacos />} />
+                            <Route path="financeiro" element={<LocadorFinanceiro />} />
+                        </Route>
                     </Route>
                 </Routes>
             </MemoryRouter>

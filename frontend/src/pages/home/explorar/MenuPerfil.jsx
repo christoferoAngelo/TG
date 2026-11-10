@@ -104,6 +104,9 @@ export default function MenuPerfil() {
                         >
                             {locador ? "Meu negócio" : "Vou anunciar"}
                         </button>
+                        <button type="button" role="menuitem" onClick={() => ir("/sobre")}>
+                            Sobre o LocaFesta
+                        </button>
                     </div>
                     <div className="hm-perfil-grupo">
                         <button type="button" role="menuitem" onClick={pedirSaida}>Sair</button>

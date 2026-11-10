@@ -4,7 +4,8 @@
 
 .lc-espacos--fase5 {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* Em telas médias vira 1 coluna em vez de espremer os botões */
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
     gap: 16px;
 }
 
@@ -33,7 +34,12 @@
 }
 
 @media (max-width: 900px) {
-    .lc-stats--espacos,
+    .lc-stats--espacos {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 460px) {
     .lc-espacos--fase5 {
         grid-template-columns: 1fr;
     }

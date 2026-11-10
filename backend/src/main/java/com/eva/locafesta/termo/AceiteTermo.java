@@ -33,6 +33,10 @@ public class AceiteTermo {
     @JoinColumn(name = "termo_id", nullable = false)
     private TermoUso termo;
 
+    /** Cópia da versão do termo no momento do aceite (prova em disputa). */
+    @Column(nullable = false)
+    private Integer versao;
+
     @Column(name = "aceito_em", nullable = false)
     private LocalDateTime aceitoEm;
 }

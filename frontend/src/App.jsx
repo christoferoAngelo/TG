@@ -5,6 +5,7 @@ import { useHeartbeat } from "./hooks/useHeartbeat"; // Importe o novo hook
 import DevPainelPreview from "./pages/locador/DevPainelPreview";
 import DevPreviewEspaco from "./pages/locador/DevPreviewEspaco";
 import DevDocumentosEspaco from "./pages/documentos/DevDocumentosEspaco";
+import DevTermosPreview from "./pages/admin/DevTermosPreview";
 
 /**
  * Componente invisível. O único trabalho dele é escutar o 
@@ -35,6 +36,9 @@ export default function App() {
     }
     if (import.meta.env.DEV && window.location.pathname.startsWith("/dev/documentos-espaco")) {
         return <DevDocumentosEspaco />;
+    }
+    if (import.meta.env.DEV && window.location.pathname.startsWith("/dev/termos")) {
+        return <DevTermosPreview />;
     }
 
     return (

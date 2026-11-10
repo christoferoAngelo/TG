@@ -74,4 +74,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     Double calcularMediaNotaPorEspaco(@Param("espacoId") Long espacoId);
 
     long countByEspacoIdAndNotaIsNotNull(Long espacoId);
+
+    boolean existsByObservacaoStartingWith(String prefix);
 }
