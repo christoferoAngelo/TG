@@ -11,16 +11,68 @@
 }
 
 .app-shell-content {
+    position: relative;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     background: var(--color-bg);
 }
 
+/* Voltar fica sobre o fundo da página (degrade começa atrás dele, não abaixo) */
+.app-shell-voltar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 6;
+    padding: 14px 48px 0;
+    background: transparent;
+    pointer-events: none;
+}
+
+.app-shell-voltar-link {
+    display: inline-block;
+    padding: 6px 0;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.app-shell-voltar-link:hover {
+    color: var(--color-text);
+}
+
+.app-shell-voltar-link:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Espaço no topo das páginas para o link não cobrir o conteúdo */
+.app-shell-content--com-voltar > *:not(.app-shell-voltar) {
+    box-sizing: border-box;
+    padding-top: 48px;
+}
+
+@media (max-width: 720px) {
+    .app-shell-voltar {
+        padding: 12px 16px 0;
+    }
+
+    .app-shell-content--com-voltar > *:not(.app-shell-voltar) {
+        padding-top: 44px;
+    }
+}
+
 .app-shell:has(> .app-shell-content > .ne-page) {
     overflow: hidden;
 }
 
+.app-shell:has(> .app-shell-content > .ne-page) > .hm-topo--global,
 .app-shell:has(> .app-shell-content > .ne-page) > .header-home {
     flex-shrink: 0;
 }

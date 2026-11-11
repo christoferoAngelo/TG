@@ -74,4 +74,9 @@ public class Reserva {
     @Column(name = "pagamento_liberado", nullable = false)
     private boolean pagamentoLiberado = false;
 
+    /** True depois que o locatário conclui o pagamento (ex.: Mercado Pago). */
+    @Builder.Default
+    @Column(name = "pago", nullable = false)
+    private boolean pago = false;
+
 }

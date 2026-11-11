@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import CaixaAvisos from "../../components/notificacao/CaixaAvisos";
-import BuscaPill from "./explorar/BuscaPill";
-import MenuPerfil from "./explorar/MenuPerfil";
 import ModalFiltros from "./explorar/ModalFiltros";
 import SalvarLista from "./explorar/SalvarLista";
 import { CardExplorar, EsqueletoGrade, MapaEspacos } from "./explorar/CardExplorar";
@@ -21,6 +18,7 @@ import AnimatedContent from "../../components/bits/AnimatedContent";
 import BlurText from "../../components/bits/BlurText";
 import GradualBlur from "../../components/bits/GradualBlur";
 import PillNav from "../../components/bits/PillNav";
+import { temaAtual } from "../../styles/tema";
 import "./Home.css";
 import "./HomeExplorar.css";
 import iconeChacara from "../../assets/icone-chacara.png";
@@ -71,17 +69,15 @@ function IconeCategoria({ id }) {
 }
 
 export default function Home() {
-    const navigate = useNavigate();
-    const location = useLocation();
     const { usuarioLogado } = useAuth();
     const [params, setParams] = useSearchParams();
     const [espacos, setEspacos] = useState([]);
     const [catalogo, setCatalogo] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState(false);
-    const [onde, setOnde] = useState(params.get("q") || "");
-    const [quando, setQuando] = useState(params.get("data") || "");
-    const [pessoas, setPessoas] = useState(params.get("pessoas") || "0");
+    const onde = params.get("q") || "";
+    const quando = params.get("data") || "";
+    const pessoas = params.get("pessoas") || "0";
     const [categoria, setCategoria] = useState(params.get("cat") || "Todos");
     const [filtros, setFiltros] = useState(FILTRO_INICIAL);
     const [filtrosAbertos, setFiltrosAbertos] = useState(false);
@@ -91,8 +87,19 @@ export default function Home() {
     const [semVaga, setSemVaga] = useState([]);
     const [caracteristicasCatalogo, setCaracteristicasCatalogo] = useState([]);
     const [rodapeVisivel, setRodapeVisivel] = useState(false);
+    const [tema, setTema] = useState(() =>
+        typeof document !== "undefined"
+            ? document.documentElement.getAttribute("data-tema") || temaAtual()
+            : "light"
+    );
     const ultimaBusca = useRef(0);
     const rodapeRef = useRef(null);
+
+    useEffect(() => {
+        const onTema = (evento) => setTema(evento.detail || temaAtual());
+        window.addEventListener("locafesta-tema", onTema);
+        return () => window.removeEventListener("locafesta-tema", onTema);
+    }, []);
 
     const buscar = (termo) => {
         const idBusca = ++ultimaBusca.current;
@@ -121,9 +128,6 @@ export default function Home() {
     useEffect(() => {
         const termoUrl = (params.get("q") || "").trim();
         const cat = params.get("cat") || "Todos";
-        setOnde(params.get("q") || "");
-        setQuando(params.get("data") || "");
-        setPessoas(params.get("pessoas") || "0");
         setCategoria(cat);
         const termoApi = cat !== "Todos"
             ? cat
@@ -199,10 +203,6 @@ export default function Home() {
         if (data) busca.set("data", data);
         if (Number(qtd) > 0) busca.set("pessoas", qtd);
         setParams(busca, { replace: true });
-    };
-
-    const pesquisar = () => {
-        atualizarUrl({ onde, quando, pessoas, categoria: "Todos" });
     };
 
     useEffect(() => {
@@ -307,65 +307,7 @@ export default function Home() {
 
     return (
         <div className="hm">
-            <div className="hm-fixos">
-                <header className="hm-topo">
-                    <button type="button" className="hm-logo" onClick={() => navigate("/home")}>
-                        LocaFesta
-                    </button>
-                    <BuscaPill
-                        onde={onde}
-                        quando={quando}
-                        pessoas={pessoas}
-                        catalogo={catalogo}
-                        onChange={(parcial) => {
-                            if (parcial.onde != null) setOnde(parcial.onde);
-                            if (parcial.quando != null) setQuando(parcial.quando);
-                            if (parcial.pessoas != null) setPessoas(String(parcial.pessoas));
-                        }}
-                        onBuscar={pesquisar}
-                    />
-                    <div className="hm-acoes">
-                        <button
-                            type="button"
-                            className="hm-link-sobre"
-                            onClick={() => navigate("/sobre")}
-                        >
-                            Sobre
-                        </button>
-                        <button
-                            type="button"
-                            className="hm-cta-anunciar"
-                            onClick={() => {
-                                if (!usuarioLogado) {
-                                    navigate("/login", { state: { fundo: location } });
-                                    return;
-                                }
-                                navigate(
-                                    usuarioLogado.locador || usuarioLogado.isLocador
-                                        ? "/locador"
-                                        : "/cadastro-locador"
-                                );
-                            }}
-                        >
-                            {usuarioLogado?.locador || usuarioLogado?.isLocador ? "Meu negócio" : "Vou anunciar"}
-                        </button>
-                        {usuarioLogado ? <CaixaAvisos usuarioId={usuarioLogado.id} /> : null}
-                        {usuarioLogado ? (
-                            <button
-                                type="button"
-                                className="hm-listas"
-                                aria-label="Favoritos"
-                                onClick={() => navigate("/favoritos")}
-                            >
-                                <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M12 19.4 4.8 12.6a4.2 4.2 0 0 1 6-5.9L12 7.8l1.2-1.1a4.2 4.2 0 0 1 6 5.9L12 19.4Z" />
-                                </svg>
-                            </button>
-                        ) : null}
-                        <MenuPerfil />
-                    </div>
-                </header>
-
+            <div className="hm-fixos hm-fixos--faixa">
                 <div className={`hm-faixa${mostrarFiltros ? " hm-faixa--chips" : " hm-faixa--sem-filtros"}`}>
                     {mostrarFiltros ? (
                         <div className="hm-filtro-chips" role="toolbar" aria-label="Filtros rápidos">
@@ -433,8 +375,8 @@ export default function Home() {
                                 stretch={0.5}
                                 collapse="auto"
                                 intro
-                                theme="light"
-                                textColor="#130501"
+                                theme={tema === "dark" ? "dark" : "light"}
+                                textColor={tema === "dark" ? "#F7F0DF" : "#130501"}
                                 highlightColor="#FECB5A"
                                 highlightTextColor="#130501"
                             />

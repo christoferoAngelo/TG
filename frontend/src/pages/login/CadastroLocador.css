@@ -3,9 +3,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    /* top fica a cargo do AppShell (--com-voltar); laterais/baixo aqui */
     padding: 28px 20px 48px;
     background:
-        radial-gradient(ellipse 70% 50% at 10% 0%, color-mix(in srgb, var(--color-primary) 22%, transparent), transparent 60%),
+        radial-gradient(ellipse 70% 55% at 10% -5%, color-mix(in srgb, var(--color-primary) 22%, transparent), transparent 60%),
         radial-gradient(ellipse 50% 40% at 100% 100%, color-mix(in srgb, var(--color-border) 55%, transparent), transparent 55%),
         var(--color-bg);
     color: var(--color-text);

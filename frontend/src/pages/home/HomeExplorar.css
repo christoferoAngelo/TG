@@ -16,19 +16,39 @@
 }
 
 .hm-fixos {
-    position: sticky;
-    top: 0;
-    z-index: 30;
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
 }
 
+/*
+  Header fica fora do scroll (AppShell). A faixa cola no topo da área rolável,
+  logo abaixo do header — sem offset extra (senão flutua em cima dos cards).
+*/
+.hm-fixos--faixa {
+    position: sticky;
+    top: 0;
+    z-index: 29;
+}
+
 .hm-topo {
     display: grid;
-    grid-template-columns: minmax(120px, 0.9fr) minmax(0, 1.4fr) minmax(120px, 0.9fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 12px;
-    padding: 18px 32px 12px;
+    gap: 16px 28px;
+    padding: 14px 48px 12px;
+}
+
+.hm-topo--global {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    flex-shrink: 0;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.app-shell--home .hm-topo--global {
+    border-bottom: 0;
 }
 
 .hm-logo {
@@ -36,18 +56,23 @@
     background: none;
     padding: 0;
     justify-self: start;
+    /* mesma altura visual da logo do .header-home */
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
     cursor: pointer;
     font-family: var(--font-heading);
-    font-size: 1.55rem;
+    font-size: 24px;
     font-weight: 800;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.02em;
     color: var(--color-primary-text);
 }
 
 .hm-pill {
     position: relative;
     justify-self: center;
-    width: min(980px, 100%);
+    width: min(860px, 100%);
+    max-width: 100%;
     z-index: 6;
 }
 
@@ -58,9 +83,9 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
     background: var(--color-surface);
-    box-shadow: 0 3px 18px color-mix(in srgb, var(--color-text) 8%, transparent);
-    min-height: 78px;
-    padding: 8px 10px 8px 10px;
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--color-text) 7%, transparent);
+    min-height: 48px;
+    padding: 4px 6px 4px 4px;
     transition: box-shadow 0.22s ease, background-color 0.22s ease;
 }
 
@@ -75,12 +100,12 @@
 
 .hm-pill-glow {
     position: absolute;
-    top: 7px;
-    bottom: 7px;
+    top: 3px;
+    bottom: 3px;
     left: 0;
     border-radius: var(--radius-pill);
     background: var(--color-surface);
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--color-text) 8%, transparent);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--color-text) 8%, transparent);
     pointer-events: none;
     z-index: 0;
 }
@@ -94,9 +119,9 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    gap: 4px;
-    min-height: 62px;
-    padding: 14px 28px;
+    gap: 1px;
+    min-height: 40px;
+    padding: 6px 18px;
     border: 0;
     border-radius: var(--radius-pill);
     background: transparent;
@@ -109,26 +134,26 @@
 
 .hm-pill-parte--onde {
     flex: 1.45;
-    padding-left: 32px;
+    padding-left: 22px;
 }
 
 .hm-pill-parte--quando {
     flex: 1.2;
-    min-width: 148px;
+    min-width: 132px;
 }
 
 .hm-pill-parte--quem {
     flex: 1.1;
-    min-width: 132px;
-    padding-right: 14px;
+    min-width: 120px;
+    padding-right: 10px;
 }
 
 .hm-pill-parte + .hm-pill-parte::before {
     content: "";
     position: absolute;
     left: 0;
-    top: 22%;
-    bottom: 22%;
+    top: 18%;
+    bottom: 18%;
     width: 1px;
     background: var(--color-border);
     opacity: 0.9;
@@ -150,20 +175,20 @@
 }
 
 .hm-pill-parte span {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.01em;
-    line-height: 1.15;
+    line-height: 1.1;
 }
 
 .hm-pill-parte strong {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    line-height: 1.3;
+    line-height: 1.2;
 }
 
 .hm-pill-vazio {
@@ -175,9 +200,9 @@
     position: relative;
     z-index: 1;
     flex: 0 0 auto;
-    width: 56px;
-    height: 56px;
-    margin-left: 6px;
+    width: 40px;
+    height: 40px;
+    margin-left: 4px;
     border: 0;
     border-radius: 50%;
     background: var(--color-primary);
@@ -189,8 +214,8 @@
 }
 
 .hm-pill-buscar svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
 }
 
 .hm-pill-buscar:hover {
@@ -525,7 +550,9 @@
     display: flex;
     align-items: center;
     justify-self: end;
-    gap: 6px;
+    gap: 8px;
+    padding-left: 4px;
+    min-height: 44px;
 }
 
 .hm-link-sobre,
@@ -660,7 +687,7 @@
     box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
-    z-index: 6;
+    z-index: 70;
 }
 
 .hm-perfil-grupo {
@@ -792,6 +819,10 @@
     object-fit: contain;
     display: block;
     flex: none;
+}
+
+html[data-tema="dark"] .hm-cats .hm-cat-img {
+    filter: invert(1) brightness(1.15);
 }
 
 .hm-cats::-webkit-scrollbar {
@@ -1474,7 +1505,7 @@
     .hm-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .hm-topo {
         grid-template-columns: auto auto;
-        padding: 14px 20px 10px;
+        padding: 12px 20px 10px;
     }
     .hm-pill { grid-column: 1 / -1; grid-row: 2; width: 100%; }
     .hm-cta-anunciar { display: none; }
@@ -1495,17 +1526,17 @@
         font-size: 14px;
     }
     .hm-pill { width: 100%; }
-    .hm-pill-barra { min-height: 64px; padding: 6px; }
+    .hm-pill-barra { min-height: 48px; padding: 4px; }
     .hm-pill-parte span { display: none; }
     .hm-pill-parte,
     .hm-pill-parte--onde,
     .hm-pill-parte--quando,
     .hm-pill-parte--quem {
-        min-height: 48px;
-        padding: 10px 14px;
+        min-height: 40px;
+        padding: 8px 12px;
     }
-    .hm-pill-parte strong { font-size: 14px; }
-    .hm-pill-buscar { width: 48px; height: 48px; }
+    .hm-pill-parte strong { font-size: 13px; }
+    .hm-pill-buscar { width: 40px; height: 40px; }
 }
 
 @media (min-width: 1600px) {

@@ -1,80 +1,116 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import "./PagamentoPage.css";
+
+const CHAVE_RESERVA_PENDENTE = "locafesta-mp-reserva";
+
+function formatarValor(valor) {
+    const numero = Number(valor);
+    if (Number.isNaN(numero)) return String(valor ?? "");
+    return numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 export function PagamentoPage() {
-  const location = useLocation();
+    const location = useLocation();
+    const navigate = useNavigate();
 
-  // Pega os dados passados na navegação ou usa valores padrão para teste
-  const reservaData = location.state || {
-    reservaId: '1024',
-    nomeEspaco: 'Espaço de Eventos',
-    valorTotal: '350.00'
-  };
+    const reservaData = location.state || {
+        reservaId: "1024",
+        nomeEspaco: "Espaço de Eventos",
+        valorTotal: "350.00",
+    };
 
-  const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [erro, setErro] = useState(null);
+    const [sincronizando, setSincronizando] = useState(false);
 
-  const handlePagar = async () => {
-    setLoading(true);
-    setErro(null);
-    try {
-      const response = await fetch('http://localhost:8080/api/v1/pagamentos/criar-preferencia', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          reservaId: reservaData.reservaId,
-          nomeEspaco: reservaData.nomeEspaco,
-          valorTotal: reservaData.valorTotal
-        })
-      });
+    // Ao voltar do Mercado Pago (sem auto_return no localhost), tenta sincronizar.
+    useEffect(() => {
+        const pendente = sessionStorage.getItem(CHAVE_RESERVA_PENDENTE);
+        if (!pendente) return undefined;
+        let cancelado = false;
+        (async () => {
+            setSincronizando(true);
+            try {
+                const res = await fetch("http://localhost:8080/api/v1/pagamentos/sincronizar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ reservaId: pendente }),
+                });
+                const dados = await res.json().catch(() => ({}));
+                if (!cancelado && dados?.pago) {
+                    sessionStorage.removeItem(CHAVE_RESERVA_PENDENTE);
+                    navigate("/pagamento/sucesso?reservaId=" + encodeURIComponent(pendente), { replace: true });
+                }
+            } catch {
+                /* mantém a tela de pagar */
+            } finally {
+                if (!cancelado) setSincronizando(false);
+            }
+        })();
+        return () => {
+            cancelado = true;
+        };
+    }, [navigate]);
 
-      if (!response.ok) {
-        const texto = await response.text();
-        console.error('Erro do backend:', texto);
-        setErro('Não foi possível iniciar o pagamento. Tente novamente.');
-        return;
-      }
+    const handlePagar = async () => {
+        setLoading(true);
+        setErro(null);
+        try {
+            const response = await fetch("http://localhost:8080/api/v1/pagamentos/criar-preferencia", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    reservaId: reservaData.reservaId,
+                    nomeEspaco: reservaData.nomeEspaco,
+                    valorTotal: reservaData.valorTotal,
+                }),
+            });
 
-      const data = await response.json();
+            if (!response.ok) {
+                const texto = await response.text();
+                console.error("Erro do backend:", texto);
+                setErro("Não foi possível iniciar o pagamento. Tente novamente.");
+                return;
+            }
 
-      // Em teste, usa o link sandbox se existir; em produção, o initPoint
-      window.location.href = data.sandboxInitPoint || data.initPoint;
-    } catch (error) {
-      console.error('Erro ao gerar preferência do Mercado Pago:', error);
-      setErro('Erro de conexão com o servidor.');
-    } finally {
-      setLoading(false);
-    }
-  };
+            const data = await response.json();
+            // Preferir initPoint: sandbox_init_point está deprecated e costuma abrir /fatal/ no checkout.
+            const url = data.initPoint || data.sandboxInitPoint;
+            if (!url) {
+                setErro("Link de pagamento não retornado pelo servidor.");
+                return;
+            }
+            sessionStorage.setItem(CHAVE_RESERVA_PENDENTE, String(reservaData.reservaId));
+            window.location.href = url;
+        } catch (error) {
+            console.error("Erro ao gerar preferência do Mercado Pago:", error);
+            setErro("Erro de conexão com o servidor.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  return (
-    <div style={{ maxWidth: '600px', margin: '40px auto', padding: '24px', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-      <h2 style={{ marginBottom: '16px' }}>Finalizar Pagamento</h2>
-      <div style={{ borderBottom: '1px solid #eee', paddingBottom: '16px', marginBottom: '20px' }}>
-        <p><strong>Espaço:</strong> {reservaData.nomeEspaco}</p>
-        <p><strong>Valor Total:</strong> R$ {reservaData.valorTotal}</p>
-      </div>
+    return (
+        <div className="pg-page">
+            <div className="pg-card">
+                <h1>Finalizar Pagamento</h1>
+                <div className="pg-resumo">
+                    <p>
+                        <strong>Espaço:</strong> {reservaData.nomeEspaco}
+                    </p>
+                    <p>
+                        <strong>Valor Total:</strong> {formatarValor(reservaData.valorTotal)}
+                    </p>
+                </div>
 
-      {erro && <p style={{ color: '#c0392b', marginBottom: '12px' }}>{erro}</p>}
+                {erro && <p className="pg-erro">{erro}</p>}
+                {sincronizando && <p className="pg-resultado-texto">Conferindo pagamento no Mercado Pago…</p>}
 
-      <button
-        onClick={handlePagar}
-        disabled={loading}
-        style={{
-          width: '100%',
-          padding: '14px',
-          backgroundColor: '#009ee3',
-          color: '#fff',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: loading ? 'not-allowed' : 'pointer',
-          opacity: loading ? 0.7 : 1
-        }}
-      >
-        {loading ? 'Redirecionando...' : 'Pagar com Mercado Pago'}
-      </button>
-    </div>
-  );
+                <button type="button" className="pg-btn" onClick={handlePagar} disabled={loading || sincronizando}>
+                    {loading ? "Redirecionando…" : "Pagar com Mercado Pago"}
+                </button>
+            </div>
+        </div>
+    );
 }

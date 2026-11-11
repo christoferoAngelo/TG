@@ -15,6 +15,7 @@ import {
     YAxis,
 } from "recharts";
 import { useAuth } from "../../contexts/AuthContext";
+import Modal from "../../components/locador/Modal";
 import { formatarData, formatarEixoReais, formatarHora, formatarMoeda } from "./formatadores";
 import "./DashboardLocador.css";
 import "./LocadorPainel.css";
@@ -27,6 +28,23 @@ const CORES_STATUS = {
     CANCELADA: "#868e96",
 };
 const COR_BARRAS = "#C9952A"; // paleta única para gráficos de procura / ranking
+
+const TEXTOS_CONFIRMACAO = {
+    aprovar: {
+        titulo: "Confirmar este pedido?",
+        descricao: (p) =>
+            `Aprovar a reserva de ${p.espacoTitulo || "este espaço"} em ${formatarData(p.dataEvento)}? O locatário poderá seguir com o pagamento.`,
+        confirmar: "Confirmar aprovação",
+        classe: "lc-btn lc-btn--success",
+    },
+    rejeitar: {
+        titulo: "Recusar este pedido?",
+        descricao: (p) =>
+            `Recusar a reserva de ${p.espacoTitulo || "este espaço"} em ${formatarData(p.dataEvento)}? A data será liberada e não haverá cobrança.`,
+        confirmar: "Recusar pedido",
+        classe: "lc-btn lc-btn--danger",
+    },
+};
 
 function temSerieUtil(dados) {
     const nums = (dados || []).map((v) => Number(v) || 0);
@@ -70,6 +88,9 @@ export default function LocadorPainel() {
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
     const [periodoFat, setPeriodoFat] = useState(6);
+    const [confirmacao, setConfirmacao] = useState(null);
+    const [processando, setProcessando] = useState(false);
+    const [erroConfirmacao, setErroConfirmacao] = useState("");
 
     const carregar = useCallback(() => {
         if (!usuarioLogado?.id) return;
@@ -113,29 +134,39 @@ export default function LocadorPainel() {
         }));
     }, [dados]);
 
-    const aprovar = async (id) => {
-        const res = await fetch(`${API}/reservas/${id}/aprovar`, {
-            method: "PATCH",
-            headers: { "Usuario-Id": usuarioLogado.id },
-        });
-        if (!res.ok) {
-            alert((await res.text()) || "Falha ao aprovar.");
-            return;
-        }
-        carregar();
+    const pedirConfirmacao = (acao, pedido) => {
+        if (!pedido || !TEXTOS_CONFIRMACAO[acao]) return;
+        setErroConfirmacao("");
+        setConfirmacao({ acao, pedido });
     };
 
-    const rejeitar = async (id) => {
-        if (!window.confirm("Recusar este pedido? A data será liberada e não haverá cobrança.")) return;
-        const res = await fetch(`${API}/reservas/${id}/rejeitar`, {
-            method: "PATCH",
-            headers: { "Usuario-Id": usuarioLogado.id },
-        });
-        if (!res.ok) {
-            alert((await res.text()) || "Falha ao recusar.");
-            return;
+    const fecharConfirmacao = () => {
+        if (processando) return;
+        setConfirmacao(null);
+        setErroConfirmacao("");
+    };
+
+    const executarConfirmacao = async () => {
+        if (!confirmacao || !usuarioLogado?.id) return;
+        const { acao, pedido } = confirmacao;
+        setProcessando(true);
+        setErroConfirmacao("");
+        try {
+            const caminho = acao === "aprovar" ? "aprovar" : "rejeitar";
+            const res = await fetch(`${API}/reservas/${pedido.id}/${caminho}`, {
+                method: "PATCH",
+                headers: { "Usuario-Id": usuarioLogado.id },
+            });
+            if (!res.ok) {
+                throw new Error((await res.text()) || (acao === "aprovar" ? "Falha ao aprovar." : "Falha ao recusar."));
+            }
+            setConfirmacao(null);
+            carregar();
+        } catch (err) {
+            setErroConfirmacao(err.message || "Não foi possível concluir a ação.");
+        } finally {
+            setProcessando(false);
         }
-        carregar();
     };
 
     if (carregando) {
@@ -470,10 +501,18 @@ export default function LocadorPainel() {
                                         </span>
                                     </div>
                                     <div className="lc-pedido-acoes">
-                                        <button type="button" className="lc-btn lc-btn--success" onClick={() => aprovar(p.id)}>
+                                        <button
+                                            type="button"
+                                            className="lc-btn lc-btn--success"
+                                            onClick={() => pedirConfirmacao("aprovar", p)}
+                                        >
                                             Aprovar
                                         </button>
-                                        <button type="button" className="lc-btn lc-btn--danger-ghost" onClick={() => rejeitar(p.id)}>
+                                        <button
+                                            type="button"
+                                            className="lc-btn lc-btn--danger-ghost"
+                                            onClick={() => pedirConfirmacao("rejeitar", p)}
+                                        >
                                             Recusar
                                         </button>
                                     </div>
@@ -509,6 +548,40 @@ export default function LocadorPainel() {
                     )}
                 </section>
             </div>
+
+            {confirmacao && (
+                <Modal
+                    titulo={TEXTOS_CONFIRMACAO[confirmacao.acao].titulo}
+                    onClose={fecharConfirmacao}
+                    bloqueado={processando}
+                    tamanho="sm"
+                    rodape={(
+                        <>
+                            <button
+                                type="button"
+                                className="lc-btn lc-btn--ghost"
+                                onClick={fecharConfirmacao}
+                                disabled={processando}
+                            >
+                                Voltar
+                            </button>
+                            <button
+                                type="button"
+                                className={TEXTOS_CONFIRMACAO[confirmacao.acao].classe}
+                                onClick={executarConfirmacao}
+                                disabled={processando}
+                            >
+                                {processando ? "Aguarde…" : TEXTOS_CONFIRMACAO[confirmacao.acao].confirmar}
+                            </button>
+                        </>
+                    )}
+                >
+                    <p className="lc-confirmacao-desc">
+                        {TEXTOS_CONFIRMACAO[confirmacao.acao].descricao(confirmacao.pedido)}
+                    </p>
+                    {erroConfirmacao && <p className="lc-pedido-erro">{erroConfirmacao}</p>}
+                </Modal>
+            )}
         </div>
     );
 }

@@ -33,7 +33,7 @@
     padding: 0 4px;
     border-radius: var(--radius-pill);
     background: var(--color-danger);
-    color: var(--color-surface);
+    color: var(--color-on-status);
     font-size: 11px;
     font-weight: 800;
     line-height: 18px;
@@ -44,7 +44,7 @@
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    z-index: 40;
+    z-index: 70;
     width: min(360px, calc(100vw - 32px));
     max-height: min(420px, 70vh);
     overflow: auto;
@@ -53,6 +53,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
+    color: var(--color-text);
 }
 
 .av-topo {
@@ -67,21 +68,29 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 800;
+    color: var(--color-text);
 }
 
 .av-topo button,
 .av-item button {
     border: 0;
     background: transparent;
-    color: var(--color-text);
+    color: var(--color-primary-text);
     text-decoration: underline;
+    text-underline-offset: 2px;
     cursor: pointer;
     font-family: var(--font-body);
     font-size: 13px;
     font-weight: 700;
 }
 
-.av-painel ul {
+.av-topo button:hover,
+.av-item button:hover {
+    color: var(--color-text);
+}
+
+.av-painel ul,
+.av-lista .animated-list__track {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -90,22 +99,73 @@
     gap: 10px;
 }
 
+.av-lista.animated-list {
+    color: var(--color-text);
+}
+
+.av-lista .animated-list__item {
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+}
+
+.av-lista .animated-list__item:hover,
+.av-lista .animated-list__item:active,
+.av-lista .animated-list__item[aria-selected="true"] {
+    filter: none;
+}
+
 .av-item {
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    padding: 12px;
+    padding: 12px 12px 12px 14px;
     border-radius: var(--radius-md);
-    background: var(--color-primary-soft);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 32%, var(--color-border));
+    background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+    box-shadow: inset 3px 0 0 var(--color-primary);
+    color: var(--color-text);
 }
 
 .av-item--lido {
+    border-color: var(--color-border);
     background: var(--color-bg-subtle);
+    box-shadow: none;
+}
+
+.av-item--acao {
+    cursor: pointer;
+}
+
+.av-item--acao:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 48%, var(--color-border));
+    background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+}
+
+.av-item--lido.av-item--acao:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg-muted);
+}
+
+.av-item--acao:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}
+
+.av-item-ir {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    color: var(--color-primary-text);
 }
 
 .av-item strong {
     display: block;
     margin-bottom: 4px;
+    color: var(--color-text);
 }
 
 .av-item p,
@@ -114,6 +174,7 @@
     margin: 0;
     font-size: 14px;
     line-height: 1.45;
+    color: var(--color-text-secondary);
 }
 
 .av-item time,
@@ -129,6 +190,7 @@
     font-size: 14px;
 }
 
-.av-item--lido p {
+.av-item--lido p,
+.av-item--lido strong {
     color: var(--color-text-muted);
 }

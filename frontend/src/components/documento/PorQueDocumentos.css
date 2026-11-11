@@ -128,9 +128,28 @@
     font-weight: 600;
 }
 
-.pq-docs-termos a {
+.pq-docs-termos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    margin-top: 4px !important;
+}
+
+.pq-docs-link {
+    display: inline;
+    border: 0;
+    padding: 0;
+    background: none;
+    font: inherit;
     font-weight: 700;
     color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.pq-docs-link:hover {
+    color: var(--color-primary-text);
 }
 
 .pq-docs-rodape {

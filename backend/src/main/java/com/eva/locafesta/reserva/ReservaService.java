@@ -273,9 +273,21 @@ public class ReservaService {
                         ? reserva.getEspaco().getPrazoCancelamentoDias()
                         : 2,
                 reserva.isPagamentoLiberado(),
+                reserva.isPago(),
                 reserva.getObservacao(),
                 reserva.getLocatario() != null ? reserva.getLocatario().getNome() : null
         );
+    }
+
+    @Transactional
+    public ReservaResponseDTO marcarPago(Long reservaId) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
+        if (!"APROVADA".equalsIgnoreCase(reserva.getStatus())) {
+            throw new RuntimeException("Só é possível registrar pagamento de reserva aprovada.");
+        }
+        reserva.setPago(true);
+        return mapearParaResponseDTO(reservaRepository.save(reserva));
     }
 
     @Transactional

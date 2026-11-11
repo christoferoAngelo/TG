@@ -10,7 +10,7 @@
 
 .sl-listas {
     list-style: none;
-    margin: 0 0 16px;
+    margin: 0 0 18px;
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -40,27 +40,50 @@
     font-size: 13px;
 }
 
-.sl-nova form {
-    margin-top: 12px;
+.sl-nova {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
 }
+
+.sl-acoes {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+}
+
+.sl-nova form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 14px 0 4px;
+}
+
+.sl-nova form label {
     display: block;
-    margin-bottom: 8px;
+    margin: 0;
     font-size: 14px;
     font-weight: 700;
 }
 
-.sl-nova div {
+.sl-nova form div {
     display: flex;
-    gap: 8px;
+    gap: 10px;
+    align-items: center;
 }
 
 .sl-nova input {
     flex: 1;
     min-width: 0;
-    padding: 10px 12px;
+    padding: 12px 14px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    background: var(--color-surface);
+    background: var(--color-bg);
     color: var(--color-text);
     font-family: var(--font-body);
     font-size: 14px;
@@ -89,7 +112,7 @@
 }
 
 .sl-erro {
-    margin: 12px 0 0;
+    margin: 14px 0 0;
     color: var(--color-danger-text);
     font-size: 14px;
     font-weight: 600;

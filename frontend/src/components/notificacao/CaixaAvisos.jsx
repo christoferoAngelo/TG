@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { temaAtual } from "../../styles/tema";
 import "./CaixaAvisos.css";
 import AnimatedList from "../bits/AnimatedList";
 
@@ -15,10 +17,29 @@ function quando(iso) {
     return data.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
+function levaAoPagamento(aviso) {
+    if (!aviso?.reservaId) return false;
+    const texto = `${aviso.titulo || ""} ${aviso.mensagem || ""}`.toLowerCase();
+    return texto.includes("pagamento") || texto.includes("confirmada");
+}
+
 export default function CaixaAvisos({ usuarioId }) {
+    const navigate = useNavigate();
     const [avisos, setAvisos] = useState([]);
     const [aberto, setAberto] = useState(false);
+    const [abrindoId, setAbrindoId] = useState(null);
+    const [tema, setTema] = useState(() =>
+        typeof document !== "undefined"
+            ? document.documentElement.getAttribute("data-tema") || temaAtual()
+            : "light"
+    );
     const caixaRef = useRef(null);
+
+    useEffect(() => {
+        const onTema = (evento) => setTema(evento.detail || temaAtual());
+        window.addEventListener("locafesta-tema", onTema);
+        return () => window.removeEventListener("locafesta-tema", onTema);
+    }, []);
 
     const carregar = useCallback(() => {
         if (!usuarioId) return;
@@ -70,6 +91,54 @@ export default function CaixaAvisos({ usuarioId }) {
         setAvisos((atual) => atual.map((aviso) => ({ ...aviso, lida: true })));
     };
 
+    const abrirAviso = async (aviso) => {
+        if (!aviso?.reservaId || abrindoId) return;
+
+        setAbrindoId(aviso.id);
+        try {
+            if (!aviso.lida) {
+                try {
+                    await marcar(aviso.id);
+                } catch {
+                    /* segue mesmo se marcar falhar */
+                }
+            }
+
+            setAberto(false);
+
+            if (levaAoPagamento(aviso)) {
+                let nomeEspaco = "Espaço";
+                let valorTotal = "0.00";
+                try {
+                    const res = await fetch(`${API}/reservas/minhas-reservas`, {
+                        headers: { "Usuario-Id": usuarioId },
+                    });
+                    const lista = res.ok ? await res.json() : [];
+                    const reserva = Array.isArray(lista)
+                        ? lista.find((item) => Number(item.id) === Number(aviso.reservaId))
+                        : null;
+                    if (reserva?.espaco?.titulo) nomeEspaco = reserva.espaco.titulo;
+                    if (reserva?.valorTotal != null) valorTotal = Number(reserva.valorTotal).toFixed(2);
+                } catch {
+                    /* usa fallback */
+                }
+
+                navigate("/pagamento", {
+                    state: {
+                        reservaId: aviso.reservaId,
+                        nomeEspaco,
+                        valorTotal,
+                    },
+                });
+                return;
+            }
+
+            navigate("/minhas-reservas");
+        } finally {
+            setAbrindoId(null);
+        }
+    };
+
     if (!usuarioId) return null;
     const novas = avisos.filter((aviso) => !aviso.lida).length;
 
@@ -108,7 +177,7 @@ export default function CaixaAvisos({ usuarioId }) {
                             className="av-lista"
                             items={avisos}
                             frame={false}
-                            theme="light"
+                            theme={tema === "dark" ? "dark" : "light"}
                             width="100%"
                             maxHeight={320}
                             selectOnHover={false}
@@ -117,18 +186,51 @@ export default function CaixaAvisos({ usuarioId }) {
                             animation="fade"
                             stagger={0.04}
                             accentColor="#FECB5A"
-                            renderItem={(aviso) => (
-                                <div className={aviso.lida ? "av-item av-item--lido" : "av-item"}>
-                                    <div>
-                                        <strong>{aviso.titulo}</strong>
-                                        <p>{aviso.mensagem}</p>
-                                        <time>{quando(aviso.criadaEm)}</time>
+                            onItemSelect={(aviso) => abrirAviso(aviso)}
+                            renderItem={(aviso) => {
+                                const pagamento = levaAoPagamento(aviso);
+                                const clicavel = Boolean(aviso.reservaId);
+                                return (
+                                    <div
+                                        className={[
+                                            "av-item",
+                                            aviso.lida ? "av-item--lido" : "",
+                                            clicavel ? "av-item--acao" : "",
+                                        ].filter(Boolean).join(" ")}
+                                        role={clicavel ? "link" : undefined}
+                                        tabIndex={clicavel ? 0 : undefined}
+                                        onKeyDown={(evento) => {
+                                            if (!clicavel) return;
+                                            if (evento.key === "Enter" || evento.key === " ") {
+                                                evento.preventDefault();
+                                                abrirAviso(aviso);
+                                            }
+                                        }}
+                                    >
+                                        <div>
+                                            <strong>{aviso.titulo}</strong>
+                                            <p>{aviso.mensagem}</p>
+                                            <time>{quando(aviso.criadaEm)}</time>
+                                            {pagamento && (
+                                                <span className="av-item-ir">
+                                                    {abrindoId === aviso.id ? "Abrindo pagamento…" : "Ir ao pagamento"}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {!aviso.lida && (
+                                            <button
+                                                type="button"
+                                                onClick={(evento) => {
+                                                    evento.stopPropagation();
+                                                    marcar(aviso.id);
+                                                }}
+                                            >
+                                                Marcar como lido
+                                            </button>
+                                        )}
                                     </div>
-                                    {!aviso.lida && (
-                                        <button type="button" onClick={(evento) => { evento.stopPropagation(); marcar(aviso.id); }}>Marcar como lido</button>
-                                    )}
-                                </div>
-                            )}
+                                );
+                            }}
                         />
                     )}
                 </section>

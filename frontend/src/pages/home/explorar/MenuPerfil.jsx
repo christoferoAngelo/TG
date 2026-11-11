@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import ConfirmacaoSair from "../../../components/ConfirmacaoSair";
+import { alternarTema, temaAtual } from "../../../styles/tema";
 
 export default function MenuPerfil() {
     const navigate = useNavigate();
@@ -10,11 +11,22 @@ export default function MenuPerfil() {
     const [aberto, setAberto] = useState(false);
     const [confirmarSair, setConfirmarSair] = useState(false);
     const [saindo, setSaindo] = useState(false);
+    const [tema, setTema] = useState(() =>
+        typeof document !== "undefined"
+            ? document.documentElement.getAttribute("data-tema") || temaAtual()
+            : "light"
+    );
     const caixaRef = useRef(null);
 
     const nome = usuarioLogado?.nome || usuarioLogado?.email || "Conta";
     const inicial = nome.trim().charAt(0).toUpperCase() || "L";
     const locador = Boolean(usuarioLogado?.locador || usuarioLogado?.isLocador);
+
+    useEffect(() => {
+        const onTema = (evento) => setTema(evento.detail || temaAtual());
+        window.addEventListener("locafesta-tema", onTema);
+        return () => window.removeEventListener("locafesta-tema", onTema);
+    }, []);
 
     useEffect(() => {
         if (!aberto) return undefined;
@@ -92,6 +104,7 @@ export default function MenuPerfil() {
             {aberto && (
                 <div className="hm-perfil-menu" role="menu">
                     <div className="hm-perfil-grupo">
+                        <button type="button" role="menuitem" onClick={() => ir("/home")}>Início</button>
                         <button type="button" role="menuitem" onClick={() => ir("/favoritos")}>Favoritos</button>
                         <button type="button" role="menuitem" onClick={() => ir("/perfil")}>Meu perfil</button>
                         <button type="button" role="menuitem" onClick={() => ir("/minhas-reservas")}>Minhas reservas</button>
@@ -104,11 +117,15 @@ export default function MenuPerfil() {
                         >
                             {locador ? "Meu negócio" : "Vou anunciar"}
                         </button>
-                        <button type="button" role="menuitem" onClick={() => ir("/sobre")}>
-                            Sobre o LocaFesta
-                        </button>
                     </div>
                     <div className="hm-perfil-grupo">
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => setTema(alternarTema())}
+                        >
+                            {tema === "dark" ? "Modo claro" : "Modo escuro"}
+                        </button>
                         <button type="button" role="menuitem" onClick={pedirSaida}>Sair</button>
                     </div>
                 </div>

@@ -487,11 +487,22 @@
     }
 }
 
+.lc-confirmacao-desc {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.55;
+    color: var(--color-text-muted);
+}
+
 .lc-pedido-erro {
     margin: 0;
     font-size: 13px;
     font-weight: 700;
     color: var(--color-danger-text);
+}
+
+.lc-confirmacao-desc + .lc-pedido-erro {
+    margin-top: 12px;
 }
 
 .lc-cancela {

@@ -108,9 +108,35 @@
     align-items: center;
     gap: 28px;
     padding: 36px 40px;
-    background: var(--color-text);
-    color: var(--color-bg);
+    /* No claro: bloco escuro (coffee). No escuro: sobrescrito abaixo. */
+    background: var(--palette-coffee, #130501);
+    color: var(--palette-ivory, #FEFBE6);
     border-radius: 20px;
+}
+
+html[data-tema="dark"] .pf-hero {
+    background: color-mix(in srgb, var(--palette-coffee) 78%, #3a2418);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+html[data-tema="dark"] .pf-hero-ok {
+    color: var(--color-primary-text);
+}
+
+html[data-tema="dark"] .pf-tipo {
+    color: color-mix(in srgb, var(--color-text) 82%, transparent);
+    border-color: color-mix(in srgb, var(--color-text) 28%, transparent);
+}
+
+html[data-tema="dark"] .pf-tipo--ativo {
+    color: var(--palette-coffee, #130501);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+html[data-tema="dark"] .pf-barra {
+    background: color-mix(in srgb, var(--color-text) 16%, transparent);
 }
 
 .pf-hero::before {

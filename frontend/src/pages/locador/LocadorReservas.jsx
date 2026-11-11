@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useOutletContext, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import CalendarioSolicitacoes from "../../components/locador/CalendarioSolicitacoes";
+import Modal from "../../components/locador/Modal";
 import PedidoLocacaoModal from "../../components/locador/PedidoLocacaoModal";
 import { pedirRecargaAvisos } from "../../components/notificacao/CaixaAvisos";
 import { avisoPrazoLocador, podeCancelarLocador, prazoLocador, textoCancelamento } from "../reserva/cancelamento";
@@ -10,6 +11,30 @@ import { formatarData, formatarHora, formatarMoeda, statusDe } from "./formatado
 import "./DashboardLocador.css";
 import "./LocadorLayout.css";
 import "./LocadorReservas.css";
+
+const TEXTOS_CONFIRMACAO = {
+    aprovar: {
+        titulo: "Confirmar este pedido?",
+        descricao: (p) =>
+            `Aprovar a reserva de ${p.espaco?.titulo || "este espaço"} em ${formatarData(p.dataEvento)}? O locatário poderá seguir com o pagamento.`,
+        confirmar: "Confirmar aprovação",
+        classe: "lc-btn lc-btn--success",
+    },
+    rejeitar: {
+        titulo: "Recusar este pedido?",
+        descricao: (p) =>
+            `Recusar a reserva de ${p.espaco?.titulo || "este espaço"} em ${formatarData(p.dataEvento)}? A data será liberada e não haverá cobrança.`,
+        confirmar: "Recusar pedido",
+        classe: "lc-btn lc-btn--danger",
+    },
+    cancelar: {
+        titulo: "Cancelar esta reserva?",
+        descricao: (p) =>
+            `Cancelar a reserva de ${p.espaco?.titulo || "este espaço"} em ${formatarData(p.dataEvento)}? O locatário receberá reembolso total e a data volta a ficar disponível.`,
+        confirmar: "Confirmar cancelamento",
+        classe: "lc-btn lc-btn--danger",
+    },
+};
 
 const API = "http://localhost:8080/api";
 
@@ -84,10 +109,10 @@ export default function LocadorReservas() {
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
     const [visualizacao, setVisualizacao] = useState("lista");
-    const [confirmandoId, setConfirmandoId] = useState(null);
+    const [confirmacao, setConfirmacao] = useState(null);
     const [pedidoAberto, setPedidoAberto] = useState(null);
-    const [cancelandoId, setCancelandoId] = useState(null);
-    const [erroCancelar, setErroCancelar] = useState("");
+    const [processando, setProcessando] = useState(false);
+    const [erroConfirmacao, setErroConfirmacao] = useState("");
 
     const carregar = () => {
         if (!usuarioLogado?.id) return;
@@ -148,58 +173,66 @@ export default function LocadorReservas() {
         );
     };
 
-    const handleAprovar = async (reservaId) => {
-        try {
-            const response = await fetch(`${API}/reservas/${reservaId}/aprovar`, {
-                method: "PATCH",
-                headers: { "Usuario-Id": usuarioLogado.id },
-            });
-            if (!response.ok) throw new Error("Falha ao aprovar reserva.");
-            atualizarLocal(reservaId, { status: "APROVADA" });
-            if (typeof setPendentesNav === "function") {
-                setPendentesNav((n) => Math.max(0, (Number(n) || 0) - 1));
-            }
-        } catch (err) {
-            alert("Erro: " + err.message);
-        }
+    const pedirConfirmacao = (acao, pedidoOuId) => {
+        const pedido =
+            pedidoOuId && typeof pedidoOuId === "object"
+                ? pedidoOuId
+                : solicitacoes.find((req) => req.id === pedidoOuId);
+        if (!pedido || !TEXTOS_CONFIRMACAO[acao]) return;
+        setErroConfirmacao("");
+        setConfirmacao({ acao, pedido });
     };
 
-    const handleRejeitar = async (reservaId) => {
-        try {
-            const response = await fetch(`${API}/reservas/${reservaId}/rejeitar`, {
-                method: "PATCH",
-                headers: { "Usuario-Id": usuarioLogado.id },
-            });
-            if (!response.ok) throw new Error("Falha ao rejeitar reserva.");
-            atualizarLocal(reservaId, { status: "REJEITADA" });
-            if (typeof setPendentesNav === "function") {
-                setPendentesNav((n) => Math.max(0, (Number(n) || 0) - 1));
-            }
-        } catch (err) {
-            alert("Erro: " + err.message);
-        }
+    const fecharConfirmacao = () => {
+        if (processando) return;
+        setConfirmacao(null);
+        setErroConfirmacao("");
     };
 
-    const handleCancelar = async (reservaId) => {
-        setCancelandoId(reservaId);
-        setErroCancelar("");
+    const executarConfirmacao = async () => {
+        if (!confirmacao || !usuarioLogado?.id) return;
+        const { acao, pedido } = confirmacao;
+        const reservaId = pedido.id;
+        setProcessando(true);
+        setErroConfirmacao("");
         try {
-            const response = await fetch(`${API}/reservas/${reservaId}/cancelar-locador`, {
-                method: "PATCH",
-                headers: { "Usuario-Id": usuarioLogado.id },
-            });
-            if (!response.ok) {
-                const texto = await response.text();
-                throw new Error(texto || "Não foi possível cancelar esta reserva.");
+            if (acao === "aprovar") {
+                const response = await fetch(`${API}/reservas/${reservaId}/aprovar`, {
+                    method: "PATCH",
+                    headers: { "Usuario-Id": usuarioLogado.id },
+                });
+                if (!response.ok) throw new Error((await response.text()) || "Falha ao aprovar reserva.");
+                atualizarLocal(reservaId, { status: "APROVADA" });
+                if (typeof setPendentesNav === "function") {
+                    setPendentesNav((n) => Math.max(0, (Number(n) || 0) - 1));
+                }
+            } else if (acao === "rejeitar") {
+                const response = await fetch(`${API}/reservas/${reservaId}/rejeitar`, {
+                    method: "PATCH",
+                    headers: { "Usuario-Id": usuarioLogado.id },
+                });
+                if (!response.ok) throw new Error((await response.text()) || "Falha ao rejeitar reserva.");
+                atualizarLocal(reservaId, { status: "REJEITADA" });
+                if (typeof setPendentesNav === "function") {
+                    setPendentesNav((n) => Math.max(0, (Number(n) || 0) - 1));
+                }
+            } else if (acao === "cancelar") {
+                const response = await fetch(`${API}/reservas/${reservaId}/cancelar-locador`, {
+                    method: "PATCH",
+                    headers: { "Usuario-Id": usuarioLogado.id },
+                });
+                if (!response.ok) {
+                    throw new Error((await response.text()) || "Não foi possível cancelar esta reserva.");
+                }
+                const atualizada = await response.json();
+                atualizarLocal(reservaId, atualizada);
+                pedirRecargaAvisos();
             }
-            const atualizada = await response.json();
-            atualizarLocal(reservaId, atualizada);
-            setConfirmandoId(null);
-            pedirRecargaAvisos();
+            setConfirmacao(null);
         } catch (err) {
-            setErroCancelar(err.message);
+            setErroConfirmacao(err.message || "Não foi possível concluir a ação.");
         } finally {
-            setCancelandoId(null);
+            setProcessando(false);
         }
     };
 
@@ -268,12 +301,10 @@ export default function LocadorReservas() {
                     <div className="lc-calendario">
                         <CalendarioSolicitacoes
                             solicitacoes={filtradas}
-                            onAprovar={handleAprovar}
-                            onRejeitar={handleRejeitar}
+                            onAprovar={(id) => pedirConfirmacao("aprovar", id)}
+                            onRejeitar={(id) => pedirConfirmacao("rejeitar", id)}
                             onCancelar={(id) => {
-                                setErroCancelar("");
-                                setConfirmandoId(id);
-                                setVisualizacao("lista");
+                                pedirConfirmacao("cancelar", id);
                             }}
                             onVer={(pedido) => setPedidoAberto(pedido)}
                         />
@@ -317,71 +348,37 @@ export default function LocadorReservas() {
                                                 </td>
                                                 <td data-label="Ações">
                                                     <div className="lc-reservas-acoes">
-                                                        {statusDe(req.status) === "PENDENTE" && confirmandoId !== req.id && (
+                                                        {statusDe(req.status) === "PENDENTE" && (
                                                             <>
                                                                 <button
                                                                     type="button"
                                                                     className="lc-btn lc-btn--success"
-                                                                    onClick={() => handleAprovar(req.id)}
+                                                                    onClick={() => pedirConfirmacao("aprovar", req)}
                                                                 >
                                                                     Aprovar
                                                                 </button>
                                                                 <button
                                                                     type="button"
                                                                     className="lc-btn lc-btn--danger-ghost"
-                                                                    onClick={() => handleRejeitar(req.id)}
+                                                                    onClick={() => pedirConfirmacao("rejeitar", req)}
                                                                 >
                                                                     Recusar
                                                                 </button>
                                                             </>
                                                         )}
-                                                        {podeCancelarLocador(req) && confirmandoId !== req.id && (
+                                                        {podeCancelarLocador(req) && (
                                                             <button
                                                                 type="button"
                                                                 className="lc-btn lc-btn--danger-ghost"
-                                                                onClick={() => {
-                                                                    setErroCancelar("");
-                                                                    setConfirmandoId(req.id);
-                                                                }}
+                                                                onClick={() => pedirConfirmacao("cancelar", req)}
                                                             >
                                                                 Cancelar
                                                             </button>
                                                         )}
-                                                        {statusDe(req.status) !== "PENDENTE" && !podeCancelarLocador(req) && confirmandoId !== req.id && (
+                                                        {statusDe(req.status) !== "PENDENTE" && !podeCancelarLocador(req) && (
                                                             <span className="lc-reservas-sem-acao">—</span>
                                                         )}
                                                     </div>
-                                                    {confirmandoId === req.id && (
-                                                        <div className="lc-cancela" role="alertdialog" aria-labelledby={`cancela-titulo-${req.id}`}>
-                                                            <p id={`cancela-titulo-${req.id}`}>
-                                                                <strong>Confirmar cancelamento?</strong>{" "}
-                                                                O locatário receberá reembolso total e a data volta a ficar disponível.
-                                                                Prazo restante: {prazoLocador(req)} dia(s) antes do evento.
-                                                            </p>
-                                                            {erroCancelar && <p className="lc-pedido-erro">{erroCancelar}</p>}
-                                                            <div className="lc-pedido-acoes">
-                                                                <button
-                                                                    type="button"
-                                                                    className="lc-btn lc-btn--danger"
-                                                                    disabled={cancelandoId === req.id}
-                                                                    onClick={() => handleCancelar(req.id)}
-                                                                >
-                                                                    {cancelandoId === req.id ? "Cancelando…" : "Confirmar"}
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    className="lc-btn lc-btn--ghost"
-                                                                    disabled={cancelandoId === req.id}
-                                                                    onClick={() => {
-                                                                        setConfirmandoId(null);
-                                                                        setErroCancelar("");
-                                                                    }}
-                                                                >
-                                                                    Voltar
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    )}
                                                     {textoCancelamento(req) && (
                                                         <p className="lc-pedido-aviso">{textoCancelamento(req)}</p>
                                                     )}
@@ -430,10 +427,18 @@ export default function LocadorReservas() {
                                             </button>
                                             {statusDe(req.status) === "PENDENTE" && (
                                                 <>
-                                                    <button type="button" className="lc-btn lc-btn--success" onClick={() => handleAprovar(req.id)}>
+                                                    <button
+                                                        type="button"
+                                                        className="lc-btn lc-btn--success"
+                                                        onClick={() => pedirConfirmacao("aprovar", req)}
+                                                    >
                                                         Aprovar
                                                     </button>
-                                                    <button type="button" className="lc-btn lc-btn--danger-ghost" onClick={() => handleRejeitar(req.id)}>
+                                                    <button
+                                                        type="button"
+                                                        className="lc-btn lc-btn--danger-ghost"
+                                                        onClick={() => pedirConfirmacao("rejeitar", req)}
+                                                    >
                                                         Recusar
                                                     </button>
                                                 </>
@@ -442,44 +447,12 @@ export default function LocadorReservas() {
                                                 <button
                                                     type="button"
                                                     className="lc-btn lc-btn--danger-ghost"
-                                                    onClick={() => {
-                                                        setErroCancelar("");
-                                                        setConfirmandoId(req.id);
-                                                    }}
+                                                    onClick={() => pedirConfirmacao("cancelar", req)}
                                                 >
                                                     Cancelar
                                                 </button>
                                             )}
                                         </div>
-                                        {confirmandoId === req.id && (
-                                            <div className="lc-cancela" role="alertdialog">
-                                                <p>
-                                                    <strong>Confirmar cancelamento?</strong>{" "}
-                                                    O locatário receberá reembolso total e a data volta a ficar disponível.
-                                                </p>
-                                                {erroCancelar && <p className="lc-pedido-erro">{erroCancelar}</p>}
-                                                <div className="lc-pedido-acoes">
-                                                    <button
-                                                        type="button"
-                                                        className="lc-btn lc-btn--danger"
-                                                        disabled={cancelandoId === req.id}
-                                                        onClick={() => handleCancelar(req.id)}
-                                                    >
-                                                        Confirmar
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="lc-btn lc-btn--ghost"
-                                                        onClick={() => {
-                                                            setConfirmandoId(null);
-                                                            setErroCancelar("");
-                                                        }}
-                                                    >
-                                                        Voltar
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
                                     </li>
                                 );
                             })}
@@ -492,14 +465,53 @@ export default function LocadorReservas() {
                 pedido={pedidoAberto}
                 onFechar={() => setPedidoAberto(null)}
                 onAprovar={(id) => {
+                    const pedido = pedidoAberto?.id === id ? pedidoAberto : solicitacoes.find((req) => req.id === id);
                     setPedidoAberto(null);
-                    handleAprovar(id);
+                    pedirConfirmacao("aprovar", pedido || id);
                 }}
                 onRejeitar={(id) => {
+                    const pedido = pedidoAberto?.id === id ? pedidoAberto : solicitacoes.find((req) => req.id === id);
                     setPedidoAberto(null);
-                    handleRejeitar(id);
+                    pedirConfirmacao("rejeitar", pedido || id);
                 }}
             />
+
+            {confirmacao && (
+                <Modal
+                    titulo={TEXTOS_CONFIRMACAO[confirmacao.acao].titulo}
+                    onClose={fecharConfirmacao}
+                    bloqueado={processando}
+                    tamanho="sm"
+                    rodape={(
+                        <>
+                            <button
+                                type="button"
+                                className="lc-btn lc-btn--ghost"
+                                onClick={fecharConfirmacao}
+                                disabled={processando}
+                            >
+                                Voltar
+                            </button>
+                            <button
+                                type="button"
+                                className={TEXTOS_CONFIRMACAO[confirmacao.acao].classe}
+                                onClick={executarConfirmacao}
+                                disabled={processando}
+                            >
+                                {processando ? "Aguarde…" : TEXTOS_CONFIRMACAO[confirmacao.acao].confirmar}
+                            </button>
+                        </>
+                    )}
+                >
+                    <p className="lc-confirmacao-desc">
+                        {TEXTOS_CONFIRMACAO[confirmacao.acao].descricao(confirmacao.pedido)}
+                        {confirmacao.acao === "cancelar" && podeCancelarLocador(confirmacao.pedido) && (
+                            <> Prazo restante: {prazoLocador(confirmacao.pedido)} dia(s) antes do evento.</>
+                        )}
+                    </p>
+                    {erroConfirmacao && <p className="lc-pedido-erro">{erroConfirmacao}</p>}
+                </Modal>
+            )}
         </div>
     );
 }

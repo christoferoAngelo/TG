@@ -102,14 +102,6 @@ export default function SalvarLista({ espaco, listas, usuarioId, onFechar, onLis
                     )}
 
                     <div className="sl-nova">
-                        <button
-                            type="button"
-                            className="sl-btn"
-                            aria-expanded={novaAberta}
-                            onClick={() => setNovaAberta((aberta) => !aberta)}
-                        >
-                            Nova lista
-                        </button>
                         {novaAberta && (
                             <form onSubmit={criar}>
                                 <label htmlFor="sl-nome">Nome da lista</label>
@@ -127,6 +119,23 @@ export default function SalvarLista({ espaco, listas, usuarioId, onFechar, onLis
                                 </div>
                             </form>
                         )}
+                        <div className="sl-acoes">
+                            <button
+                                type="button"
+                                className="sl-btn"
+                                aria-expanded={novaAberta}
+                                onClick={() => setNovaAberta((aberta) => !aberta)}
+                            >
+                                Nova lista
+                            </button>
+                            <button
+                                type="button"
+                                className="sl-btn sl-btn--cheio"
+                                onClick={onFechar}
+                            >
+                                OK
+                            </button>
+                        </div>
                     </div>
                     {erro && <p className="sl-erro" role="alert">{erro}</p>}
                 </div>

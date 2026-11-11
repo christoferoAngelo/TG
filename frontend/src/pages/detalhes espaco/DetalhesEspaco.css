@@ -129,6 +129,44 @@
     color: var(--color-text-secondary);
 }
 
+.dt-locador {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.dt-locador-avatar {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--color-accent, #fecb5a) 35%, var(--color-bg));
+    border: 1px solid var(--color-border);
+}
+
+.dt-locador-info {
+    min-width: 0;
+}
+
+.dt-locador-nome {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.dt-locador-papel {
+    margin: 4px 0 0;
+    font-size: 0.92rem;
+    color: var(--color-text-muted);
+}
+
 .dt-nota {
     display: inline-flex;
     align-items: center;
@@ -510,7 +548,13 @@
 /* --- Cartão de reserva --- */
 .dt-lateral {
     position: sticky;
-    top: 96px;
+    /* Header global está fora do scroll; cola perto do topo da área rolável */
+    top: 16px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    align-self: start;
+    scrollbar-gutter: stable;
 }
 
 .dt-dono-aviso {
@@ -652,6 +696,25 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg, 16px);
     box-shadow: var(--shadow-md, 0 8px 28px rgba(19, 5, 1, 0.1));
+}
+
+/* Mantém o CTA visível enquanto o calendário/campos rolam no cartão */
+.dt-reserva-rodape {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 4px -24px -24px;
+    padding: 14px 24px 20px;
+    background: linear-gradient(
+        to top,
+        var(--color-surface) 72%,
+        color-mix(in srgb, var(--color-surface) 88%, transparent)
+    );
+    border-top: 1px solid var(--color-border-soft, var(--color-border));
+    border-radius: 0 0 var(--radius-lg, 16px) var(--radius-lg, 16px);
 }
 
 .dt-preco {
@@ -828,6 +891,62 @@
     color: var(--color-text-muted);
 }
 
+.dt-cal-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    text-align: left;
+    cursor: pointer;
+}
+
+.dt-cal-toggle:hover {
+    border-color: var(--color-text);
+}
+
+.dt-cal-toggle:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}
+
+.dt-cal-toggle-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.dt-cal-toggle-rotulo {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.dt-cal-toggle-texto strong {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.dt-cal-toggle-seta {
+    flex: 0 0 auto;
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+#dt-cal-painel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .dt-cal {
     display: flex;
     flex-direction: column;
@@ -938,6 +1057,27 @@
 .dt-sucesso p {
     margin: 2px 0 0;
     color: var(--color-text-secondary);
+}
+
+.dt-sucesso-aviso {
+    margin-top: 8px !important;
+    line-height: 1.45;
+}
+
+.dt-sucesso-link {
+    border: 0;
+    padding: 0;
+    background: none;
+    font: inherit;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.dt-sucesso-link:hover {
+    color: var(--color-primary-text);
 }
 
 /* --- Barra de reserva (celular) --- */
@@ -1125,6 +1265,13 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+}
+
+.dt-confirmar-reserva-desc {
+    margin: 0 0 22px;
+    font-size: 0.98rem;
+    line-height: 1.55;
+    color: var(--color-text-muted);
 }
 
 @media (prefers-reduced-motion: reduce) {

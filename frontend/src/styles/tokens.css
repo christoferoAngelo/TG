@@ -143,3 +143,62 @@
     --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+
+/* ------------------------------------------------------------------
+   MODO ESCURO — mesmas chaves semânticas; superfícies/texto invertidos
+   ------------------------------------------------------------------ */
+html[data-tema="dark"] {
+    color-scheme: dark;
+
+    --color-bg:        #160e0b;
+    --color-bg-subtle: color-mix(in srgb, var(--palette-coffee) 72%, #2a1c16);
+    --color-bg-muted:  color-mix(in srgb, var(--palette-coffee) 55%, #3a2820);
+    --color-surface:   #221611;
+    --color-overlay:   color-mix(in srgb, #000 65%, transparent);
+
+    --color-surface-dark:       #0c0705;
+    --color-on-dark:            var(--palette-ivory);
+    --color-on-dark-muted:      color-mix(in srgb, var(--palette-ivory) 72%, transparent);
+    --color-on-dark-faint:      color-mix(in srgb, var(--palette-ivory) 52%, transparent);
+    --color-on-dark-line:       color-mix(in srgb, var(--palette-ivory) 10%, transparent);
+    --color-on-dark-fill:       color-mix(in srgb, var(--palette-ivory) 7%, transparent);
+    --color-on-dark-fill-hover: color-mix(in srgb, var(--palette-ivory) 14%, transparent);
+
+    --color-text:           #F7F0DF;
+    --color-text-secondary: color-mix(in srgb, var(--palette-ivory) 78%, var(--palette-coffee));
+    --color-text-muted:     color-mix(in srgb, var(--palette-ivory) 62%, var(--palette-coffee));
+    --color-text-faint:     color-mix(in srgb, var(--palette-ivory) 48%, var(--palette-coffee));
+
+    --color-border:        color-mix(in srgb, var(--palette-wheat) 28%, #3a2a22);
+    --color-border-soft:   color-mix(in srgb, var(--palette-wheat) 14%, #2a1c16);
+    --color-border-strong: color-mix(in srgb, var(--palette-wheat) 42%, #4a342a);
+
+    --color-primary:       var(--palette-golden);
+    --color-primary-dark:  color-mix(in srgb, var(--palette-golden) 78%, white);
+    --color-primary-soft:  color-mix(in srgb, var(--palette-golden) 22%, #2a1c16);
+    --color-primary-text:  color-mix(in srgb, var(--palette-golden) 78%, white);
+    --color-on-primary:    var(--palette-coffee);
+    --color-primary-glow:  color-mix(in srgb, var(--palette-golden) 35%, transparent);
+    --color-focus-ring:    color-mix(in srgb, var(--palette-golden) 45%, transparent);
+    --color-accent-soft:   color-mix(in srgb, var(--palette-wheat) 18%, #221611);
+
+    --color-success-soft: #0f2f24;
+    --color-success-text: #6EE7B7;
+    --color-danger-soft: #3f1518;
+    --color-danger-soft-hover: #5a1d22;
+    --color-danger-text: #FCA5A5;
+    --color-warning-soft: #3a2a0c;
+    --color-warning-text: #FCD34D;
+    --color-info-soft: #0f2740;
+    --color-info-soft-hover: #163554;
+    --color-info-text: #7DD3FC;
+
+    --color-success-border: color-mix(in srgb, var(--color-success) 35%, #160e0b);
+    --color-danger-border:  color-mix(in srgb, var(--color-danger) 35%, #160e0b);
+    --color-warning-border: color-mix(in srgb, var(--color-warning-solid) 35%, #160e0b);
+    --color-warning-soft-hover: color-mix(in srgb, var(--color-warning-solid) 28%, #2a1c16);
+
+    --shadow-color-soft:   color-mix(in srgb, #000 28%, transparent);
+    --shadow-color:        color-mix(in srgb, #000 42%, transparent);
+    --shadow-color-strong: color-mix(in srgb, #000 58%, transparent);
+}

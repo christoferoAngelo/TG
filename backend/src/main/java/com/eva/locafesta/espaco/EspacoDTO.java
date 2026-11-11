@@ -31,6 +31,8 @@ public class EspacoDTO {
     private Long locadorId;
     /** ID do usuário dono do anúncio (para o front bloquear auto-reserva). */
     private Long locadorUsuarioId;
+    /** Nome público do anunciante (nome fantasia ou nome da conta). */
+    private String locadorNome;
     private EnderecoDTO endereco;
     private String titulo;
     private String descricao;
@@ -86,6 +88,15 @@ public void setFechaNoDiaSeguinte(Boolean fechaNoDiaSeguinte) {
             this.locadorId = espaco.getLocador().getId();
             if (espaco.getLocador().getUsuario() != null) {
                 this.locadorUsuarioId = espaco.getLocador().getUsuario().getId();
+            }
+            String fantasia = espaco.getLocador().getNomeFantasia();
+            String conta = espaco.getLocador().getUsuario() != null
+                    ? espaco.getLocador().getUsuario().getNome()
+                    : null;
+            if (fantasia != null && !fantasia.isBlank()) {
+                this.locadorNome = fantasia.trim();
+            } else if (conta != null && !conta.isBlank()) {
+                this.locadorNome = conta.trim();
             }
         }
         if (espaco.getEndereco() != null) {

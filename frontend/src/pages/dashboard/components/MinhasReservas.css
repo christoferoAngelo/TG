@@ -216,6 +216,10 @@
     color: var(--color-primary-text);
 }
 
+.mr-pagamento--pago {
+    color: var(--color-success-text);
+}
+
 .mr-badge--pendente {
     background: var(--color-warning-soft);
     color: var(--color-warning-text);
@@ -433,9 +437,55 @@
     gap: 16px;
 }
 
+.mr-nota-linha {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
 .mr-rotulo {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
     font-size: 14px;
     font-weight: 600;
+}
+
+.mr-nota-legenda {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.mr-suporte {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
+.mr-suporte strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: var(--color-text);
+}
+
+.mr-suporte a {
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.mr-suporte a:hover {
+    color: var(--color-primary-text);
 }
 
 .mr-estrelas {

@@ -18,6 +18,7 @@ import Sobre from "./pages/sobre/Sobre";
 import Jornada from "./pages/jornada/Jornada";
 import DetalhesEspaco from "./pages/detalhes espaco/DetalhesEspaco";
 import { PagamentoPage } from "./pages/pagamento/PagamentoPage";
+import PagamentoResultado from "./pages/pagamento/PagamentoResultado";
 import DocumentosEspaco from "./pages/documentos/DocumentosEspaco";
 import DocumentosAdmin from "./pages/documentos/DocumentosAdmin";
 import AppShell from "./components/layout/AppShell";
@@ -136,6 +137,12 @@ function RotasAplicacao() {
                             <Route path="/minhas-reservas" element={<MinhasReservas />} />
                             <Route path="/favoritos" element={<Favoritos />} />
                             <Route path="/pagamento" element={<PagamentoPage />} />
+                            <Route path="/pagamento/sucesso" element={<PagamentoResultado tipo="sucesso" />} />
+                            <Route path="/pagamento/falha" element={<PagamentoResultado tipo="falha" />} />
+                            <Route path="/pagamento/pendente" element={<PagamentoResultado tipo="pendente" />} />
+                            <Route path="/reserva/sucesso" element={<Navigate to="/pagamento/sucesso" replace />} />
+                            <Route path="/reserva/falha" element={<Navigate to="/pagamento/falha" replace />} />
+                            <Route path="/reserva/pendente" element={<Navigate to="/pagamento/pendente" replace />} />
                             <Route path="/cadastro-locador" element={<CadastroLocador />} />
                             <Route path="/perfil_locador" element={<Navigate to="/locador" replace />} />
                             <Route path="/documentos/usuario" element={<Navigate to="/perfil" replace />} />

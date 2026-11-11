@@ -125,10 +125,14 @@
     border-radius: var(--radius-lg, 16px);
 }
 
-.sb-email {
-    margin: 12px 0 18px;
+.sb-contato .sb-email {
+    margin: 12px 0 32px;
     font-size: 1.05rem;
     font-weight: 600;
+}
+
+.sb-contato .sb-btn {
+    margin-top: 4px;
 }
 
 .sb-email a {

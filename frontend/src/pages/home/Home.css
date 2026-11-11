@@ -25,7 +25,20 @@
 }
 
 .logo-container {
+    border: 0;
+    background: none;
+    padding: 0;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
     cursor: pointer;
+    text-align: left;
+}
+
+.logo-container:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 3px;
+    border-radius: 6px;
 }
 
 /* --- BARRA DE PESQUISA --- */
@@ -292,7 +305,20 @@
 }
 
 .logo-container {
+    border: 0;
+    background: none;
+    padding: 0;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
     cursor: pointer;
+    text-align: left;
+}
+
+.logo-container:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 3px;
+    border-radius: 6px;
 }
 
 /* --- BOTÕES DE NAVEGAÇÃO --- */

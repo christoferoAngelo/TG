@@ -7,8 +7,11 @@ import { podeCancelarLocatario, textoCancelamento } from "../../reserva/cancelam
 import "./MinhasReservas.css";
 import JellyRadio, { jellyTema } from "../../../components/ui/JellyRadio";
 import PeekRating from "../../../components/bits/PeekRating";
+import { EMAIL_SUPORTE } from "../../../components/apresentacao/termos";
 
 const API = "http://localhost:8080/api";
+const WHATSAPP_SUPORTE = "5511945678910";
+const WHATSAPP_SUPORTE_ROTULO = "(11) 94567-8910";
 
 const STATUS = {
     PENDENTE: { rotulo: "Aguardando", classe: "mr-badge--pendente" },
@@ -77,6 +80,10 @@ function horario(reserva) {
 
 function podeAvaliar(reserva) {
     return reserva.status === "APROVADA" && !reserva.nota && eventoEncerrado(reserva);
+}
+
+function podePagar(reserva) {
+    return reserva.status === "APROVADA" && Boolean(reserva.pagamentoLiberado) && !reserva.pago;
 }
 
 function passaFiltro(reserva, filtro) {
@@ -158,6 +165,32 @@ export default function MinhasReservas() {
         }
     };
 
+    const sincronizarPagamentos = async (lista) => {
+        const pendentes = (Array.isArray(lista) ? lista : []).filter(
+            (r) => r.status === "APROVADA" && r.pagamentoLiberado && !r.pago
+        );
+        if (pendentes.length === 0) return false;
+
+        let mudou = false;
+        await Promise.all(
+            pendentes.map(async (reserva) => {
+                try {
+                    const res = await fetch("http://localhost:8080/api/v1/pagamentos/sincronizar", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ reservaId: reserva.id }),
+                    });
+                    if (!res.ok) return;
+                    const dados = await res.json();
+                    if (dados?.pago) mudou = true;
+                } catch {
+                    /* ignora falha pontual de sync */
+                }
+            })
+        );
+        return mudou;
+    };
+
     const buscarReservas = (silencioso = false) => {
         if (!usuarioLogado?.id) {
             setCarregando(false);
@@ -172,7 +205,20 @@ export default function MinhasReservas() {
                 if (!res.ok) throw new Error("Não foi possível carregar suas reservas.");
                 return res.json();
             })
-            .then((data) => setReservas(Array.isArray(data) ? data : []))
+            .then(async (data) => {
+                const lista = Array.isArray(data) ? data : [];
+                setReservas(lista);
+                const mudou = await sincronizarPagamentos(lista);
+                if (mudou) {
+                    const res = await fetch(`${API}/reservas/minhas-reservas`, {
+                        headers: { "Usuario-Id": usuarioLogado.id },
+                    });
+                    if (res.ok) {
+                        const atualizada = await res.json();
+                        setReservas(Array.isArray(atualizada) ? atualizada : []);
+                    }
+                }
+            })
             .catch((err) => setErroLista(err.message))
             .finally(() => {
                 if (!silencioso) setCarregando(false);
@@ -404,7 +450,10 @@ export default function MinhasReservas() {
                                         <div className="mr-linha">
                                             <h2>{reserva.espaco?.titulo || "Espaço"}</h2>
                                             <span className={`mr-badge ${status.classe}`}>{status.rotulo}</span>
-                                            {reserva.pagamentoLiberado && reserva.status === "APROVADA" && (
+                                            {reserva.pago && reserva.status === "APROVADA" && (
+                                                <span className="mr-pagamento mr-pagamento--pago">Pago</span>
+                                            )}
+                                            {!reserva.pago && reserva.pagamentoLiberado && reserva.status === "APROVADA" && (
                                                 <span className="mr-pagamento">Pagamento liberado</span>
                                             )}
                                         </div>
@@ -474,6 +523,26 @@ export default function MinhasReservas() {
                                             </div>
                                         ) : (
                                             <div className="mr-acoes">
+                                                {podePagar(reserva) && (
+                                                    <button
+                                                        type="button"
+                                                        className="mr-btn mr-btn--primario"
+                                                        onClick={() =>
+                                                            navigate("/pagamento", {
+                                                                state: {
+                                                                    reservaId: reserva.id,
+                                                                    nomeEspaco: reserva.espaco?.titulo || "Espaço",
+                                                                    valorTotal:
+                                                                        reserva.valorTotal != null
+                                                                            ? Number(reserva.valorTotal).toFixed(2)
+                                                                            : "0.00",
+                                                                },
+                                                            })
+                                                        }
+                                                    >
+                                                        Pagar
+                                                    </button>
+                                                )}
                                                 <button
                                                     type="button"
                                                     className="mr-btn mr-btn--secundario"
@@ -484,7 +553,7 @@ export default function MinhasReservas() {
                                                 {podeAvaliar(reserva) && (
                                                     <button
                                                         type="button"
-                                                        className="mr-btn mr-btn--primario"
+                                                        className="mr-btn mr-btn--secundario"
                                                         onClick={() => abrirAvaliacao(reserva)}
                                                     >
                                                         Avaliar
@@ -529,22 +598,30 @@ export default function MinhasReservas() {
                 >
                     <form id="mr-avaliar" className="mr-form" onSubmit={enviarAvaliacao}>
                         <div className={`mdl-campo${erroNota ? " mdl-campo--erro" : ""}`}>
-                            <span className="mr-rotulo">Sua nota</span>
-                            <PeekRating
-                                value={nota}
-                                onChange={(valor) => {
-                                    setNota(valor);
-                                    setErroNota("");
-                                }}
-                                count={5}
-                                allowClear={false}
-                                activeColor="#FECB5A"
-                                idleColor="#EDDAB0"
-                                tipColor="#130501"
-                                tipTextColor="#FEFBE6"
-                                ariaLabel="Nota de 1 a 5"
-                                labels={["Ruim", "Regular", "Boa", "Muito boa", "Excelente"]}
-                            />
+                            <div className="mr-nota-linha">
+                                <span className="mr-rotulo">
+                                    Sua nota
+                                    {nota > 0 && (
+                                        <span className="mr-nota-legenda">
+                                            {["Ruim", "Regular", "Boa", "Muito boa", "Excelente"][nota - 1]}
+                                        </span>
+                                    )}
+                                </span>
+                                <PeekRating
+                                    value={nota}
+                                    onChange={(valor) => {
+                                        setNota(valor);
+                                        setErroNota("");
+                                    }}
+                                    count={5}
+                                    allowClear={false}
+                                    showTip={false}
+                                    activeColor="#FECB5A"
+                                    idleColor="#EDDAB0"
+                                    ariaLabel="Nota de 1 a 5"
+                                    labels={["Ruim", "Regular", "Boa", "Muito boa", "Excelente"]}
+                                />
+                            </div>
                             {erroNota && <small className="mdl-erro">{erroNota}</small>}
                         </div>
                         <div className="mdl-campo">
@@ -561,6 +638,20 @@ export default function MinhasReservas() {
                                 onChange={(e) => setComentario(e.target.value)}
                             />
                         </div>
+                        <p className="mr-suporte">
+                            <strong>Teve algum problema com a sua reserva?</strong>{" "}
+                            Relate pelo e-mail{" "}
+                            <a href={`mailto:${EMAIL_SUPORTE}`}>{EMAIL_SUPORTE}</a>
+                            {" "}ou mande uma mensagem no WhatsApp:{" "}
+                            <a
+                                href={`https://wa.me/${WHATSAPP_SUPORTE}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {WHATSAPP_SUPORTE_ROTULO}
+                            </a>
+                            .
+                        </p>
                     </form>
                 </Modal>
             )}

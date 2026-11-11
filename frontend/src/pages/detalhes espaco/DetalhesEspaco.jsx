@@ -179,6 +179,9 @@ export default function DetalhesEspaco() {
     const [erroReserva, setErroReserva] = useState("");
     const [sucesso, setSucesso] = useState(false);
     const [avisoPerfil, setAvisoPerfil] = useState(false);
+    const [confirmarReserva, setConfirmarReserva] = useState(false);
+    const [pedidoPendente, setPedidoPendente] = useState(null);
+    const [calendarioAberto, setCalendarioAberto] = useState(true);
 
     /* ---------- carga de dados ---------- */
 
@@ -263,6 +266,18 @@ export default function DetalhesEspaco() {
             ativo = false;
         };
     }, [id, data, recarga, dataMinima, antecedenciaDias, espaco?.permiteHorarioPersonalizado]);
+
+    useEffect(() => {
+        if (!confirmarReserva) return undefined;
+        const tecla = (evento) => {
+            if (evento.key === "Escape" && !enviando) {
+                setConfirmarReserva(false);
+                setPedidoPendente(null);
+            }
+        };
+        document.addEventListener("keydown", tecla);
+        return () => document.removeEventListener("keydown", tecla);
+    }, [confirmarReserva, enviando]);
 
     /* ---------- fotos ---------- */
 
@@ -472,12 +487,26 @@ export default function DetalhesEspaco() {
 
         corpo.valorTotal = valorTotalCalculado;
 
+        setPedidoPendente({ corpo, valorTotalCalculado });
+        setConfirmarReserva(true);
+    };
+
+    const fecharConfirmacaoReserva = () => {
+        if (enviando) return;
+        setConfirmarReserva(false);
+        setPedidoPendente(null);
+    };
+
+    const confirmarPedidoReserva = async () => {
+        if (!pedidoPendente || !usuarioLogado?.id || enviando) return;
+
         setEnviando(true);
+        setErroReserva("");
         try {
             const response = await fetch(`${API}/reservas`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Usuario-Id": usuarioLogado.id },
-                body: JSON.stringify(corpo),
+                body: JSON.stringify(pedidoPendente.corpo),
             });
 
             if (!response.ok) {
@@ -485,13 +514,15 @@ export default function DetalhesEspaco() {
             }
 
             const criada = await response.json();
+            setConfirmarReserva(false);
+            setPedidoPendente(null);
 
             if (espaco.aprovacaoInstantanea) {
                 navigate("/pagamento", {
                     state: {
                         reservaId: criada.id,
                         nomeEspaco: espaco.titulo,
-                        valorTotal: Number(valorTotalCalculado).toFixed(2),
+                        valorTotal: Number(pedidoPendente.valorTotalCalculado).toFixed(2),
                     },
                 });
                 return;
@@ -506,6 +537,8 @@ export default function DetalhesEspaco() {
         } catch (err) {
             console.error("Erro:", err);
             setErroReserva(err.message);
+            setConfirmarReserva(false);
+            setPedidoPendente(null);
         } finally {
             setEnviando(false);
         }
@@ -590,10 +623,6 @@ export default function DetalhesEspaco() {
                 </div>
             )}
             <main className="dt-container">
-                <button type="button" className="dt-voltar" onClick={() => navigate(-1)}>
-                    ‹ Voltar
-                </button>
-
                 <header className="dt-titulo">
                     <BlurText
                         text={espaco.titulo}
@@ -650,6 +679,21 @@ export default function DetalhesEspaco() {
 
                 <div className="dt-layout">
                     <div className="dt-principal">
+                        {espaco.locadorNome && (
+                            <section className="dt-secao" aria-labelledby="dt-locador-titulo">
+                                <h2 id="dt-locador-titulo">Locador</h2>
+                                <div className="dt-locador">
+                                    <span className="dt-locador-avatar" aria-hidden="true">
+                                        {String(espaco.locadorNome).trim().charAt(0).toUpperCase() || "L"}
+                                    </span>
+                                    <div className="dt-locador-info">
+                                        <p className="dt-locador-nome">{espaco.locadorNome}</p>
+                                        <p className="dt-locador-papel">Responsável por este anúncio</p>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
+
                         {/* ---------- Sobre ---------- */}
                         <section className="dt-secao">
                             <h2>Sobre o espaço</h2>
@@ -899,25 +943,57 @@ export default function DetalhesEspaco() {
                                 <div className="dt-sucesso" role="status">
                                     <strong>Solicitação enviada.</strong>
                                     <p>O locador vai analisar o pedido e responder em breve.</p>
+                                    <p className="dt-sucesso-aviso">
+                                        Quando a reserva for confirmada, o pagamento fica em{" "}
+                                        <button
+                                            type="button"
+                                            className="dt-sucesso-link"
+                                            onClick={() => navigate("/minhas-reservas")}
+                                        >
+                                            Minhas reservas
+                                        </button>
+                                        {" "}ou no aviso da confirmação.
+                                    </p>
                                 </div>
                             )}
 
                             <div className="dt-campo">
-                                <span id="dt-data-rotulo">Data do evento</span>
-                                <CalendarioReserva
-                                    minima={dataMinima}
-                                    valor={data}
-                                    onEscolher={(iso) => {
-                                        if (iso < dataMinima) return;
-                                        setSucesso(false);
-                                        setErroReserva("");
-                                        setData(iso);
-                                    }}
-                                />
-                                {antecedenciaDias > 0 && (
-                                    <p className="dt-dica">
-                                        Reservas a partir de {formatarISO(dataMinima)}. Os dias anteriores ficam bloqueados.
-                                    </p>
+                                <button
+                                    type="button"
+                                    id="dt-data-rotulo"
+                                    className="dt-cal-toggle"
+                                    aria-expanded={calendarioAberto}
+                                    aria-controls="dt-cal-painel"
+                                    onClick={() => setCalendarioAberto((aberto) => !aberto)}
+                                >
+                                    <span className="dt-cal-toggle-texto">
+                                        <span className="dt-cal-toggle-rotulo">Data do evento</span>
+                                        <strong>
+                                            {data ? formatarISO(data) : "Escolher data"}
+                                        </strong>
+                                    </span>
+                                    <span className="dt-cal-toggle-seta" aria-hidden="true">
+                                        {calendarioAberto ? "▴" : "▾"}
+                                    </span>
+                                </button>
+                                {calendarioAberto && (
+                                    <div id="dt-cal-painel">
+                                        <CalendarioReserva
+                                            minima={dataMinima}
+                                            valor={data}
+                                            onEscolher={(iso) => {
+                                                if (iso < dataMinima) return;
+                                                setSucesso(false);
+                                                setErroReserva("");
+                                                setData(iso);
+                                            }}
+                                        />
+                                        {antecedenciaDias > 0 && (
+                                            <p className="dt-dica">
+                                                Reservas a partir de {formatarISO(dataMinima)}. Os dias anteriores ficam bloqueados.
+                                            </p>
+                                        )}
+                                    </div>
                                 )}
                             </div>
 
@@ -1043,24 +1119,25 @@ export default function DetalhesEspaco() {
                                 />
                             </div>
 
-                            {erroReserva && <p className="dt-erro" role="alert">{erroReserva}</p>}
-
-                            <button
-                                type="submit"
-                                className="dt-btn dt-btn--primario dt-btn--largo"
-                                disabled={enviando || (Boolean(data) && data < dataMinima)}
-                            >
-                                {enviando
-                                    ? "Enviando…"
-                                    : instantanea
-                                        ? (usuarioLogado?.id ? "Ir para o pagamento" : "Entrar para pagar")
-                                        : (usuarioLogado?.id ? "Enviar pedido de reserva" : "Entrar para reservar")}
-                            </button>
-                            <p className="dt-dica dt-centro">
-                                {instantanea
-                                    ? "A reserva é confirmada na hora. O próximo passo é o pagamento."
-                                    : "O locador analisa o pedido antes de confirmar."}
-                            </p>
+                            <div className="dt-reserva-rodape">
+                                {erroReserva && <p className="dt-erro" role="alert">{erroReserva}</p>}
+                                <button
+                                    type="submit"
+                                    className="dt-btn dt-btn--primario dt-btn--largo"
+                                    disabled={enviando || (Boolean(data) && data < dataMinima)}
+                                >
+                                    {enviando
+                                        ? "Enviando…"
+                                        : instantanea
+                                            ? (usuarioLogado?.id ? "Ir para o pagamento" : "Entrar para pagar")
+                                            : (usuarioLogado?.id ? "Enviar pedido de reserva" : "Entrar para reservar")}
+                                </button>
+                                <p className="dt-dica dt-centro">
+                                    {instantanea
+                                        ? "A reserva é confirmada na hora. O próximo passo é o pagamento."
+                                        : "O locador analisa o pedido antes de confirmar. Depois, o pagamento fica em Minhas reservas ou no aviso."}
+                                </p>
+                            </div>
                         </form>
                         )}
                     </aside>
@@ -1155,6 +1232,50 @@ export default function DetalhesEspaco() {
                                 onClick={() => navigate("/perfil")}
                             >
                                 Completar perfil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {confirmarReserva && pedidoPendente && (
+                <div
+                    className="dt-aviso-perfil"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="dt-confirmar-reserva-titulo"
+                    aria-describedby="dt-confirmar-reserva-desc"
+                    onMouseDown={fecharConfirmacaoReserva}
+                >
+                    <div className="dt-aviso-perfil-caixa" onMouseDown={(e) => e.stopPropagation()}>
+                        <h2 id="dt-confirmar-reserva-titulo">
+                            {instantanea ? "Ir para o pagamento?" : "Enviar pedido de reserva?"}
+                        </h2>
+                        <p id="dt-confirmar-reserva-desc" className="dt-confirmar-reserva-desc">
+                            {instantanea
+                                ? `Confirma a reserva de ${espaco.titulo} em ${formatarISO(pedidoPendente.corpo.dataEvento)}? Ela é confirmada na hora e o próximo passo é o pagamento.`
+                                : `Confirma o pedido para ${espaco.titulo} em ${formatarISO(pedidoPendente.corpo.dataEvento)}? O locador analisa antes de confirmar. Depois, o pagamento fica em Minhas reservas ou no aviso da confirmação.`}
+                        </p>
+                        <div className="dt-aviso-perfil-acoes">
+                            <button
+                                type="button"
+                                className="dt-btn dt-btn--ghost"
+                                onClick={fecharConfirmacaoReserva}
+                                disabled={enviando}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                className="dt-btn dt-btn--primario"
+                                onClick={confirmarPedidoReserva}
+                                disabled={enviando}
+                            >
+                                {enviando
+                                    ? "Enviando…"
+                                    : instantanea
+                                      ? "Confirmar e pagar"
+                                      : "Confirmar pedido"}
                             </button>
                         </div>
                     </div>

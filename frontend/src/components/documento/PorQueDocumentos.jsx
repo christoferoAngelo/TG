@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { Link } from "react-router-dom";
+import TermosModal from "../apresentacao/TermosModal";
 import "./PorQueDocumentos.css";
 
 /**
@@ -13,7 +14,9 @@ export default function PorQueDocumentos({
     botaoTexto = "Saiba por quê",
 }) {
     const [aberto, setAberto] = useState(false);
+    const [termosAbertos, setTermosAbertos] = useState(false);
     const tituloId = useId();
+    const tipoTermos = variante === "locador" ? "LOCADOR" : "LOCATARIO";
 
     useEffect(() => {
         if (!aberto) return undefined;
@@ -102,8 +105,19 @@ export default function PorQueDocumentos({
                             )}
 
                             <p className="pq-docs-termos">
-                                <Link to="/jornada" onClick={() => setAberto(false)}>
+                                <button
+                                    type="button"
+                                    className="pq-docs-link"
+                                    onClick={() => setTermosAbertos(true)}
+                                >
                                     Ver Termos de Uso e Política de Privacidade
+                                </button>
+                                <Link
+                                    className="pq-docs-link"
+                                    to="/jornada"
+                                    onClick={() => setAberto(false)}
+                                >
+                                    Como usar o sistema
                                 </Link>
                             </p>
                         </div>
@@ -116,6 +130,16 @@ export default function PorQueDocumentos({
                     </div>
                 </div>
             )}
+
+            <TermosModal
+                aberto={termosAbertos}
+                titulo="Termos de Uso e Política de Privacidade"
+                tipoAudiencia={tipoTermos}
+                somenteLeitura
+                exigirLeitura={false}
+                onFechar={() => setTermosAbertos(false)}
+                onRecusar={() => setTermosAbertos(false)}
+            />
         </div>
     );
 }

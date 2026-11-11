@@ -25,7 +25,7 @@ export default function HomeRodape() {
                         <p className="hm-rodape-marca">LocaFesta</p>
                         <p className="hm-rodape-texto">{SOBRE.missaoCurta}</p>
                         <Link className="hm-rodape-link" to="/sobre">
-                            Sobre nós
+                            Clique aqui para saber mais sobre o site
                         </Link>
                     </div>
 
