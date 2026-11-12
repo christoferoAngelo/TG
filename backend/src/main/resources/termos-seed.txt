@@ -15,11 +15,11 @@
 4. Disposições específicas do locador (aceitas ao habilitar o perfil de locador)
 4.1. O locador declara ter legitimidade para alugar o espaço e que ele reúne as condições de segurança exigidas pela legislação aplicável.
 4.2. O locador deve manter o anúncio fiel à realidade, com fotos e descrições atuais, entregar o espaço limpo e funcional, garantir o acesso do locatário no horário de início e fornecer as orientações de uso.
-4.3. O locador define, para cada espaço, as regras do anúncio, os horários, os valores, a antecedência mínima e se as reservas exigem a sua aprovação. A cada reserva paga, o LocaFesta retém comissão de 10% do valor da reserva, que é descontada do repasse ao locador; o locatário não paga acréscimo por essa comissão.
+4.3. O locador define, para cada espaço, as regras do anúncio, os horários, os valores, a antecedência mínima e se as reservas exigem a sua aprovação. Quando o pagamento estiver em operação, o LocaFesta reterá comissão de 10% do valor da reserva e a descontará do repasse ao locador; o locatário não pagará acréscimo por essa comissão.
 
 5. Pagamentos e repasse
-5.1. Todos os pagamentos devem ser feitos exclusivamente pela plataforma, por Pix, por meio do Mercado Pago. Pagamentos ou negociações por fora da plataforma são infração grave e sujeitam os envolvidos à suspensão ou ao bloqueio da conta, após análise.
-5.2. O evento é encerrado automaticamente ao fim do horário da reserva. Sete dias depois, se o locatário não tiver relatado problema, o valor é repassado automaticamente ao locador, descontada a comissão.
+5.1. Todos os pagamentos devem ser feitos exclusivamente pela plataforma, por meio do Mercado Pago. Pagamentos ou negociações por fora da plataforma são infração grave e sujeitam os envolvidos à suspensão ou ao bloqueio da conta, após análise.
+5.2. Quando o pagamento estiver em operação, o LocaFesta reterá comissão de 10% do valor da reserva e repassará o restante ao locador, conforme as regras do Termo de Reserva.
 5.3. As regras de cancelamento e reembolso constam do Termo de Reserva, apresentado no momento da reserva.
 
 6. Problemas e suporte

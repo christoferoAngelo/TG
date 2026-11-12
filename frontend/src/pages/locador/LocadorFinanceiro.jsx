@@ -48,19 +48,18 @@ function isoLocal(d) {
 function intervaloDoPeriodo(id) {
     const hoje = new Date();
     hoje.setHours(12, 0, 0, 0);
-    const ate = new Date(hoje);
-    let de = new Date(hoje);
+    const fimDoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    let de = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    let ate = fimDoMes;
 
-    if (id === "mes") {
-        de = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-    } else if (id === "anterior") {
+    if (id === "anterior") {
         de = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-        ate.setTime(new Date(hoje.getFullYear(), hoje.getMonth(), 0).getTime());
+        ate = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
     } else if (id === "3m") {
         de = new Date(hoje.getFullYear(), hoje.getMonth() - 2, 1);
     } else if (id === "6m") {
         de = new Date(hoje.getFullYear(), hoje.getMonth() - 5, 1);
-    } else {
+    } else if (id === "12m") {
         de = new Date(hoje.getFullYear(), hoje.getMonth() - 11, 1);
     }
     return { de: isoLocal(de), ate: isoLocal(ate) };
@@ -92,7 +91,7 @@ function SkeletonFin() {
 
 export default function LocadorFinanceiro() {
     const { usuarioLogado } = useAuth();
-    const [periodo, setPeriodo] = useState("6m");
+    const [periodo, setPeriodo] = useState("mes");
     const [espacoId, setEspacoId] = useState("");
     const [pagina, setPagina] = useState(0);
     const [dados, setDados] = useState(null);

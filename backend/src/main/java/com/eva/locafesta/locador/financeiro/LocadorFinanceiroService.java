@@ -95,7 +95,7 @@ public class LocadorFinanceiroService {
 
         LocalDate hoje = PoliticaReembolso.hojeNoBrasil();
         LocalDate inicio = de != null ? de : hoje.withDayOfMonth(1);
-        LocalDate fim = ate != null ? ate : hoje;
+        LocalDate fim = ate != null ? ate : hoje.withDayOfMonth(hoje.lengthOfMonth());
         if (fim.isBefore(inicio)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A data final deve ser após a inicial.");
         }
@@ -120,11 +120,10 @@ public class LocadorFinanceiroService {
         Totais totais = agregar(noIntervalo);
         Totais totaisAnt = agregar(periodoAnterior);
 
-        // A receber: estoque aberto (APROVADA + !pagamentoLiberado), inclui eventos futuros.
-        // Não usa a data final do filtro de faturamento — mesma regra do Painel.
-        BigDecimal aReceber = somarAReceber(
-                reservaRepository.findAReceberPorLocadorEEspaco(usuarioId, espacoId)
-        );
+        // A receber: APROVADA com pagamento ainda não liberado, só no período filtrado.
+        // Mesma regra do Painel, que usa o mês calendário corrente.
+        BigDecimal aReceber = somarAReceber(totais.aprovadas);
+        BigDecimal aReceberAnt = somarAReceber(totaisAnt.aprovadas);
 
         BigDecimal comissao = comissaoPlataforma.taxa(totais.bruto);
         BigDecimal liquido = comissaoPlataforma.liquido(totais.bruto);
@@ -137,8 +136,7 @@ public class LocadorFinanceiroService {
                 variacaoDe(totais.bruto, totaisAnt.bruto),
                 variacaoDe(comissao, comissaoAnt),
                 variacaoDe(liquido, liquidoAnt),
-                // Estoque aberto (inclui futuros) — sem variação por período
-                VariacaoItemDTO.semBase(),
+                variacaoDe(aReceber, aReceberAnt),
                 variacaoDeQuantidade(quantidade, totaisAnt.aprovadas.size())
         );
 
@@ -287,9 +285,10 @@ public class LocadorFinanceiroService {
         );
     }
 
-    private BigDecimal somarAReceber(List<Reserva> abertas) {
+    private BigDecimal somarAReceber(List<Reserva> doPeriodo) {
         BigDecimal total = BigDecimal.ZERO;
-        for (Reserva r : abertas) {
+        for (Reserva r : doPeriodo) {
+            if (r.isPagamentoLiberado()) continue;
             total = total.add(comissaoPlataforma.liquido(valorDe(r)));
         }
         return total;

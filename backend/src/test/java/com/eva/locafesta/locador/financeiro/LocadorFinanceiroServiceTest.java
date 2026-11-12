@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -83,8 +84,6 @@ class LocadorFinanceiroServiceTest {
         when(reservaRepository.findByLocadorPeriodoEEspaco(
                 eq(10L), eq(LocalDate.of(2026, 10, 2)), eq(LocalDate.of(2026, 10, 31)), isNull()
         )).thenReturn(List.of());
-        when(reservaRepository.findAReceberPorLocadorEEspaco(eq(10L), isNull()))
-                .thenReturn(List.of(dentro));
 
         LocadorFinanceiroDTO dto = service.resumo(10L, de, ate, null, 0, 10);
 
@@ -100,7 +99,7 @@ class LocadorFinanceiroServiceTest {
     }
 
     @Test
-    void aReceberIncluiFuturoAlemDoFimDoPeriodo() {
+    void aReceberSoContaAprovadaSemPagamentoDentroDoPeriodo() {
         when(perfilLocadorRepository.findByUsuarioId(10L)).thenReturn(Optional.of(perfil));
         when(espacoRepository.findByLocadorId(5L)).thenReturn(List.of(espaco));
 
@@ -120,14 +119,13 @@ class LocadorFinanceiroServiceTest {
                 .thenReturn(List.of(noPeriodo));
         when(reservaRepository.findByLocadorPeriodoEEspaco(eq(10L), eq(prevDe), eq(prevAte), isNull()))
                 .thenReturn(List.of());
-        when(reservaRepository.findAReceberPorLocadorEEspaco(eq(10L), isNull()))
-                .thenReturn(List.of(futuroAberto));
 
         LocadorFinanceiroDTO dto = service.resumo(10L, de, ate, null, 0, 10);
 
         assertEquals(new BigDecimal("1000.00"), dto.kpis().faturamentoBruto());
-        // 1300 × 10% = 130; líquido = 1170
-        assertEquals(new BigDecimal("1170.00"), dto.kpis().aReceber());
+        // Evento de novembro está fora do período pedido; a receber do período é zero.
+        assertEquals(0, BigDecimal.ZERO.compareTo(dto.kpis().aReceber()));
+        assertEquals(new BigDecimal("1300.00"), futuroAberto.getValorTotal());
     }
 
     @Test
@@ -152,8 +150,6 @@ class LocadorFinanceiroServiceTest {
         when(reservaRepository.findByLocadorPeriodoEEspaco(eq(10L), eq(de), eq(ate), isNull()))
                 .thenReturn(List.of(aprovada, cancelada, rejeitada));
         when(reservaRepository.findByLocadorPeriodoEEspaco(eq(10L), eq(prevDe), eq(prevAte), isNull()))
-                .thenReturn(List.of());
-        when(reservaRepository.findAReceberPorLocadorEEspaco(eq(10L), isNull()))
                 .thenReturn(List.of());
 
         LocadorFinanceiroDTO dto = service.resumo(10L, de, ate, null, 0, 10);
@@ -181,8 +177,6 @@ class LocadorFinanceiroServiceTest {
                 .thenReturn(List.of(doA));
         when(reservaRepository.findByLocadorPeriodoEEspaco(eq(10L), eq(prevDe), eq(prevAte), eq(7L)))
                 .thenReturn(List.of());
-        when(reservaRepository.findAReceberPorLocadorEEspaco(eq(10L), eq(7L)))
-                .thenReturn(List.of(doA));
 
         LocadorFinanceiroDTO dto = service.resumo(10L, de, ate, 7L, 0, 10);
 
@@ -213,8 +207,6 @@ class LocadorFinanceiroServiceTest {
                 .thenReturn(List.of(atual));
         when(reservaRepository.findByLocadorPeriodoEEspaco(eq(10L), eq(prevDe), eq(prevAte), isNull()))
                 .thenReturn(List.of(anterior));
-        when(reservaRepository.findAReceberPorLocadorEEspaco(eq(10L), isNull()))
-                .thenReturn(List.of());
 
         LocadorFinanceiroDTO dto = service.resumo(10L, de, ate, null, 0, 10);
         VariacaoItemDTO var = dto.variacao().faturamentoBruto();
@@ -228,8 +220,6 @@ class LocadorFinanceiroServiceTest {
         when(espacoRepository.findByLocadorId(5L)).thenReturn(List.of(espaco));
         when(reservaRepository.findByLocadorPeriodoEEspaco(any(), any(), any(), any()))
                 .thenReturn(List.of());
-        when(reservaRepository.findAReceberPorLocadorEEspaco(any(), any()))
-                .thenReturn(List.of());
 
         LocadorFinanceiroDTO dto = service.resumo(
                 10L, LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30), null, 0, 10
@@ -239,6 +229,22 @@ class LocadorFinanceiroServiceTest {
         assertEquals(0, new BigDecimal("0").compareTo(dto.kpis().faturamentoBruto()));
         assertTrue(dto.reservas().isEmpty());
         assertFalse(dto.variacao().faturamentoBruto().disponivel());
+    }
+
+    @Test
+    void periodoOmitidoCobreOMesCalendarioInteiro() {
+        when(perfilLocadorRepository.findByUsuarioId(10L)).thenReturn(Optional.of(perfil));
+        when(espacoRepository.findByLocadorId(5L)).thenReturn(List.of(espaco));
+        when(reservaRepository.findByLocadorPeriodoEEspaco(any(), any(), any(), any()))
+                .thenReturn(List.of());
+
+        LocalDate hoje = com.eva.locafesta.reserva.PoliticaReembolso.hojeNoBrasil();
+        LocalDate de = hoje.withDayOfMonth(1);
+        LocalDate ate = hoje.withDayOfMonth(hoje.lengthOfMonth());
+
+        service.resumo(10L, null, null, null, 0, 10);
+
+        verify(reservaRepository).findByLocadorPeriodoEEspaco(10L, de, ate, null);
     }
 
     @Test

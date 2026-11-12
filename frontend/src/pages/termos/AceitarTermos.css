@@ -1,15 +1,21 @@
 .aceitar-termos-page {
-    min-height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px;
+    box-sizing: border-box;
     background: color-mix(in srgb, var(--palette-coffee, #2a1f18) 78%, transparent);
 }
 
 .aceitar-termos-caixa {
     width: min(640px, 100%);
-    max-height: min(92dvh, 820px);
+    max-height: calc(100dvh - 48px);
+}
+
+.aceitar-termos-page .termos-rola {
+    flex: 1 1 auto;
 }
 
 .aceitar-termos-titulo {

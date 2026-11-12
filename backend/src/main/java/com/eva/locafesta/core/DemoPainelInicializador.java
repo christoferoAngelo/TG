@@ -79,49 +79,44 @@ public class DemoPainelInicializador implements ApplicationRunner {
             return;
         }
 
-        List<Reserva> existentes = reservaRepository.findByEspacoLocadorUsuarioIdOrderByIdAsc(locadorUser.getId())
-                .stream()
-                .filter(r -> r.getObservacao() != null && r.getObservacao().startsWith(MARCA))
-                .toList();
-        if (!existentes.isEmpty()) {
-            // Eventos passados do seed não devem ficar "A receber" (evita dúvida na banca)
-            LocalDate hoje = LocalDate.now();
-            int corrigidas = 0;
-            for (Reserva r : existentes) {
-                if ("APROVADA".equalsIgnoreCase(r.getStatus())
-                        && !r.isPagamentoLiberado()
-                        && r.getDataEvento() != null
-                        && r.getDataEvento().isBefore(hoje)) {
-                    r.setPagamentoLiberado(true);
-                    reservaRepository.save(r);
-                    corrigidas++;
-                }
-            }
-            System.out.println("[demo-seed] Reservas demo já existem; liberados " + corrigidas + " pagamentos passados.");
+        List<Reserva> doLocador = reservaRepository.findByEspacoLocadorUsuarioIdOrderByIdAsc(locadorUser.getId());
+        boolean jaNoFormatoNovo = doLocador.stream()
+                .anyMatch(r -> r.getObservacao() != null && r.getObservacao().contains("historico-6m"));
+        if (jaNoFormatoNovo) {
+            System.out.println("[demo-seed] Histórico de 6 meses já está no banco; nada foi apagado.");
             return;
+        }
+        if (!doLocador.isEmpty()) {
+            reservaRepository.deleteAll(doLocador);
+            reservaRepository.flush();
         }
 
         Espaco espaco = espacos.get(0);
         LocalDate hoje = LocalDate.now();
         int seq = 0;
 
-        // Histórico mensal (APROVADA): eventos passados já com pagamento liberado
-        for (int m = 8; m >= 1; m--) {
-            LocalDate base = hoje.minusMonths(m).withDayOfMonth(Math.min(12, hoje.minusMonths(m).lengthOfMonth()));
-            salvar(espaco, locatario, base, "APROVADA", true, new BigDecimal("900").add(BigDecimal.valueOf(m * 40L)), ++seq);
-            salvar(espaco, locatario, base.plusDays(5), "APROVADA", true, new BigDecimal("1100"), ++seq);
+        // 16 aprovadas em 6 meses, variação mensal moderada (sem salto de centenas de %).
+        int[][] aprovadas = {
+                {5, 6, 1100}, {5, 14, 1300}, {5, 22, 1000},
+                {4, 8, 1200}, {4, 20, 1000},
+                {3, 5, 1400}, {3, 15, 1100}, {3, 24, 900},
+                {2, 7, 1500}, {2, 16, 1200}, {2, 25, 1000},
+                {1, 4, 1300}, {1, 12, 1100}, {1, 21, 1600},
+                {0, 4, 1250}, {0, 20, 1100}
+        };
+        for (int[] item : aprovadas) {
+            LocalDate mes = hoje.minusMonths(item[0]);
+            int dia = Math.min(item[1], mes.lengthOfMonth());
+            LocalDate data = mes.withDayOfMonth(dia);
+            boolean passado = data.isBefore(hoje);
+            salvar(espaco, locatario, data, "APROVADA", passado, new BigDecimal(item[2]), ++seq);
         }
 
-        // Mês atual + próximos
-        salvar(espaco, locatario, hoje.plusDays(3), "PENDENTE", false, new BigDecimal("1200"), ++seq);
-        salvar(espaco, locatario, hoje.plusDays(8), "PENDENTE", false, new BigDecimal("950"), ++seq);
-        salvar(espaco, locatario, hoje.plusDays(12), "APROVADA", false, new BigDecimal("1300"), ++seq);
-        salvar(espaco, locatario, hoje.plusDays(20), "APROVADA", true, new BigDecimal("1400"), ++seq);
-        salvar(espaco, locatario, hoje.minusDays(10), "REJEITADA", false, new BigDecimal("800"), ++seq);
-        salvar(espaco, locatario, hoje.minusDays(20), "CANCELADA", false, new BigDecimal("700"), ++seq);
-        salvar(espaco, locatario, hoje.minusDays(4), "APROVADA", true, new BigDecimal("1250"), ++seq);
+        salvar(espaco, locatario, hoje.plusDays(6), "PENDENTE", false, new BigDecimal("1200"), ++seq);
+        salvar(espaco, locatario, hoje.minusDays(6), "REJEITADA", false, new BigDecimal("800"), ++seq);
+        salvar(espaco, locatario, hoje.minusDays(12), "CANCELADA", false, new BigDecimal("700"), ++seq);
 
-        System.out.println("[demo-seed] Reservas de demonstração criadas para o Local A (" + seq + ").");
+        System.out.println("[demo-seed] Histórico do Locador A recriado (" + seq + " reservas, 16 aprovadas).");
     }
 
     private void salvar(
@@ -142,7 +137,7 @@ public class DemoPainelInicializador implements ApplicationRunner {
                 .valorTotal(valor)
                 .status(status)
                 .pagamentoLiberado(pagamentoLiberado)
-                .observacao(MARCA + " reserva demo #" + seq)
+                .observacao(MARCA + " historico-6m #" + seq)
                 .build();
         reservaRepository.save(r);
     }

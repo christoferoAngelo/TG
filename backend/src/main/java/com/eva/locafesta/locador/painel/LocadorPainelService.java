@@ -129,8 +129,8 @@ public class LocadorPainelService {
                 fatPorMes.merge(ym, valor, BigDecimal::add);
                 if (ym.equals(mesAtual)) fatMes = fatMes.add(valor);
                 if (ym.equals(mesAnterior)) fatMesAnt = fatMesAnt.add(valor);
-                // Mesma regra do Financeiro: líquido estimado, inclui eventos futuros
-                if (!r.isPagamentoLiberado()) {
+                // Mesma regra do Financeiro em "Este mês": só APROVADA do mês calendário.
+                if (ym.equals(mesAtual) && !r.isPagamentoLiberado()) {
                     aReceber = aReceber.add(comissaoPlataforma.liquido(valor));
                 }
                 ranking.computeIfAbsent(r.getEspaco().getId(), id -> new Acumulo(

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GlareHover from "../../../components/bits/GlareHover";
 import PulseHeart from "../../../components/bits/PulseHeart";
@@ -124,8 +124,57 @@ export function EsqueletoGrade() {
     );
 }
 
+let leafletPronto = null;
+
+function carregarLeaflet() {
+    if (window.L) return Promise.resolve(window.L);
+    if (leafletPronto) return leafletPronto;
+    leafletPronto = new Promise((resolve, reject) => {
+        if (!document.querySelector("link[data-leaflet]")) {
+            const css = document.createElement("link");
+            css.rel = "stylesheet";
+            css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+            css.dataset.leaflet = "1";
+            document.head.appendChild(css);
+        }
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+        script.onload = () => resolve(window.L);
+        script.onerror = () => reject(new Error("Não foi possível carregar o mapa."));
+        document.body.appendChild(script);
+    });
+    return leafletPronto;
+}
+
 export function MapaEspacos({ espacos }) {
     const comPonto = espacos.filter((espaco) => espaco.endereco?.latitude != null && espaco.endereco?.longitude != null);
+    const moldura = useRef(null);
+    const chave = comPonto.map((espaco) => `${espaco.id}:${espaco.endereco.latitude},${espaco.endereco.longitude}`).join("|");
+
+    useEffect(() => {
+        if (!moldura.current || comPonto.length === 0) return undefined;
+        let mapa = null;
+        let cancelado = false;
+        carregarLeaflet().then((L) => {
+            if (cancelado || !moldura.current) return;
+            mapa = L.map(moldura.current, { scrollWheelZoom: false });
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "&copy; OpenStreetMap",
+            }).addTo(mapa);
+            const limites = [];
+            comPonto.forEach((espaco) => {
+                const ponto = [Number(espaco.endereco.latitude), Number(espaco.endereco.longitude)];
+                L.marker(ponto).addTo(mapa).bindPopup(espaco.titulo || "Espaço");
+                limites.push(ponto);
+            });
+            if (limites.length === 1) mapa.setView(limites[0], 14);
+            else mapa.fitBounds(limites, { padding: [36, 36], maxZoom: 14 });
+        }).catch(() => {});
+        return () => {
+            cancelado = true;
+            if (mapa) mapa.remove();
+        };
+    }, [chave]);
 
     if (comPonto.length === 0) {
         return (
@@ -140,21 +189,9 @@ export function MapaEspacos({ espacos }) {
         );
     }
 
-    const lats = comPonto.map((espaco) => espaco.endereco.latitude);
-    const lngs = comPonto.map((espaco) => espaco.endereco.longitude);
-    const margem = 0.04;
-    const bbox = [
-        Math.min(...lngs) - margem,
-        Math.min(...lats) - margem,
-        Math.max(...lngs) + margem,
-        Math.max(...lats) + margem,
-    ].join(",");
-    const primeiro = comPonto[0].endereco;
-    const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${primeiro.latitude}%2C${primeiro.longitude}`;
-
     return (
         <div className="hm-mapa">
-            <iframe title="Mapa dos espaços" src={src} loading="lazy" />
+            <div ref={moldura} className="hm-mapa-folha" role="region" aria-label="Mapa dos espaços" />
             <ul>
                 {espacos.map((espaco) => (
                     <li key={espaco.id}>

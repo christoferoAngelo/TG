@@ -10,8 +10,6 @@ import PeekRating from "../../../components/bits/PeekRating";
 import { EMAIL_SUPORTE } from "../../../components/apresentacao/termos";
 
 const API = "http://localhost:8080/api";
-const WHATSAPP_SUPORTE = "5511945678910";
-const WHATSAPP_SUPORTE_ROTULO = "(11) 94567-8910";
 
 const STATUS = {
     PENDENTE: { rotulo: "Aguardando", classe: "mr-badge--pendente" },
@@ -641,16 +639,7 @@ export default function MinhasReservas() {
                         <p className="mr-suporte">
                             <strong>Teve algum problema com a sua reserva?</strong>{" "}
                             Relate pelo e-mail{" "}
-                            <a href={`mailto:${EMAIL_SUPORTE}`}>{EMAIL_SUPORTE}</a>
-                            {" "}ou mande uma mensagem no WhatsApp:{" "}
-                            <a
-                                href={`https://wa.me/${WHATSAPP_SUPORTE}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {WHATSAPP_SUPORTE_ROTULO}
-                            </a>
-                            .
+                            <a href={`mailto:${EMAIL_SUPORTE}`}>{EMAIL_SUPORTE}</a>.
                         </p>
                     </form>
                 </Modal>

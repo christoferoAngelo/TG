@@ -7,7 +7,6 @@ import "./DetalhesEspaco.css";
 import AnimatedContent from "../../components/bits/AnimatedContent";
 import BlurText from "../../components/bits/BlurText";
 import Carousel from "../../components/bits/Carousel";
-import GradualBlur from "../../components/bits/GradualBlur";
 import PorQueDocumentos from "../../components/documento/PorQueDocumentos";
 
 const API = "http://localhost:8080/api";
@@ -650,7 +649,6 @@ export default function DetalhesEspaco() {
                 {/* ---------- Galeria ---------- */}
                 {totalFotos > 0 ? (
                     <section className={`dt-hero dt-hero--${qtdHero}`} aria-label="Fotos do espaço">
-                        <GradualBlur position="bottom" height="4.5rem" strength={1.4} tint="var(--color-bg)" zIndex={2} />
                         {fotos.lista.slice(0, qtdHero).map((foto, i) => {
                             const temMais = totalFotos > qtdHero && i === qtdHero - 1;
                             const teaser = temMais ? fotos.lista[qtdHero] : null;

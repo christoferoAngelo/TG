@@ -1,0 +1,22 @@
+print r2-01-rodape-home.png
+print r2-02-busca-filtros.png
+mapa marcadores=8
+print r2-03-mapa.png
+galeria {"classe":"dt-hero dt-hero--3","fotos":3,"esmaece":0}
+simulacao de preco incompleta: locator.click: Timeout 4000ms exceeded.
+print r2-04-espaco-galeria-preco.png
+print r2-05-espaco-celular.png
+print r2-06-cadastro.png
+aceitar-termos botao={"x":763.78125,"y":529.734375,"width":174.21875,"height":44} visivelSemRolar=true
+print r2-07-aceitar-termos.png
+print r2-08-painel.png
+print r2-09-notificacoes.png
+print r2-10-financeiro-mes.png
+print r2-11-financeiro-6-meses.png
+print r2-12-reservas-locador.png
+print r2-13-documentos-espaco.png
+print r2-14-admin-termos.png
+print r2-15-estado-vazio.png
+print r2-16-rodape-celular.png
+preferencia status=200 corpo={"initPoint":"https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=3774264486-6d274a18-287f-4a3a-9ded-026a619d6cf0","sandboxInitPoint":"https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=3774264486-6d274a18-287f-4a3a-9ded-026a619d6cf0","preferenceId":"37742644
+print r2-17-checkout-teste.png
