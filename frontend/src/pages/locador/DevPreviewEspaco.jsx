@@ -49,21 +49,10 @@ export default function DevPreviewEspaco() {
                 <Routes>
                     <Route
                         path="/espaco/:id"
-                        element={
-                            <div className={mobile ? "dev-preview-mobile-shell" : undefined}>
-                                <DetalhesEspaco />
-                            </div>
-                        }
+                        element={<DetalhesEspaco />}
                     />
                 </Routes>
             </MemoryRouter>
-            {mobile && (
-                <style>{`
-                  .dev-preview-mobile-shell { max-width: 430px; margin: 0 auto; }
-                  .dt-page { max-width: 430px !important; }
-                  .dt-page--preview-mobile, .dt-page { width: 100%; }
-                `}</style>
-            )}
         </AuthContext.Provider>
     );
 }

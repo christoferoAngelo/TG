@@ -152,8 +152,9 @@ export default function DetalhesEspaco() {
     const navigate = useNavigate();
     const location = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
+    // Usa o search do React Router (inclui MemoryRouter em /dev), não window.location.
     const [previewViewport, setPreviewViewport] = useState(
-        () => (new URLSearchParams(window.location.search).get("vp") === "mobile" ? "mobile" : "desktop")
+        () => (searchParams.get("vp") === "mobile" ? "mobile" : "desktop")
     ); // desktop | mobile
 
     const [espaco, setEspaco] = useState(null);
@@ -400,9 +401,18 @@ export default function DetalhesEspaco() {
     // No preview, a página se comporta como o público vê (formulário de reserva).
     const mostrarComoDono = meuAnuncio && !modoPreview;
 
+    const aplicarViewportPreview = (vp) => {
+        setPreviewViewport(vp);
+        const next = new URLSearchParams(searchParams);
+        if (vp === "mobile") next.set("vp", "mobile");
+        else next.delete("vp");
+        setSearchParams(next, { replace: true });
+    };
+
     const sairPreview = () => {
         const next = new URLSearchParams(searchParams);
         next.delete("preview");
+        next.delete("vp");
         setSearchParams(next, { replace: true });
         setPreviewViewport("desktop");
     };
@@ -603,14 +613,14 @@ export default function DetalhesEspaco() {
                             <button
                                 type="button"
                                 className={`dt-preview-vp${previewViewport === "desktop" ? " is-ativo" : ""}`}
-                                onClick={() => setPreviewViewport("desktop")}
+                                onClick={() => aplicarViewportPreview("desktop")}
                             >
                                 Desktop
                             </button>
                             <button
                                 type="button"
                                 className={`dt-preview-vp${previewViewport === "mobile" ? " is-ativo" : ""}`}
-                                onClick={() => setPreviewViewport("mobile")}
+                                onClick={() => aplicarViewportPreview("mobile")}
                             >
                                 Celular
                             </button>

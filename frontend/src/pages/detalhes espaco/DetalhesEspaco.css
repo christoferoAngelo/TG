@@ -649,6 +649,8 @@
     box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.06));
 }
 
+/* Simula viewport ~celular sem depender de @media (a janela do browser
+   continua larga). Espelha as regras de 960px / 640px abaixo. */
 .dt-page--preview-mobile {
     max-width: 430px;
     width: 100%;
@@ -657,8 +659,63 @@
     overflow-x: hidden;
 }
 
+.dt-page--preview-mobile .dt-container {
+    padding: 16px 20px 110px;
+}
+
+.dt-page--preview-mobile .dt-preview-barra {
+    margin: 0 12px 12px;
+    padding: 12px 14px;
+}
+
+.dt-page--preview-mobile .dt-titulo {
+    margin: 4px 0 16px;
+}
+
+.dt-page--preview-mobile .dt-titulo h1,
+.dt-page--preview-mobile .dt-titulo-anim {
+    font-size: 1.55rem;
+    margin: 0 0 12px;
+}
+
+.dt-page--preview-mobile .dt-meta {
+    gap: 8px 12px;
+    margin: 0 0 4px;
+}
+
+.dt-page--preview-mobile .dt-hero {
+    height: 260px;
+    grid-template-columns: 1fr;
+    max-width: 100%;
+}
+
+.dt-page--preview-mobile .dt-hero--2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.dt-page--preview-mobile .dt-hero--3,
+.dt-page--preview-mobile .dt-hero--5 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 2fr 1fr;
+}
+
+.dt-page--preview-mobile .dt-hero--3 .dt-hero-foto:first-child,
+.dt-page--preview-mobile .dt-hero--5 .dt-hero-foto:first-child {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+.dt-page--preview-mobile .dt-hero--5 .dt-hero-foto:nth-child(n + 4) {
+    display: none;
+}
+
+.dt-page--preview-mobile .dt-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-top: 28px;
+}
+
 .dt-page--preview-mobile .dt-grade,
-.dt-page--preview-mobile .dt-hero,
 .dt-page--preview-mobile .dt-conteudo {
     grid-template-columns: 1fr;
     max-width: 100%;
@@ -669,12 +726,69 @@
     width: 100%;
 }
 
+.dt-page--preview-mobile .dt-fatos,
+.dt-page--preview-mobile .dt-avaliacoes {
+    grid-template-columns: 1fr;
+}
+
+.dt-page--preview-mobile .dt-ambientes {
+    gap: 48px;
+}
+
+.dt-page--preview-mobile .dt-ambiente {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.dt-page--preview-mobile .dt-ambiente-info,
+.dt-page--preview-mobile .dt-carrossel,
+.dt-page--preview-mobile .dt-ambiente-unica {
+    width: 100%;
+    min-width: 0;
+}
+
+.dt-page--preview-mobile .dt-secao {
+    padding: 24px 0;
+}
+
+.dt-page--preview-mobile .dt-secao h2 {
+    font-size: 1.25rem;
+}
+
 .dt-page--preview-mobile .dt-reserva,
 .dt-page--preview-mobile .dt-calendario,
 .dt-page--preview-mobile input,
 .dt-page--preview-mobile select {
     max-width: 100%;
     box-sizing: border-box;
+}
+
+.dt-page--preview-mobile .dt-barra-mobile {
+    position: sticky;
+    left: auto;
+    right: auto;
+    bottom: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 20px;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+}
+
+.dt-page--preview-mobile .dt-barra-mobile p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 14px;
+}
+
+.dt-page--preview-mobile .dt-barra-mobile strong {
+    font-size: 1.1rem;
+    color: var(--color-text);
 }
 
 .dt-btn--secundario {
