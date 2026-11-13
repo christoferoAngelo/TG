@@ -898,13 +898,14 @@ html[data-tema="dark"] .hm-cats .hm-cat-img {
 }
 
 .hm-resumo h1,
-.hm-titulo-anim {
+.hm-resumo .hm-titulo-anim,
+.hm-avaliados-cab h2 {
     margin: 0;
     font-family: var(--font-heading);
     font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: var(--color-text);
+    color: var(--color-text-muted);
 }
 
 .hm-resumo p,
@@ -1125,6 +1126,69 @@ html[data-tema="dark"] .hm-cats .hm-cat-img {
     font-weight: 600;
     line-height: 1.35;
     padding-top: 1px;
+    white-space: nowrap;
+}
+
+.hm-nota-qtd {
+    font-weight: 500;
+    color: var(--color-text-muted);
+}
+
+.hm-avaliados {
+    margin-bottom: 28px;
+}
+
+.hm-avaliados-cab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.hm-avaliados-acoes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.hm-avaliados-ver {
+    border: 0;
+    background: transparent;
+    padding: 4px 2px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.hm-avaliados-seta {
+    display: none;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.hm-avaliados-faixa {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 28px 16px;
+}
+
+.hm-avaliados-faixa::-webkit-scrollbar {
+    display: none;
 }
 
 .hm-card-texto p {
@@ -1501,6 +1565,23 @@ html[data-tema="dark"] .hm-cats .hm-cat-img {
     .hm-grade { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+@media (max-width: 1100px) {
+    .hm-avaliados-seta { display: inline-flex; }
+    .hm-avaliados-faixa {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        padding-bottom: 4px;
+    }
+    .hm-avaliados-faixa > * {
+        flex: 0 0 46%;
+        min-width: 0;
+        scroll-snap-align: start;
+    }
+}
+
 @media (max-width: 980px) {
     .hm-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .hm-topo {
@@ -1518,6 +1599,7 @@ html[data-tema="dark"] .hm-cats .hm-cat-img {
 @media (max-width: 640px) {
     .hm-grade,
     .hm-card--lista { grid-template-columns: 1fr; }
+    .hm-avaliados-faixa > * { flex-basis: 78%; }
     .hm-topo,
     .hm-conteudo { padding-left: 16px; padding-right: 16px; }
     .hm-entrar {

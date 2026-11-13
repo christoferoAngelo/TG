@@ -613,6 +613,19 @@ public class EspacoService {
             .map(EspacoDTO::new)
             .collect(Collectors.toList());
     }
+
+    /**
+     * Todos os espaços públicos, já na ordem de melhor avaliação.
+     * A visibilidade continua a da busca vazia: ativo e aprovado.
+     */
+    @Transactional(readOnly = true)
+    public List<EspacoDTO> listarPorMelhorAvaliacao() {
+        return OrdenacaoAvaliacao.ordenar(
+                espacoRepository.findByAtivoTrueAndStatusAprovacao("APROVADO")
+            ).stream()
+            .map(EspacoDTO::new)
+            .toList();
+    }
     
     private void validarPrecos(EspacoDTO dto) {
         if (Boolean.TRUE.equals(dto.getPermitePeriodoIntegral())) {

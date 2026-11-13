@@ -123,8 +123,13 @@ public class EspacoController {
     }
 
     @GetMapping("/espacos/busca")
-    public ResponseEntity<?> buscarEspacos(@RequestParam(name = "q", defaultValue = "") String termo) {
+    public ResponseEntity<?> buscarEspacos(
+            @RequestParam(name = "q", defaultValue = "") String termo,
+            @RequestParam(name = "ordenar", defaultValue = "") String ordenar) {
         try {
+            if ("melhor-avaliados".equalsIgnoreCase(ordenar)) {
+                return ResponseEntity.ok(espacoService.listarPorMelhorAvaliacao());
+            }
             List<EspacoDTO> espacos = espacoService.buscarEspacosPorTermo(termo);
             return ResponseEntity.ok(espacos);
         } catch (RuntimeException e) {

@@ -143,6 +143,8 @@ export function aplicarFiltros(espacos, { pessoas, filtros }) {
         });
     } else if (filtros.ordem === "capacidade") {
         ordenada.sort((a, b) => (b.capacidadePessoas ?? 0) - (a.capacidadePessoas ?? 0));
+    } else if (filtros.ordem === "melhor-avaliados") {
+        // A lista já veio ordenada por GET /espacos/busca?ordenar=melhor-avaliados.
     } else {
         // relevância (padrão): volume de avaliações, depois nota
         ordenada.sort(ordenarPorRelevancia);

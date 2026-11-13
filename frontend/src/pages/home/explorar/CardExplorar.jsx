@@ -4,7 +4,7 @@ import GlareHover from "../../../components/bits/GlareHover";
 import PulseHeart from "../../../components/bits/PulseHeart";
 import SpotlightCard from "../../../components/bits/SpotlightCard";
 import { useAuth } from "../../../contexts/AuthContext";
-import { formatarData, formatarMoeda, fotosDe, localDe, precoDe, unidadePreco } from "./explorar";
+import { formatarData, formatarMoeda, fotosDe, localDe, precoDe, qtdAvaliacoes, unidadePreco } from "./explorar";
 
 export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compacto = false, motivoSugestao }) {
     const navigate = useNavigate();
@@ -89,8 +89,18 @@ export function CardExplorar({ espaco, favorito, onFavoritar, dataEvento, compac
                 <div className="hm-card-linha">
                     <h3>{espaco.titulo}</h3>
                     {espaco.notaMedia != null && (
-                        <span className="hm-nota" aria-label={`Nota ${Number(espaco.notaMedia).toFixed(1)}`}>
+                        <span
+                            className="hm-nota"
+                            aria-label={
+                                qtdAvaliacoes(espaco) > 0
+                                    ? `Nota ${Number(espaco.notaMedia).toFixed(1)}, ${qtdAvaliacoes(espaco)} ${qtdAvaliacoes(espaco) === 1 ? "avaliação" : "avaliações"}`
+                                    : `Nota ${Number(espaco.notaMedia).toFixed(1)}`
+                            }
+                        >
                             ★ {Number(espaco.notaMedia).toFixed(1)}
+                            {qtdAvaliacoes(espaco) > 0 && (
+                                <span className="hm-nota-qtd"> ({qtdAvaliacoes(espaco)})</span>
+                            )}
                         </span>
                     )}
                 </div>

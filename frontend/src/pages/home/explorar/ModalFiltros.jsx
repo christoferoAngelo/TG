@@ -25,6 +25,7 @@ export default function ModalFiltros({
     filtros,
     comodidades,
     espacos = [],
+    espacosMelhorAvaliados = [],
     pessoas = 0,
     semVaga = [],
     onChange,
@@ -47,16 +48,21 @@ export default function ModalFiltros({
         return () => document.removeEventListener("keydown", tecla);
     }, [aberto, filtros, onFechar]);
 
+    const listaCompleta = rascunho.ordem === "melhor-avaliados" && espacosMelhorAvaliados.length > 0;
+    const espacosDaOrdem = listaCompleta ? espacosMelhorAvaliados : espacos;
+    const pessoasDaOrdem = listaCompleta ? 0 : pessoas;
+    const semVagaDaOrdem = listaCompleta ? [] : semVaga;
+
     const baseHistograma = useMemo(
-        () => espacosParaHistograma(espacos, { pessoas, filtros: rascunho, semVaga }),
-        [espacos, pessoas, rascunho, semVaga]
+        () => espacosParaHistograma(espacosDaOrdem, { pessoas: pessoasDaOrdem, filtros: rascunho, semVaga: semVagaDaOrdem }),
+        [espacosDaOrdem, pessoasDaOrdem, rascunho, semVagaDaOrdem]
     );
 
     const histograma = useMemo(() => histogramaPrecos(baseHistograma), [baseHistograma]);
 
     const resultados = useMemo(
-        () => filtrarEspacos(espacos, { pessoas, filtros: rascunho, semVaga }),
-        [espacos, pessoas, rascunho, semVaga]
+        () => filtrarEspacos(espacosDaOrdem, { pessoas: pessoasDaOrdem, filtros: rascunho, semVaga: semVagaDaOrdem }),
+        [espacosDaOrdem, pessoasDaOrdem, rascunho, semVagaDaOrdem]
     );
 
     const comodidadesFiltradas = useMemo(() => {
@@ -205,6 +211,7 @@ export default function ModalFiltros({
                             value={rascunho.ordem}
                             options={[
                                 { value: "relevancia", label: "Mais avaliados" },
+                                { value: "melhor-avaliados", label: "Melhor avaliados" },
                                 { value: "preco-asc", label: "Menor preço" },
                                 { value: "preco-desc", label: "Maior preço" },
                                 { value: "nota", label: "Melhor nota" },

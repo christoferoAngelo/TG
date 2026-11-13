@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import ModalFiltros from "./explorar/ModalFiltros";
 import SalvarLista from "./explorar/SalvarLista";
 import { CardExplorar, EsqueletoGrade, MapaEspacos } from "./explorar/CardExplorar";
+import MelhorAvaliados, { espacosEmDestaque } from "./explorar/MelhorAvaliados";
 import HomeRodape from "./HomeRodape";
 import {
     CATEGORIAS,
@@ -72,6 +73,7 @@ export default function Home() {
     const { usuarioLogado } = useAuth();
     const [params, setParams] = useSearchParams();
     const [espacos, setEspacos] = useState([]);
+    const [melhores, setMelhores] = useState([]);
     const [catalogo, setCatalogo] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState(false);
@@ -79,7 +81,11 @@ export default function Home() {
     const quando = params.get("data") || "";
     const pessoas = params.get("pessoas") || "0";
     const [categoria, setCategoria] = useState(params.get("cat") || "Todos");
-    const [filtros, setFiltros] = useState(FILTRO_INICIAL);
+    const [filtros, setFiltros] = useState(() => (
+        params.get("ordenar") === "melhor-avaliados"
+            ? { ...FILTRO_INICIAL, ordem: "melhor-avaliados" }
+            : FILTRO_INICIAL
+    ));
     const [filtrosAbertos, setFiltrosAbertos] = useState(false);
     const [vista, setVista] = useState("grade");
     const [listas, setListas] = useState([]);
@@ -101,11 +107,14 @@ export default function Home() {
         return () => window.removeEventListener("locafesta-tema", onTema);
     }, []);
 
-    const buscar = (termo) => {
+    const buscar = (termo, ordenar) => {
         const idBusca = ++ultimaBusca.current;
         setCarregando(true);
         setErro(false);
-        fetch(`${API_BUSCA}?q=${encodeURIComponent(termo)}`)
+        const url = ordenar === "melhor-avaliados"
+            ? `${API_BUSCA}?ordenar=melhor-avaliados`
+            : `${API_BUSCA}?q=${encodeURIComponent(termo)}`;
+        fetch(url)
             .then((res) => {
                 if (!res.ok) throw new Error("Erro na requisição");
                 return res.json();
@@ -129,11 +138,43 @@ export default function Home() {
         const termoUrl = (params.get("q") || "").trim();
         const cat = params.get("cat") || "Todos";
         setCategoria(cat);
+        if (params.get("ordenar") === "melhor-avaliados") {
+            buscar("", "melhor-avaliados");
+            return;
+        }
         const termoApi = cat !== "Todos"
             ? cat
             : (/^qualquer lugar$/i.test(termoUrl) ? "" : termoUrl);
         buscar(termoApi);
     }, [params]);
+
+    useEffect(() => {
+        const querMelhores = params.get("ordenar") === "melhor-avaliados";
+        setFiltros((atual) => {
+            if (querMelhores && atual.ordem !== "melhor-avaliados") {
+                return { ...atual, ordem: "melhor-avaliados" };
+            }
+            if (!querMelhores && atual.ordem === "melhor-avaliados") {
+                return { ...atual, ordem: "relevancia" };
+            }
+            return atual;
+        });
+    }, [params]);
+
+    useEffect(() => {
+        let ativo = true;
+        fetch(`${API_BUSCA}?ordenar=melhor-avaliados`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((data) => {
+                if (ativo) setMelhores(Array.isArray(data) ? data : []);
+            })
+            .catch(() => {
+                if (ativo) setMelhores([]);
+            });
+        return () => {
+            ativo = false;
+        };
+    }, []);
 
     useEffect(() => {
         let ativo = true;
@@ -275,11 +316,50 @@ export default function Home() {
     const buscaCompleta = Boolean(onde.trim()) && Boolean(quando) && Number(pessoasAplicadas) > 0;
     const mostrarFiltros = buscaCompleta;
 
-    const titulo = categoria !== "Todos"
-        ? categoria
-        : onde.trim()
-            ? `Resultados para “${onde.trim()}”`
-            : "Espaços para o seu evento";
+    const listagemAvaliados = params.get("ordenar") === "melhor-avaliados";
+    const destaques = useMemo(() => espacosEmDestaque(melhores, 4), [melhores]);
+    const inicio = !listagemAvaliados && categoria === "Todos" && !termoBusca(onde);
+    const listagem = useMemo(() => {
+        if (!inicio || destaques.length === 0) return visiveis;
+        const ids = new Set(destaques.map((espaco) => Number(espaco.id)));
+        return visiveis.filter((espaco) => !ids.has(Number(espaco.id)));
+    }, [visiveis, inicio, destaques]);
+    const titulo = listagemAvaliados
+        ? "Espaços mais bem avaliados"
+        : categoria !== "Todos"
+            ? categoria
+            : onde.trim()
+                ? `Resultados para “${onde.trim()}”`
+                : "Espaços para o seu evento";
+
+    const verMaisAvaliados = () => {
+        setParams(new URLSearchParams({ ordenar: "melhor-avaliados" }));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const aplicarFiltrosHome = (proximos) => {
+        setFiltros(proximos);
+        if (proximos.ordem === "melhor-avaliados") {
+            if (params.get("ordenar") !== "melhor-avaliados") {
+                setParams(new URLSearchParams({ ordenar: "melhor-avaliados" }));
+            }
+            return;
+        }
+        if (params.get("ordenar") === "melhor-avaliados") {
+            const proxima = new URLSearchParams(params);
+            proxima.delete("ordenar");
+            setParams(proxima, { replace: true });
+        }
+    };
+
+    const limparFiltros = () => {
+        setFiltros(FILTRO_INICIAL);
+        if (params.get("ordenar") === "melhor-avaliados") {
+            const proxima = new URLSearchParams(params);
+            proxima.delete("ordenar");
+            setParams(proxima, { replace: true });
+        }
+    };
 
     const renderGrade = (lista) => (
         <AnimatedContent
@@ -387,6 +467,15 @@ export default function Home() {
             </div>
 
             <div className="hm-conteudo">
+                {inicio && (
+                    <MelhorAvaliados
+                        espacos={destaques}
+                        listas={listas}
+                        onFavoritar={setEspacoLista}
+                        onVerMais={verMaisAvaliados}
+                        dataEvento={dataAplicada}
+                    />
+                )}
                 <div className="hm-resumo">
                     <BlurText
                         text={titulo}
@@ -400,7 +489,7 @@ export default function Home() {
                         trigger="load"
                     />
                     {!carregando && !erro && (
-                        <p>{visiveis.length === 1 ? "1 espaço" : `${visiveis.length} espaços`}</p>
+                        <p>{listagem.length === 1 ? "1 espaço" : `${listagem.length} espaços`}</p>
                     )}
                 </div>
 
@@ -410,14 +499,18 @@ export default function Home() {
                         <button
                             type="button"
                             className="hm-btn hm-btn--primario"
-                            onClick={() => buscar(categoria !== "Todos" ? categoria : termoBusca(onde))}
+                            onClick={() => (
+                                params.get("ordenar") === "melhor-avaliados"
+                                    ? buscar("", "melhor-avaliados")
+                                    : buscar(categoria !== "Todos" ? categoria : termoBusca(onde))
+                            )}
                         >
                             Tentar novamente
                         </button>
                     </div>
                 ) : carregando ? (
                     <EsqueletoGrade />
-                ) : visiveis.length === 0 ? (
+                ) : listagem.length === 0 ? (
                     <>
                         <div className="hm-estado">
                             <p>Nenhum espaço encontrado com esses filtros. Tente outra cidade, data ou menos comodidades.</p>
@@ -440,9 +533,9 @@ export default function Home() {
                         )}
                     </>
                 ) : vista === "mapa" ? (
-                    <MapaEspacos espacos={visiveis} />
+                    <MapaEspacos espacos={listagem} />
                 ) : (
-                    renderGrade(visiveis)
+                    renderGrade(listagem)
                 )}
             </div>
 
@@ -475,10 +568,11 @@ export default function Home() {
                 filtros={filtros}
                 comodidades={comodidades}
                 espacos={espacos}
+                espacosMelhorAvaliados={melhores}
                 pessoas={pessoasAplicadas}
                 semVaga={dataAplicada ? semVaga : []}
-                onChange={setFiltros}
-                onLimpar={() => setFiltros(FILTRO_INICIAL)}
+                onChange={aplicarFiltrosHome}
+                onLimpar={limparFiltros}
                 onFechar={() => setFiltrosAbertos(false)}
             />
             <SalvarLista
